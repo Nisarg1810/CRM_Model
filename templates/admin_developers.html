@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Developers</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addDeveloperModal">Add Developer</button>
+  </div>
+  <div class="row">
+    {% for dev in developers %}
+    <div class="col-md-4 mb-3">
+      <div class="card h-100">
+        <div class="card-body d-flex align-items-center">
+          <img src="https://ui-avatars.com/api/?name={{ dev.username }}&background=6c757d&color=fff" class="rounded-circle me-3" width="50" height="50" alt="Avatar">
+          <div>
+            <h5 class="card-title mb-1">{{ dev.username }}</h5>
+            <p class="card-text mb-1"><b>ID:</b> {{ dev.id }}<br><b>Mobile:</b> {{ dev.mobile }}<br><b>Role:</b> {{ dev.role }}<br><b>Specialization:</b> {{ dev.specialization|default:'-' }}<br><b>Capacity:</b> {{ dev.capacity }}</p>
+            <form method="POST" action="{% url 'delete_developer' dev.id %}" style="display:inline;">
+              <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editDeveloperModal{{ dev.id }}">Edit</button>
+            <a href="{% url 'admin_chat' dev.username %}" class="btn btn-info btn-sm ms-1">Chat</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Edit Developer Modal -->
+    <div class="modal fade" id="editDeveloperModal{{ dev.id }}" tabindex="-1" aria-labelledby="editDeveloperModalLabel{{ dev.id }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form method="POST" action="{% url 'edit_developer' dev.id %}">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editDeveloperModalLabel{{ dev.id }}">Edit Developer</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-2">
+                <input type="text" name="username" class="form-control" value="{{ dev.username }}" required>
+              </div>
+              <div class="mb-2">
+                <input type="password" name="password" class="form-control" value="{{ dev.password }}" required>
+              </div>
+              <div class="mb-2">
+                <input type="text" name="mobile" class="form-control" value="{{ dev.mobile }}" required>
+              </div>
+              <div class="mb-2">
+                <select name="role" class="form-select role-select" required onchange="toggleSpecialization(this, 'edit{{ dev.id }}')">
+                  <option value="developer" {% if dev.role == 'developer' %}selected{% endif %}>Developer</option>
+                  <option value="admin" {% if dev.role == 'admin' %}selected{% endif %}>Admin</option>
+                </select>
+              </div>
+              <div class="mb-2 specialization-group-edit{{ dev.id }}" {% if dev.role != 'developer' %}style="display:none;"{% endif %}>
+                <select name="specialization" class="form-select" {% if dev.role == 'developer' %}required{% endif %}>
+                  <option value="">Select Specialization</option>
+                  <option value="Python Developer" {% if dev.specialization == 'Python Developer' %}selected{% endif %}>Python Developer</option>
+                  <option value="Java Developer" {% if dev.specialization == 'Java Developer' %}selected{% endif %}>Java Developer</option>
+                  <option value="Frontend Developer" {% if dev.specialization == 'Frontend Developer' %}selected{% endif %}>Frontend Developer</option>
+                  <option value="Backend Developer" {% if dev.specialization == 'Backend Developer' %}selected{% endif %}>Backend Developer</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <input type="text" name="capacity" class="form-control" value="{{ dev.capacity }}" placeholder="Capacity" required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-warning">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <!-- Add Developer Modal -->
+  <div class="modal fade" id="addDeveloperModal" tabindex="-1" aria-labelledby="addDeveloperModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="POST" action="{% url 'add_developer' %}">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addDeveloperModalLabel">Add Developer</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-2">
+              <input type="text" name="username" class="form-control" placeholder="Username" required>
+            </div>
+            <div class="mb-2">
+              <input type="password" name="password" class="form-control" placeholder="Password" required>
+            </div>
+            <div class="mb-2">
+              <input type="text" name="mobile" class="form-control" placeholder="Mobile Number" required>
+            </div>
+            <div class="mb-2">
+              <select name="role" class="form-select role-select" required onchange="toggleSpecialization(this, 'add')">
+                <option value="developer">Developer</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="mb-2 specialization-group-add">
+              <select name="specialization" class="form-select" required>
+                <option value="">Select Specialization</option>
+                <option value="Python Developer">Python Developer</option>
+                <option value="Java Developer">Java Developer</option>
+                <option value="Frontend Developer">Frontend Developer</option>
+                <option value="Backend Developer">Backend Developer</option>
+              </select>
+            </div>
+            <div class="mb-2">
+              <input type="text" name="capacity" class="form-control" placeholder="Capacity" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-success">Add Developer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ block.super }}
+<script>
+function toggleSpecialization(select, suffix) {
+  var val = select.value;
+  var group = document.querySelector('.specialization-group-' + suffix);
+  if (group) group.style.display = (val === 'developer') ? '' : 'none';
+}
+window.onload = function() {
+  var addRole = document.querySelector('.role-select[name="role"]');
+  if (addRole) toggleSpecialization(addRole, 'add');
+};
+</script>
+{% endblock %} 

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card p-4 mb-4">
+        <div class="d-flex align-items-center mb-3">
+          <img src="{% if user.profile_pic %}{{ user.profile_pic.url }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=6c757d&color=fff{% endif %}" class="rounded-circle me-3" width="80" height="80" alt="Dev Avatar">
+          <div>
+            <h3 class="mb-0">{{ user.username }}</h3>
+            <span class="text-muted">Mobile: {{ user.mobile }}</span><br>
+            <span class="text-muted">Role: {{ user.role|capfirst }}</span><br>
+            <span class="text-muted">Specialization: {{ user.specialization|default:'-' }}</span>
+          </div>
+        </div>
+        <div class="row text-center mb-3">
+          <div class="col">
+            <h5>{{ total_tasks }}</h5>
+            <small>Total Tasks</small>
+          </div>
+          <div class="col">
+            <h5>{{ completed_tasks }}</h5>
+            <small>Completed</small>
+          </div>
+        </div>
+        <form method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Profile Picture</label>
+            <input type="file" name="profile_pic" class="form-control">
+            <small class="text-muted">Allowed: images only. Max 5MB.</small>
+          </div>
+          <hr>
+          <h5>Change Password</h5>
+          <div class="mb-3">
+            <input type="password" name="new_password" class="form-control" placeholder="New Password">
+          </div>
+          <div class="mb-3">
+            <input type="password" name="confirm_password" class="form-control" placeholder="Confirm New Password">
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Update Profile</button>
+        </form>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card p-4">
+        <h5>Recent Tasks</h5>
+        <ul class="list-group">
+          {% for task in recent_tasks %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a href="#" class="text-decoration-none">{{ task.name }}</a>
+            <span class="badge {% if task.status == 'approved' %}bg-success{% elif task.status == 'completed' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ task.status|capfirst }}</span>
+          </li>
+          {% empty %}
+          <li class="list-group-item">No recent tasks.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

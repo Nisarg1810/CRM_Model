@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+  <!-- Developer Info Card -->
+  <div class="row mb-4">
+    <div class="col-md-4 mb-2">
+      <div class="card h-100">
+        <div class="card-body d-flex align-items-center">
+          <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=6c757d&color=fff" class="rounded-circle me-3" width="60" height="60" alt="Dev Avatar">
+          <div>
+            <h5 class="mb-0">{{ user.username }}</h5>
+            <small class="text-muted">Developer</small><br>
+            <span class="text-muted">Mobile: {{ user.mobile }}</span><br>
+            <span class="text-muted">Total Tasks: {{ tasks|length }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <h4>My Tasks</h4>
+  <div id="overdueAlert" class="alert alert-danger d-none" role="alert">
+    <b>Overdue!</b> You have one or more overdue tasks. Please complete them as soon as possible.
+  </div>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Deadline</th>
+        <th>Countdown</th>
+        <th>Price</th>
+        <th>Timeline</th>
+        <th>Admin</th>
+        <th>Status</th>
+        <th>Progress</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for task in tasks %}
+      <tr class="{% if task.status != 'approved' and task.deadline < today %}table-danger{% endif %}">
+        <td>{{ task.name }}</td>
+        <td>{{ task.description }}</td>
+        <td>{{ task.deadline }}</td>
+        <td><span class="countdown" data-deadline="{{ task.deadline }}" data-status="{{ task.status }}"></span></td>
+        <td>{{ task.price }}</td>
+        <td>{{ task.timeline }}</td>
+        <td>{{ task.admin }}</td>
+        <td>
+          {% if task.status == 'assigned' %}
+            <span class="badge bg-warning text-dark">Assigned</span>
+          {% elif task.status == 'completed' %}
+            <span class="badge bg-info text-dark">Pending Approval</span>
+          {% elif task.status == 'approved' %}
+            <span class="badge bg-success">Approved</span>
+          {% endif %}
+          {% if task.status != 'approved' and task.deadline < today %}
+            <span class="badge bg-danger">Overdue</span>
+          {% endif %}
+        </td>
+        <td style="min-width:120px;">
+          <div class="progress">
+            {% if task.status == 'assigned' %}
+              <div class="progress-bar bg-secondary" role="progressbar" style="width: 33%;">33%</div>
+            {% elif task.status == 'completed' %}
+              <div class="progress-bar bg-warning text-dark" role="progressbar" style="width: 66%;">66%</div>
+            {% elif task.status == 'approved' %}
+              <div class="progress-bar bg-success" role="progressbar" style="width: 100%;">100%</div>
+            {% endif %}
+          </div>
+        </td>
+        <td>
+          {% if task.attachment %}
+            <a href="{{ task.attachment.url }}" target="_blank" class="d-block text-truncate" style="max-width:120px;">{{ task.attachment.name|cut:'task_attachments/' }}</a>
+          {% else %}
+            <span class="text-muted">-</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<script>
+function updateCountdowns() {
+  let overdue = false;
+  document.querySelectorAll('.countdown').forEach(function(span) {
+    const deadline = new Date(span.getAttribute('data-deadline'));
+    const status = span.getAttribute('data-status');
+    if (status === 'approved') {
+      span.textContent = '\u2014';
+      return;
+    }
+    const now = new Date();
+    const diff = deadline - now;
+    if (diff > 0) {
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+      span.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
+      span.classList.remove('text-danger');
+    } else {
+      span.textContent = 'Overdue!';
+      span.classList.add('text-danger');
+      overdue = true;
+    }
+  });
+  document.getElementById('overdueAlert').classList.toggle('d-none', !overdue);
+}
+setInterval(updateCountdowns, 1000);
+window.onload = updateCountdowns;
+</script>
+{% endblock %} 

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-md-4 col-6 mb-2">
+      <div class="card text-center shadow-sm"><div class="card-body"><h6>Most Active Developer</h6><h4>{{ most_active_dev.username|default:'N/A' }}</h4></div></div>
+    </div>
+    <div class="col-md-4 col-6 mb-2">
+      <div class="card text-center shadow-sm"><div class="card-body"><h6>Most Tasks Completed</h6><h4>{{ most_tasks_completed.username|default:'N/A' }}</h4></div></div>
+    </div>
+    <div class="col-md-4 col-6 mb-2">
+      <div class="card text-center shadow-sm"><div class="card-body"><h6>Most Messages Sent</h6><h4>{{ most_messages_sent.username|default:'N/A' }}</h4></div></div>
+    </div>
+    <div class="col-md-4 col-6 mb-2 d-flex align-items-center justify-content-end">
+      <button class="btn btn-outline-primary">Export CSV</button>
+    </div>
+  </div>
+  <!-- Filters and Search -->
+  <div class="row mb-3">
+    <div class="col-md-4 mb-2">
+      <select class="form-select" id="activityTypeFilter">
+        <option value="">All Types</option>
+        <option value="task">Task</option>
+        <option value="user">User</option>
+        <option value="chat">Chat</option>
+      </select>
+    </div>
+    <div class="col-md-4 mb-2">
+      <input type="text" class="form-control" id="activitySearch" placeholder="Search activity...">
+    </div>
+  </div>
+  <!-- Activity Feed -->
+  <ul class="list-group" id="activityFeed">
+    {% for entry in activity %}
+    <li class="list-group-item">
+      <span class="badge bg-secondary me-2">{{ entry.type|capfirst }}</span>
+      <b>{{ entry.user }}</b> {{ entry.action }}
+      <span class="text-muted">{{ entry.title }}</span>
+      <span class="float-end text-muted">{{ entry.date }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %} 
