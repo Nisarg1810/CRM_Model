@@ -1,6 +1,6 @@
 Flask
 Werkzeug 
 Django>=5.1
-mysqlclient
+PyMySQL
 gunicorn
 whitenoise 
