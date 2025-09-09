@@ -1,0 +1,1039 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}My Tasks{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employee_tasks.css' %}">
+<style>
+  .table-responsive {
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  .table {
+    margin-bottom: 0;
+  }
+  
+  .table thead th {
+    border-top: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .table tbody tr:hover {
+    background-color: rgba(0,123,255,0.05);
+  }
+  
+  .table-danger {
+    background-color: rgba(220,53,69,0.1) !important;
+  }
+  
+  .table-danger:hover {
+    background-color: rgba(220,53,69,0.15) !important;
+  }
+  
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+  }
+  
+  .btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .text-truncate {
+    max-width: 150px;
+    display: inline-block;
+    vertical-align: top;
+  }
+  
+  /* Filter Bar Styling */
+  .card-header.bg-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+  }
+  
+  .form-label.fw-bold {
+    color: #495057;
+    font-size: 0.9rem;
+  }
+  
+  .form-select-sm, .form-control {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+  }
+  
+  .form-select-sm:focus, .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  
+  .input-group-text {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+    color: #6c757d;
+  }
+  
+  .btn-sm {
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  
+  .hr {
+    border-color: #e9ecef;
+    opacity: 0.7;
+  }
+  
+  /* Real-time search styling */
+  .loading-indicator {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin: 1rem 0;
+  }
+  
+  .input-group {
+    position: relative;
+  }
+  
+  /* Clear button styling */
+  .input-group .clear-btn {
+    position: absolute;
+  }
+  
+  /* Enhanced Task Details Modal Styling */
+  .modal-header.bg-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+    border-bottom: 2px solid #0a58ca;
+  }
+  
+  .modal-header .modal-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  
+  .card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+  }
+  
+  .card-header {
+    border-radius: 8px 8px 0 0 !important;
+  }
+  
+  .card-body p {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8f9fa;
+  }
+  
+  .card-body p:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+  
+  .badge {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  
+  .text-primary h6, .text-success h6, .text-info h6 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid currentColor;
+  }
+  
+
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+    opacity: 0.8;
+  }
+  
+  .input-group .clear-btn:hover {
+    background: #dc3545;
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  .input-group .clear-btn:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+  
+  /* Show clear button only when input has value */
+  .input-group .clear-btn.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-50%) scale(0.8);
+  }
+  
+  .input-group .form-control {
+    padding-right: 35px;
+  }
+  
+  .input-group .form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    border-color: #007bff;
+  }
+  
+  /* Enhanced filter styling */
+  .form-label.fw-bold {
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .form-select-sm, .form-control {
+    height: 38px;
+    font-size: 0.875rem;
+  }
+  
+  .input-group-text {
+    height: 38px;
+    font-size: 0.875rem;
+  }
+  
+  .btn-sm {
+    height: 38px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  
+  /* Card enhancements */
+  .card-header {
+    padding: 1rem 1.5rem;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+  
+  /* Sortable table headers */
+  .table thead th a {
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .table thead th a:hover {
+    color: #000 !important;
+    text-decoration: underline !important;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    padding: 2px 4px;
+  }
+  
+  .table thead th a .bi {
+    font-size: 0.8rem;
+    opacity: 0.8;
+  }
+  
+  .table thead th a:hover .bi {
+    opacity: 1;
+  }
+  
+  /* Ensure table headers are visible */
+  .table-primary {
+    background-color: #cfe2ff !important;
+  }
+  
+  .table-primary th {
+    background-color: #cfe2ff !important;
+    color: #000 !important;
+    border-color: #9ec5fe !important;
+  }
+  
+  /* Animation for search results */
+  .table tbody tr {
+    transition: all 0.3s ease;
+  }
+  
+  .table tbody tr:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  @media (max-width: 768px) {
+    .table-responsive {
+      font-size: 0.9rem;
+    }
+    
+    .btn-group-sm .btn {
+      padding: 0.2rem 0.4rem;
+      font-size: 0.8rem;
+    }
+    
+    .card-body {
+      padding: 1rem;
+    }
+    
+    .col-lg-3 {
+      margin-bottom: 1rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tasks-container">
+    <div class="tasks-header">
+        <h1><i class="bi bi-list-task me-2"></i>My Tasks</h1>
+        <p>Manage your assigned land tasks and track progress</p>
+    </div>
+    
+    <!-- Overdue Tasks Alert -->
+    {% if overdue_tasks_count > 0 %}
+        <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div>
+                <strong>Warning:</strong> You have {{ overdue_tasks_count }} overdue task{{ overdue_tasks_count|pluralize }} that require immediate attention.
+                <br>
+                <small class="text-muted">Please review and complete these tasks as soon as possible.</small>
+            </div>
+        </div>
+    {% endif %}
+    
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h6 class="mb-0">
+                <i class="bi bi-funnel me-2"></i>
+                Filter & Search Tasks
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-4 align-items-end">
+                <div class="col-lg-3 col-md-6">
+                    <label for="status" class="form-label fw-bold text-primary mb-2">
+                        <i class="bi bi-flag me-1"></i>Status
+                    </label>
+                    <select name="status" id="status" class="form-select form-select-sm border-primary">
+                        <option value="">All Status</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>
+                            <i class="bi bi-hourglass-split"></i> Pending
+                        </option>
+                        <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>
+                            <i class="bi bi-arrow-repeat"></i> In Progress
+                        </option>
+                        <option value="pending_approval" {% if status_filter == 'pending_approval' %}selected{% endif %}>
+                            <i class="bi bi-clock-history"></i> Pending Approval
+                        </option>
+                        <option value="complete" {% if status_filter == 'complete' %}selected{% endif %}>
+                            <i class="bi bi-check-circle"></i> Complete
+                        </option>
+                    </select>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <label for="task" class="form-label fw-bold text-primary mb-2">
+                        <i class="bi bi-list-task me-1"></i>Task Name
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-primary text-white border-primary">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="task" id="task" class="form-control border-primary" 
+                               value="{{ task_filter }}" placeholder="Search by task name...">
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <label for="land" class="form-label fw-bold text-primary mb-2">
+                        <i class="bi bi-geo-alt me-1"></i>Land Name
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-primary text-white border-primary">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="land" id="land" class="form-control border-primary" 
+                               value="{{ land_filter }}" placeholder="Search by land name...">
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label fw-bold text-primary mb-2">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Actions
+                    </label>
+                    <button type="button" class="btn btn-primary btn-sm w-100 shadow-sm" onclick="window.location.reload()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                    </button>
+                </div>
+                
+                <div class="col-12">
+                    <hr class="my-4 border-primary opacity-25">
+                    <div class="text-center">
+                        <div class="text-primary fw-semibold">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Showing {{ assigned_land_tasks|length }} task{{ assigned_land_tasks|length|pluralize }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if assigned_land_tasks %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead class="table-primary">
+                    <tr>
+                        <th scope="col">
+                            <a href="?{% if status_filter %}status={{ status_filter }}&{% endif %}{% if task_filter %}task={{ task_filter }}&{% endif %}{% if land_filter %}land={{ land_filter }}&{% endif %}sort=task_name&order={% if sort_by == 'task_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-dark text-decoration-none fw-bold">
+                                Task Name
+                                {% if sort_by == 'task_name' %}
+                                    <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %} ms-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th scope="col">
+                            <a href="?{% if status_filter %}status={{ status_filter }}&{% endif %}{% if task_filter %}task={{ task_filter }}&{% endif %}{% if land_filter %}land={{ land_filter }}&{% endif %}sort=land_name&order={% if sort_by == 'land_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-dark text-decoration-none fw-bold">
+                                Land
+                                {% if sort_by == 'land_name' %}
+                                    <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %} ms-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th scope="col">
+                            <a href="?{% if status_filter %}status={{ status_filter }}&{% endif %}{% if task_filter %}task={{ task_filter }}&{% endif %}{% if land_filter %}land={{ land_filter }}&{% endif %}sort=status&order={% if sort_by == 'status' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-dark text-decoration-none fw-bold">
+                                Status
+                                {% if sort_by == 'status' %}
+                                    <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %} ms-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th scope="col">
+                            <a href="?{% if status_filter %}status={{ status_filter }}&{% endif %}{% if task_filter %}task={{ task_filter }}&{% endif %}{% if land_filter %}land={{ land_filter }}&{% endif %}sort=assigned_date&order={% if sort_by == 'assigned_date' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-dark text-decoration-none fw-bold">
+                                Assigned Date
+                                {% if sort_by == 'assigned_date' %}
+                                    <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %} ms-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th scope="col">
+                            <a href="?{% if status_filter %}status={{ status_filter }}&{% endif %}{% if task_filter %}task={{ task_filter }}&{% endif %}{% if land_filter %}land={{ land_filter }}&{% endif %}sort=due_date&order={% if sort_by == 'due_date' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-dark text-decoration-none fw-bold">
+                                Due Date
+                                {% if sort_by == 'due_date' %}
+                                    <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %} ms-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th scope="col">
+                            <a href="?{% if status_filter %}status={{ status_filter }}&{% endif %}{% if task_filter %}task={{ task_filter }}&{% endif %}{% if land_filter %}land={{ land_filter }}&{% endif %}sort=due_date&order={% if sort_by == 'due_date' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-dark text-decoration-none fw-bold" title="Shows remaining days until due date. Hover over values for original completion days.">
+                                Remaining Days
+                                {% if sort_by == 'due_date' %}
+                                    <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %} ms-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th scope="col" class="text-dark fw-bold">Notes & Updates</th>
+                        <th scope="col" class="text-dark fw-bold">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assigned_task in assigned_land_tasks %}
+                    <tr class="{% if assigned_task.is_overdue %}table-danger{% endif %}">
+                        <td>
+                            <strong>{{ assigned_task.task.name }}</strong>
+                        </td>
+                        <td>
+                            <i class="bi bi-geo-alt me-1"></i>
+                            {{ assigned_task.land.name }}
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if assigned_task.status == 'pending' %}bg-warning text-dark
+                                {% elif assigned_task.status == 'in_progress' %}bg-primary
+                                {% elif assigned_task.status == 'pending_approval' %}bg-info
+                                {% elif assigned_task.status == 'complete' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ assigned_task.status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <i class="bi bi-calendar-plus me-1"></i>
+                            {{ assigned_task.assigned_date|date:"M j, Y" }}
+                        </td>
+                        <td>
+                            {% if assigned_task.due_date %}
+                                <i class="bi bi-calendar-event me-1"></i>
+                                {{ assigned_task.due_date|date:"M j, Y" }}
+                                {% if assigned_task.is_overdue %}
+                                    <br>
+                                    <small class="text-danger">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                        Overdue by {{ assigned_task.days_overdue }} days
+                                    </small>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </td>
+                        <td class="remaining-days-cell">
+                            {% if assigned_task.remaining_days is not None %}
+                                {% if assigned_task.is_overdue %}
+                                    <span class="text-danger" title="Original completion days: {{ assigned_task.completion_days }} days">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                        Overdue
+                                    </span>
+                                {% elif assigned_task.remaining_days == 0 %}
+                                    <span class="text-warning" title="Original completion days: {{ assigned_task.completion_days }} days">
+                                        <i class="bi bi-clock me-1"></i>
+                                        Due today
+                                    </span>
+                                {% elif assigned_task.remaining_days <= 3 %}
+                                    <span class="text-warning" title="Original completion days: {{ assigned_task.completion_days }} days">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ assigned_task.remaining_days }} days left
+                                    </span>
+                                {% else %}
+                                    <span class="text-success" title="Original completion days: {{ assigned_task.completion_days }} days">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ assigned_task.remaining_days }} days left
+                                    </span>
+                                {% endif %}
+                                <br>
+                                <small class="text-muted original-days">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Original: {{ assigned_task.completion_days }} days
+                                </small>
+                            {% else %}
+                                <span class="text-muted" title="Original completion days: {{ assigned_task.completion_days }} days">
+                                    <i class="bi bi-clock me-1"></i>
+                                    No due date
+                                </span>
+                                <br>
+                                <small class="text-muted original-days">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Original: {{ assigned_task.completion_days }} days
+                                </small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if assigned_task.admin_approval_notes %}
+                                {% if "Task reassigned with notes:" in assigned_task.admin_approval_notes %}
+                                    <!-- Reassign Notes -->
+                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ assigned_task.admin_approval_notes }}">
+                                        <i class="bi bi-arrow-repeat text-warning me-1"></i>
+                                        {{ assigned_task.admin_approval_notes|truncatechars:30 }}
+                                    </span>
+                                {% else %}
+                                    <!-- Approve Notes -->
+                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ assigned_task.admin_approval_notes }}">
+                                        <i class="bi bi-shield-check text-success me-1"></i>
+                                        {{ assigned_task.admin_approval_notes|truncatechars:30 }}
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                {% if assigned_task.status == 'pending' %}
+                                    <button class="btn btn-success btn-sm" onclick="startTask({{ assigned_task.id }})" title="Start Task">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                {% elif assigned_task.status == 'in_progress' %}
+                                    <button class="btn btn-primary btn-sm" onclick="showCompletionModal({{ assigned_task.id }})" title="Mark Complete">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                {% endif %}
+                                
+                                <button class="btn btn-info btn-sm" onclick="viewTaskDetails({{ assigned_task.id }})" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            {% if status_filter or land_filter %}
+                No tasks match your current filters. Try adjusting your search criteria.
+            {% else %}
+                No land assignments found. Tasks will appear here when you are assigned to specific land properties.
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+<!-- Task Completion Modal -->
+<div class="modal fade" id="completionModal" tabindex="-1" aria-labelledby="completionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="completionModalLabel">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Complete Task
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="completionForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Completion Notes <span class="text-danger">*</span></label>
+                            <textarea name="notes" class="form-control" rows="4" placeholder="Describe what was completed, any important details, or additional information..." required></textarea>
+                            <small class="text-muted">Please provide a clear description of the work completed</small>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Upload Photos <span class="text-muted">(Optional but recommended)</span></label>
+                            <input type="file" name="photos" class="form-control" accept="image/*" multiple id="photoUpload">
+                            <small class="text-muted">You can select multiple photos (JPG, PNG, GIF). Max 5 photos, 5MB each.</small>
+                            <div id="photoPreview" class="mt-2 d-none">
+                                <div class="row g-2" id="photoPreviewRow"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Upload Documents <span class="text-muted">(Optional)</span></label>
+                            <input type="file" name="pdf" class="form-control" accept=".pdf,.doc,.docx" id="documentUpload">
+                            <small class="text-muted">Upload any relevant documents (PDF, DOC, DOCX). Max 10MB.</small>
+                            <div id="documentPreview" class="mt-2 d-none">
+                                <div class="alert alert-info py-2">
+                                    <i class="bi bi-file-earmark-text me-2"></i>
+                                    <span id="documentName"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle me-2"></i>
+                                <strong>Almost Done!</strong> Your completion will be reviewed by an administrator. Please ensure all information is accurate.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success" id="submitBtn">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Submit for Approval
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Task Details Modal -->
+<div class="modal fade" id="taskDetailsModal" tabindex="-1" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="taskDetailsModalLabel">
+                    <i class="bi bi-info-circle me-2"></i>Task Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="taskDetailsContent">
+                <!-- Task details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/employee_tasks.js' %}"></script>
+<script>
+// Real-time search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const taskInput = document.getElementById('task');
+    const landInput = document.getElementById('land');
+    const statusSelect = document.getElementById('status');
+    const taskTable = document.querySelector('tbody');
+    const originalTasks = Array.from(taskTable.querySelectorAll('tr'));
+    
+    // Debounce function to limit API calls
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // Function to perform real-time search
+    function performRealTimeSearch() {
+        const taskValue = taskInput.value.toLowerCase().trim();
+        const landValue = landInput.value.toLowerCase().trim();
+        const statusValue = statusSelect.value;
+        
+        // Show loading indicator
+        showLoadingIndicator();
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        if (statusValue) params.append('status', statusValue);
+        if (taskValue) params.append('task', taskValue);
+        if (landValue) params.append('land', landValue);
+        
+        // Preserve current sorting
+        const currentUrl = new URL(window.location);
+        const currentSort = currentUrl.searchParams.get('sort');
+        const currentOrder = currentUrl.searchParams.get('order');
+        if (currentSort) params.append('sort', currentSort);
+        if (currentOrder) params.append('order', currentOrder);
+        
+        // Make AJAX request to backend for filtered results
+        console.log('Making AJAX request with params:', params.toString());
+        fetch(`?${params.toString()}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'text/html'
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            console.log('Received HTML response, length:', html.length);
+            // Create a temporary div to parse the HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            // Extract the table body content
+            const newTableBody = tempDiv.querySelector('tbody');
+            if (newTableBody) {
+                console.log('Found table body, updating table...');
+                // Update the current table body
+                taskTable.innerHTML = newTableBody.innerHTML;
+                
+                // Reattach event listeners
+                reattachEventListeners();
+                
+                // Update task count
+                const taskRows = taskTable.querySelectorAll('tr');
+                updateTaskCount(taskRows.length);
+                
+                // Update URL without page reload
+                const newUrl = new URL(window.location);
+                newUrl.search = params.toString();
+                window.history.pushState({}, '', newUrl);
+                
+                console.log('Table updated successfully with', taskRows.length, 'rows');
+            } else {
+                console.error('No table body found in response');
+                // Fallback to client-side filtering
+                performClientSideFiltering();
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching filtered results:', error);
+            // Fallback to client-side filtering
+            performClientSideFiltering();
+        })
+        .finally(() => {
+            hideLoadingIndicator();
+        });
+    }
+    
+    // Fallback function for client-side filtering
+    function performClientSideFiltering() {
+        const taskValue = taskInput.value.toLowerCase().trim();
+        const landValue = landInput.value.toLowerCase().trim();
+        const statusValue = statusSelect.value;
+        
+        console.log('Client-side filtering with:', { taskValue, landValue, statusValue });
+        
+        // Perform search on existing data (client-side filtering)
+        const filteredTasks = originalTasks.filter(taskRow => {
+            const taskName = taskRow.querySelector('td:first-child strong').textContent.toLowerCase();
+            const landName = taskRow.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const status = taskRow.querySelector('td:nth-child(3) .badge').textContent.toLowerCase();
+            
+            console.log('Checking row:', { taskName, landName, status });
+            
+            // Check if task name matches
+            const taskMatch = !taskValue || taskName.includes(taskValue);
+            
+            // Check if land name matches
+            const landMatch = !landValue || landName.includes(landValue);
+            
+            // Check if status matches - handle the status comparison correctly
+            let statusMatch = true;
+            if (statusValue) {
+                // Convert status values to match the display format
+                const expectedStatus = statusValue === 'pending_approval' ? 'pending approval' : statusValue;
+                statusMatch = status === expectedStatus;
+                console.log('Status comparison:', { status, expectedStatus, statusMatch });
+            }
+            
+            return taskMatch && landMatch && statusMatch;
+        });
+        
+        console.log('Client-side filtering results:', filteredTasks.length, 'tasks');
+        
+        // Update table with filtered results
+        updateTableResults(filteredTasks);
+        
+        // Update task count
+        updateTaskCount(filteredTasks.length);
+    }
+    
+    // Function to show loading indicator
+    function showLoadingIndicator() {
+        // Remove existing loading indicator
+        const existingLoader = document.querySelector('.loading-indicator');
+        if (existingLoader) {
+            existingLoader.remove();
+        }
+        
+        // Create and show loading indicator
+        const loader = document.createElement('div');
+        loader.className = 'loading-indicator text-center py-3';
+        loader.innerHTML = `
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span class="text-muted">Searching...</span>
+        `;
+        
+        // Insert loader after the filter form
+        const filterCard = document.querySelector('.card');
+        filterCard.parentNode.insertBefore(loader, filterCard.nextSibling);
+    }
+    
+    // Function to hide loading indicator
+    function hideLoadingIndicator() {
+        const loader = document.querySelector('.loading-indicator');
+        if (loader) {
+            loader.remove();
+        }
+    }
+    
+    // Function to update table results
+    function updateTableResults(filteredTasks) {
+        // Clear current table
+        taskTable.innerHTML = '';
+        
+        if (filteredTasks.length === 0) {
+            // Show no results message
+            taskTable.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        <div class="text-muted">
+                            <i class="bi bi-search me-2"></i>
+                            No tasks found matching your search criteria.
+                            <br>
+                            <small>Try adjusting your filters or search terms.</small>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        } else {
+            // Add filtered tasks back to table
+            filteredTasks.forEach(taskRow => {
+                taskTable.appendChild(taskRow.cloneNode(true));
+            });
+            
+            // Reattach event listeners to new buttons
+            reattachEventListeners();
+        }
+    }
+    
+    // Function to update task count
+    function updateTaskCount(count) {
+        const countElement = document.querySelector('.text-muted.small');
+        if (countElement) {
+            countElement.innerHTML = `
+                <i class="bi bi-info-circle me-1"></i>
+                Showing ${count} task${count !== 1 ? 's' : ''}
+            `;
+        }
+    }
+    
+    // Function to reattach event listeners to action buttons
+    function reattachEventListeners() {
+        // Reattach start task buttons
+        document.querySelectorAll('.btn-success').forEach(btn => {
+            if (btn.textContent.includes('Start Task')) {
+                btn.onclick = function() {
+                    const taskId = this.getAttribute('onclick').match(/\d+/)[0];
+                    startTask(taskId);
+                };
+            }
+        });
+        
+        // Reattach complete task buttons
+        document.querySelectorAll('.btn-primary').forEach(btn => {
+            if (btn.textContent.includes('Mark Complete')) {
+                btn.onclick = function() {
+                    const taskId = this.getAttribute('onclick').match(/\d+/)[0];
+                    showCompletionModal(taskId);
+                };
+            }
+        });
+        
+        // Reattach view details buttons
+        document.querySelectorAll('.btn-info').forEach(btn => {
+            if (btn.textContent.includes('View Details')) {
+                btn.onclick = function() {
+                    const taskId = this.getAttribute('onclick').match(/\d+/)[0];
+                    viewTaskDetails(taskId);
+                };
+            }
+        });
+    }
+    
+    // Add event listeners for real-time search
+    if (taskInput) {
+        taskInput.addEventListener('input', debounce(performRealTimeSearch, 300));
+    }
+    
+    if (landInput) {
+        landInput.addEventListener('input', debounce(performRealTimeSearch, 300));
+    }
+    
+    if (statusSelect) {
+        statusSelect.addEventListener('change', performRealTimeSearch);
+    }
+    
+    // Add clear functionality for individual fields
+    function addClearButtons() {
+        // Add clear button to task input
+        if (taskInput) {
+            const taskClearBtn = document.createElement('button');
+            taskClearBtn.type = 'button';
+            taskClearBtn.className = 'clear-btn';
+            taskClearBtn.innerHTML = '×';
+            taskClearBtn.onclick = function() {
+                taskInput.value = '';
+                performRealTimeSearch();
+                updateClearButtonVisibility(taskInput, taskClearBtn);
+            };
+            
+            const taskInputGroup = taskInput.closest('.input-group');
+            if (taskInputGroup) {
+                taskInputGroup.appendChild(taskClearBtn);
+            }
+            
+            // Add input event listener to show/hide clear button
+            taskInput.addEventListener('input', function() {
+                updateClearButtonVisibility(taskInput, taskClearBtn);
+            });
+        }
+        
+        // Add clear button to land input
+        if (landInput) {
+            const landClearBtn = document.createElement('button');
+            landClearBtn.type = 'button';
+            landClearBtn.className = 'clear-btn';
+            landClearBtn.innerHTML = '×';
+            landClearBtn.onclick = function() {
+                landInput.value = '';
+                performRealTimeSearch();
+                updateClearButtonVisibility(landInput, landClearBtn);
+            };
+            
+            const landInputGroup = landInput.closest('.input-group');
+            if (landInputGroup) {
+                landInputGroup.appendChild(landClearBtn);
+            }
+            
+            // Add input event listener to show/hide clear button
+            landInput.addEventListener('input', function() {
+                updateClearButtonVisibility(landInput, landClearBtn);
+            });
+        }
+    }
+    
+    // Function to update clear button visibility
+    function updateClearButtonVisibility(input, clearBtn) {
+        if (input.value.trim() === '') {
+            clearBtn.classList.add('hidden');
+        } else {
+            clearBtn.classList.remove('hidden');
+        }
+    }
+    
+    // Initialize clear buttons
+    addClearButtons();
+    
+    // Set initial state of clear buttons
+    setTimeout(() => {
+        const taskClearBtn = document.querySelector('#task').closest('.input-group').querySelector('.clear-btn');
+        const landClearBtn = document.querySelector('#land').closest('.input-group').querySelector('.clear-btn');
+        
+        if (taskClearBtn) updateClearButtonVisibility(taskInput, taskClearBtn);
+        if (landClearBtn) updateClearButtonVisibility(landInput, landClearBtn);
+    }, 100);
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + F to focus on task search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            if (taskInput) {
+                taskInput.focus();
+                taskInput.select();
+            }
+        }
+        
+        // Ctrl/Cmd + L to focus on land search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+            e.preventDefault();
+            if (landInput) {
+                landInput.focus();
+                landInput.select();
+            }
+        }
+        
+        // Escape to clear all filters
+        if (e.key === 'Escape') {
+            if (taskInput) taskInput.value = '';
+            if (landInput) landInput.value = '';
+            if (statusSelect) statusSelect.value = '';
+            performRealTimeSearch();
+        }
+    });
+});
+</script>
+{% endblock %}

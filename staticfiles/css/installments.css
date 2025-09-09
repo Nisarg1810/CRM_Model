@@ -1,0 +1,518 @@
+/* Installments Section Styling */
+.installment-row {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.installment-row:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.installment-row.removing {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.installment-header {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #1976d2;
+}
+
+.installment-fields {
+    display: grid;
+    grid-template-columns: 80px 100px 80px 140px 40px;
+    gap: 10px;
+    align-items: end;
+}
+
+.installment-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.installment-field label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.installment-field input,
+.installment-field select {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.installment-field input:focus,
+.installment-field select:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.installment-field input[readonly] {
+    background-color: #e9ecef;
+    opacity: 1;
+}
+
+.remove-installment-btn {
+    background: #dc3545;
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.remove-installment-btn:hover {
+    background: #c82333;
+    transform: scale(1.05);
+}
+
+.remove-installment-btn:active {
+    transform: scale(0.95);
+}
+
+.installment-total {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    margin-top: 15px;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.installment-total.complete {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.installment-total.incomplete {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
+.installment-total.over-complete {
+    background: linear-gradient(135deg, #dc3545, #e83e8c);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .installment-fields {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .installment-field {
+        margin-bottom: 8px;
+    }
+    
+    .remove-installment-btn {
+        width: 100%;
+        height: 40px;
+        margin-top: 8px;
+    }
+}
+
+/* Animation for adding/removing rows */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+.installment-row.adding {
+    animation: slideIn 0.3s ease-out;
+}
+
+.installment-row.removing {
+    animation: slideOut 0.3s ease-out;
+}
+
+/* Status badges */
+.status-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.complete {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.incomplete {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.over-complete {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Validation styling */
+.installment-field input.is-valid {
+    border-color: #198754;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.94-.94 1.44 1.44 2.5-2.5.94.94-3.44 3.44z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.installment-field input.is-invalid {
+    border-color: #dc3545;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 4.6 1.4 1.4 1.4-1.4'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+/* Validation message styling */
+#installmentValidationMessage {
+    margin-top: 10px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+#installmentValidationMessage .alert-dismissible .btn-close {
+    padding: 0.75rem 1rem;
+}
+
+/* Read-only installment styling */
+.read-only-installment {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.read-only-installment .installment-fields {
+    display: grid;
+    grid-template-columns: 120px 80px 140px 100px;
+    gap: 10px;
+    align-items: end;
+}
+
+.read-only-installment .installment-field input[readonly] {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+    color: #495057;
+    cursor: not-allowed;
+}
+
+.read-only-installment .installment-field .badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Hide spinner arrows from number inputs */
+.installment-field input[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
+}
+
+.installment-field input[type="number"]::-webkit-outer-spin-button,
+.installment-field input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none; /* Chrome, Safari, Edge */
+    margin: 0;
+}
+
+/* Installment Management Modal Styles */
+.installment-management-row {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.installment-management-fields {
+    display: grid;
+    grid-template-columns: 1fr 80px 140px 50px;
+    gap: 15px;
+    align-items: end;
+}
+
+.installment-management-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.installment-management-field label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.installment-management-field input[readonly] {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+    color: #495057;
+    cursor: not-allowed;
+}
+
+.pay-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 1rem;
+}
+
+.pay-btn i {
+    margin: 0;
+}
+
+/* Modal z-index fixes for proper stacking */
+#paymentModal {
+    z-index: 1060 !important; /* Higher than manageInstallmentsModal */
+}
+
+#paymentModal .modal-backdrop {
+    z-index: 1055 !important;
+}
+
+#paymentDetailsModal {
+    z-index: 1065 !important; /* Even higher for payment details */
+}
+
+#paymentDetailsModal .modal-backdrop {
+    z-index: 1060 !important;
+}
+
+/* Paid installment styling */
+.paid-installment {
+    background: #d4edda !important;
+    border-color: #c3e6cb !important;
+    opacity: 0.9;
+}
+
+.paid-input {
+    background-color: #d4edda !important;
+    border-color: #c3e6cb !important;
+    color: #155724 !important;
+    font-weight: 500;
+}
+
+.paid-status-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.paid-status-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #155724;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #c3e6cb;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #b8dacc;
+}
+
+.view-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 1rem;
+    background: #28a745;
+    border-color: #28a745;
+}
+
+.view-btn:hover {
+    background: #218838;
+    border-color: #1e7e34;
+    transform: scale(1.05);
+}
+
+.view-btn i {
+    margin: 0;
+}
+
+/* Read-only form styling */
+.form-control-readonly {
+    background-color: #f8f9fa !important;
+    border: 1px solid #ced4da !important;
+    color: #495057 !important;
+    cursor: not-allowed !important;
+    opacity: 0.8 !important;
+}
+
+.form-control-readonly:focus {
+    border-color: #ced4da !important;
+    box-shadow: none !important;
+    background-color: #f8f9fa !important;
+}
+
+.form-control-readonly option {
+    background-color: #f8f9fa !important;
+    color: #495057 !important;
+}
+
+/* Read-only installment styling */
+.read-only-installment {
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 8px !important;
+    padding: 10px !important;
+    margin-bottom: 8px !important;
+}
+
+.read-only-installment .installment-fields {
+    background-color: transparent !important;
+}
+
+.read-only-installment .installment-field input {
+    background-color: #ffffff !important;
+    border: 1px solid #ced4da !important;
+    color: #495057 !important;
+}
+
+.read-only-installment .installment-field label {
+    color: #6c757d !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+}
+
+/* Wide modal optimizations */
+#sellLandModal .modal-body {
+    padding: 1rem;
+}
+
+#sellLandModal .land-summary {
+    margin-bottom: 1rem !important;
+    padding: 0.75rem !important;
+}
+
+#sellLandModal .land-summary h6 {
+    margin-bottom: 0.5rem !important;
+    padding-bottom: 0.25rem !important;
+}
+
+#sellLandModal .form-label {
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+}
+
+#sellLandModal .form-text {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+#sellLandModal .alert {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+#sellLandModal .alert small {
+    font-size: 0.75rem;
+}
+
+#sellLandModal .input-group {
+    margin-bottom: 0.5rem;
+}
+
+#sellLandModal .row.g-2 > * {
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+}
+
+#sellLandModal .row.g-2 {
+    margin-right: -0.5rem;
+    margin-left: -0.5rem;
+}
+
+/* Responsive adjustments for management modal */
+@media (max-width: 768px) {
+    .installment-management-fields {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .installment-management-field {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .installment-management-field label {
+        margin-bottom: 5px;
+    }
+    
+    .pay-btn {
+        width: 100%;
+        height: auto;
+        border-radius: 4px;
+        padding: 8px 16px;
+    }
+    
+    .view-btn {
+        width: 100%;
+        height: auto;
+        border-radius: 4px;
+        padding: 8px 16px;
+    }
+    
+    .paid-status-container {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}

@@ -1,6 +1,6 @@
-Flask
-Werkzeug 
 Django>=5.1
 PyMySQL
 gunicorn
-whitenoise 
+whitenoise
+Pillow
+psycopg2-binary 

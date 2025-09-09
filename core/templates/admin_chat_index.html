@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Chat{% endblock %}
+
+{% block title %}Admin Chat - Employee List{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        padding: 20px;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+    
+    .chat-header {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .chat-header h1 {
+        margin: 0;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .chat-header p {
+        margin: 10px 0 0 0;
+        color: #666;
+    }
+    
+    .employees-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .employee-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border-left: 4px solid #cfe2ff;
+    }
+    
+    .employee-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+    
+    .employee-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .employee-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 18px;
+        margin-right: 15px;
+    }
+    
+    .employee-details h3 {
+        margin: 0 0 5px 0;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .employee-details p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+    }
+    
+    .chat-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-chat {
+        background: #007bff;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .btn-chat:hover {
+        background: #0056b3;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .no-employees {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+    
+    .no-employees i {
+        font-size: 48px;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+    
+    .status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+    
+    .status-active {
+        background: #28a745;
+    }
+    
+    .status-inactive {
+        background: #dc3545;
+    }
+    
+    /* Chat unread badge styling */
+    .chat-unread-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: linear-gradient(135deg, #ff4757, #ff3742);
+        color: white;
+        border-radius: 50%;
+        min-width: 20px;
+        height: 20px;
+        font-size: 0.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        border: 2px solid #ffffff;
+        box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+        animation: chat-badge-pulse 2s infinite;
+        z-index: 1000;
+    }
+    
+    @keyframes chat-badge-pulse {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+        }
+        50% {
+            transform: scale(1.1);
+            box-shadow: 0 4px 16px rgba(255, 71, 87, 0.6);
+        }
+        100% {
+            transform: scale(1);
+            box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+        }
+    }
+    
+    /* Make chat button relative for badge positioning */
+    .btn-chat {
+        position: relative;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="chat-container">
+    <div class="chat-header">
+        <h1><i class="bi bi-chat-dots me-2"></i>Admin Chat</h1>
+        <p>Select an employee to start a conversation</p>
+    </div>
+    
+    {% if developers %}
+        <div class="employees-grid">
+            {% for dev in developers %}
+            <div class="employee-card">
+                <div class="employee-info">
+                    <div class="employee-avatar">
+                        {{ dev.full_name|default:dev.username|first|upper }}
+                    </div>
+                    <div class="employee-details">
+                        <h3>{{ dev.full_name|default:dev.username }}</h3>
+                        <p>
+                            <span class="status-indicator {% if dev.status == 'active' %}status-active{% else %}status-inactive{% endif %}"></span>
+                            {{ dev.status|title }}
+                        </p>
+
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <a href="{% url 'admin_chat' dev.username %}" class="btn-chat">
+                        <i class="bi bi-chat-dots"></i>
+                        Start Chat
+                        {% if dev.unread_count > 0 %}
+                        <span class="chat-unread-badge" style="display: inline-block;">{{ dev.unread_count }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-employees">
+            <i class="bi bi-people"></i>
+            <h3>No Employees Found</h3>
+            <p>There are currently no employees available for chat.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Update unread chat count badges for each employee
+    function updateChatUnreadCounts() {
+        fetch('/chat/unread-count/?all=1')
+            .then(response => response.json())
+            .then(data => {
+                if (data.unread_counts) {
+                    // Update each employee's chat badge
+                    Object.entries(data.unread_counts).forEach(([username, count]) => {
+                        const chatButton = document.querySelector(`a[href*="${username}"]`);
+                        if (chatButton) {
+                            let badge = chatButton.querySelector('.chat-unread-badge');
+                            
+                            if (count > 0) {
+                                if (!badge) {
+                                    // Create badge if it doesn't exist
+                                    badge = document.createElement('span');
+                                    badge.className = 'chat-unread-badge';
+                                    chatButton.appendChild(badge);
+                                }
+                                badge.textContent = count;
+                                badge.style.display = 'flex';
+                            } else if (badge) {
+                                // Remove badge if count is 0
+                                badge.remove();
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(error => console.error('Error updating chat unread counts:', error));
+    }
+    
+    // Update unread counts immediately and every 10 seconds
+    updateChatUnreadCounts();
+    setInterval(updateChatUnreadCounts, 10000);
+    
+    // Mark chat as read when clicking on chat button
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-chat')) {
+            const chatButton = e.target.closest('.btn-chat');
+            const username = chatButton.href.split('/').pop();
+            
+            // Mark messages as read for this specific user
+            fetch('/chat/mark_read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                   document.querySelector('meta[name=csrf-token]')?.content,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: username }),
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the badge immediately
+                    const badge = chatButton.querySelector('.chat-unread-badge');
+                    if (badge) {
+                        badge.remove();
+                    }
+                    // Update counts
+                    updateChatUnreadCounts();
+                }
+            })
+            .catch(error => console.error('Error marking chat as read:', error));
+        }
+    });
+</script>
+{% endblock %}

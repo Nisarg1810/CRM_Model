@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Chat with {{ current_developer.full_name|default:current_developer.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        padding: 8px;
+        background: #f8f9fa;
+        min-height: auto;
+    }
+    
+    .chat-header {
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .chat-header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .back-btn {
+        background: #6c757d;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+    
+    .developer-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .developer-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+    }
+    
+    .developer-details h2 {
+        margin: 0 0 2px 0;
+        color: #333;
+        font-weight: 600;
+        font-size: 18px;
+    }
+    
+    .developer-details p {
+        margin: 0;
+        color: #666;
+        font-size: 12px;
+    }
+    
+    .chat-main {
+        display: block;
+        height: 60vh;
+    }
+    
+    .chat-messages {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+    }
+    
+    .messages-header {
+        padding: 10px;
+        border-bottom: 1px solid #e9ecef;
+        background: #f8f9fa;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .messages-header h3 {
+        margin: 0;
+        color: #333;
+        font-weight: 600;
+        font-size: 16px;
+    }
+    
+    .messages-container {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .message {
+        display: flex;
+        gap: 8px;
+        max-width: 80%;
+    }
+    
+    .message.sent {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+    }
+    
+    .message.received {
+        align-self: flex-start;
+    }
+    
+    .message-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+    
+    .message-content {
+        background: #f8f9fa;
+        padding: 10px 14px;
+        border-radius: 16px;
+        color: #333;
+        word-wrap: break-word;
+        max-width: 100%;
+        font-size: 14px;
+    }
+    
+    .message.sent .message-content {
+        background: #007bff;
+        color: white;
+    }
+    
+    .message-time {
+        font-size: 10px;
+        color: #999;
+        margin-top: 4px;
+        text-align: center;
+    }
+    
+    .message.sent .message-time {
+        text-align: right;
+    }
+    
+    .message.received .message-time {
+        text-align: left;
+    }
+    
+    .chat-input {
+        padding: 10px;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+        border-radius: 0 0 8px 8px;
+    }
+    
+    .input-group {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .form-control {
+        flex: 1;
+        border: 1px solid #ced4da;
+        border-radius: 16px;
+        padding: 8px 14px;
+        font-size: 13px;
+        transition: border-color 0.3s ease;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    /* Style the textarea to look like an input field */
+    #messageInput {
+        resize: none;
+        overflow: hidden;
+        min-height: 38px;
+        max-height: 100px;
+        line-height: 1.5;
+        font-family: inherit;
+    }
+    
+    .btn-send {
+        background: #007bff;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 16px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        min-width: 80px;
+        font-size: 12px;
+    }
+    
+    .btn-send:hover {
+        background: #0056b3;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+    }
+    
+
+    
+    .no-messages {
+        text-align: center;
+        padding: 25px 15px;
+        color: #666;
+    }
+    
+    .no-messages i {
+        font-size: 36px;
+        color: #ddd;
+        margin-bottom: 15px;
+    }
+    
+    @media (max-width: 768px) {
+        .chat-container {
+            padding: 6px;
+        }
+        
+        .chat-header {
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .chat-main {
+            height: 65vh;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-header">
+        <div class="chat-header-left">
+            <a href="{% url 'admin_chat_index' %}" class="back-btn">
+                <i class="bi bi-arrow-left"></i>
+                Back
+            </a>
+            <div class="developer-info">
+                <div class="developer-avatar">
+                    {{ current_developer.full_name|default:current_developer.username|first|upper }}
+                </div>
+                <div class="developer-details">
+                    <h2>{{ current_developer.full_name|default:current_developer.username }}</h2>
+                    <p>{{ current_developer.email|default:"No email" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="chat-main">
+        <div class="chat-messages">
+            <div class="messages-header">
+                <h3>Chat Messages</h3>
+            </div>
+            
+            <div class="messages-container" id="chatMessages">
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}">
+                        <div class="message-avatar">
+                            {{ message.sender.full_name|default:message.sender.username|first|upper }}
+                        </div>
+                        <div>
+                            <div class="message-content">
+                                {{ message.content }}
+                            </div>
+                            <div class="message-time">
+                                {{ message.timestamp|date:"M j, g:i A" }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-messages">
+                        <i class="bi bi-chat-dots"></i>
+                        <h4>No messages yet</h4>
+                        <p>Start the conversation by sending a message!</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <form method="POST" class="chat-input" id="chatForm">
+                {% csrf_token %}
+                <div class="input-group">
+                    <textarea name="content" class="form-control" id="messageInput" placeholder="Type your message... (Enter to send, Shift+Enter for new line)" rows="1" required></textarea>
+                    <button type="submit" class="btn-send" id="sendButton">
+                        <i class="bi bi-send"></i>
+                        Send
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/admin_chat.js' %}"></script>
+<script>
+    // Pass developer username to JavaScript for debugging
+    window.developerUsername = '{{ developer_username }}';
+    console.log('Developer username from template:', window.developerUsername);
+</script>
+{% endblock %}

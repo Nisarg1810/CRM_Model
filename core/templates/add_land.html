@@ -1,0 +1,1005 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Create New Land Property Details{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/add_land.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Page Header -->
+  <div class="page-header d-flex justify-content-between align-items-center">
+    <h2>
+      <i class="bi bi-plus-circle me-3"></i>
+      Create New Land Property Details
+    </h2>
+    <a href="{% url 'admin-land' %}" class="btn close-btn">
+      <i class="bi bi-x-lg"></i>
+    </a>
+  </div>
+
+  <!-- Display validation error if any -->
+  {% if validation_error %}
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    {{ validation_error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% endif %}
+
+  <form method="POST" action="{% url 'add_land' %}" enctype="multipart/form-data" id="addLandForm" novalidate>
+    {% csrf_token %}
+    
+    <div class="form-container">
+      <!-- Basic Information Section -->
+      <div class="form-section">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <label class="form-label required-field">Name</label>
+            <input type="text" name="name" class="form-control {% if field_errors.name %}is-invalid{% endif %}" 
+                   placeholder="Enter land name" required 
+                   value="{% if form_data.name %}{{ form_data.name }}{% endif %}">
+            {% if field_errors.name %}
+            <div class="invalid-feedback">{{ field_errors.name }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Location Details Section -->
+      <div class="form-section">
+        <div class="row g-4">
+          <div class="col-md-3">
+            <label class="form-label required-field">State</label>
+            <input type="text" name="state" id="stateSelect" class="form-control" value="Gujarat" readonly>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label required-field">District</label>
+            <select name="district" id="districtSelect" class="form-select {% if field_errors.district %}is-invalid{% endif %}" required>
+              <option value="">Select District</option>
+            </select>
+            {% if field_errors.district %}
+            <div class="invalid-feedback">{{ field_errors.district }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-3">
+            <label class="form-label required-field">Taluka</label>
+            <select name="taluka" id="talukaSelect" class="form-select {% if field_errors.taluka %}is-invalid{% endif %}" required>
+              <option value="">Select Taluka</option>
+            </select>
+            {% if field_errors.taluka %}
+            <div class="invalid-feedback">{{ field_errors.taluka }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-3">
+            <label class="form-label required-field">Village Name</label>
+            <div class="input-group">
+              <select name="village" id="villageSelect" class="form-select {% if field_errors.village %}is-invalid{% endif %}" required>
+                <option value="">Select Village</option>
+              </select>
+              <button type="button" class="btn icon-btn" onclick="addNewVillage()" title="Add Village">
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+            {% if field_errors.village %}
+            <div class="invalid-feedback">{{ field_errors.village }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Serial Numbers Section -->
+      <div class="form-section">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <label class="form-label required-field">Old SR No</label>
+            <input type="text" name="old_sr_no" class="form-control {% if field_errors.old_sr_no %}is-invalid{% endif %}" 
+                   placeholder="Enter old serial number" required 
+                   value="{% if form_data.old_sr_no %}{{ form_data.old_sr_no }}{% endif %}">
+            {% if field_errors.old_sr_no %}
+            <div class="invalid-feedback">{{ field_errors.old_sr_no }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label required-field">New SR No</label>
+            <input type="text" name="new_sr_no" class="form-control {% if field_errors.new_sr_no %}is-invalid{% endif %}" 
+                   placeholder="Enter new serial number" required 
+                   value="{% if form_data.new_sr_no %}{{ form_data.new_sr_no }}{% endif %}">
+            {% if field_errors.new_sr_no %}
+            <div class="invalid-feedback">{{ field_errors.new_sr_no }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Property Type & Area Details Section -->
+      <div class="form-section">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <label class="form-label required-field">Sata Prakar</label>
+            <div class="input-group">
+              <select name="sata_prakar" class="form-select {% if field_errors.sata_prakar %}is-invalid{% endif %}" required>
+                <option value="">Select Sata Prakar</option>
+                {% for sata in sata_prakar_list %}
+                <option value="{{ sata.name }}" {% if form_data.sata_prakar == sata.name %}selected{% endif %}>{{ sata.name }}</option>
+                {% empty %}
+                <option value="" disabled>No Sata Prakar available. Please add some first.</option>
+                {% endfor %}
+              </select>
+              <button type="button" class="btn icon-btn" onclick="openAddSataModalFromLand()" title="Add Sata Prakar">
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+            {% if field_errors.sata_prakar %}
+            <div class="invalid-feedback">{{ field_errors.sata_prakar }}</div>
+            {% endif %}
+            {% if not sata_prakar_list %}
+            <div class="form-text text-warning">
+              <i class="bi bi-exclamation-triangle"></i>
+              No Sata Prakar entries found. Please go to <a href="{% url 'sata_prakar' %}" class="text-decoration-none">Sata Prakar</a> page and add some entries first.
+            </div>
+            {% endif %}
+          </div>
+          <div class="col-md-3">
+            <label class="form-label required-field">Built Up Area</label>
+            <input type="number" name="built_up_area" id="built_up_area" class="form-control {% if field_errors.built_up_area %}is-invalid{% endif %}" 
+                   placeholder="0.00" step="0.01" min="0" required 
+                   value="{% if form_data.built_up_area %}{{ form_data.built_up_area }}{% endif %}">
+            {% if field_errors.built_up_area %}
+            <div class="invalid-feedback">{{ field_errors.built_up_area }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-3">
+            <label class="form-label required-field">Unutilized Area</label>
+            <input type="number" name="unutilized_area" id="unutilized_area" class="form-control {% if field_errors.unutilized_area %}is-invalid{% endif %}" 
+                   placeholder="0.00" step="0.01" min="0" required 
+                   value="{% if form_data.unutilized_area %}{{ form_data.unutilized_area }}{% endif %}">
+            {% if field_errors.unutilized_area %}
+            <div class="invalid-feedback">{{ field_errors.unutilized_area }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Area & Important Dates Section -->
+      <div class="form-section">
+        <div class="row g-4">
+          <div class="col-md-3">
+            <label class="form-label required-field">Total Area (SQ Meter)</label>
+            <input type="number" name="total_area" id="total_area" class="form-control {% if field_errors.total_area %}is-invalid{% endif %}" 
+                   placeholder="0.00" step="0.01" min="0" required
+                   value="{% if form_data.total_area %}{{ form_data.total_area }}{% endif %}">
+            {% if field_errors.total_area %}
+            <div class="invalid-feedback">{{ field_errors.total_area }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-3">
+            <label class="form-label required-field">Past Date</label>
+            <input type="date" name="past_date" class="form-control {% if field_errors.past_date %}is-invalid{% endif %}" 
+                   required value="{% if form_data.past_date %}{{ form_data.past_date }}{% endif %}">
+            {% if field_errors.past_date %}
+            <div class="invalid-feedback">{{ field_errors.past_date }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-3">
+            <label class="form-label required-field">Soda Date</label>
+            <input type="date" name="soda_tarikh" class="form-control {% if field_errors.soda_tarikh %}is-invalid{% endif %}" 
+                   required value="{% if form_data.soda_tarikh %}{{ form_data.soda_tarikh }}{% endif %}">
+            {% if field_errors.soda_tarikh %}
+            <div class="invalid-feedback">{{ field_errors.soda_tarikh }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-3">
+            <label class="form-label required-field">Banakhat Date</label>
+            <input type="date" name="banakhat_tarikh" class="form-control {% if field_errors.banakhat_tarikh %}is-invalid{% endif %}" 
+                   required value="{% if form_data.banakhat_tarikh %}{{ form_data.banakhat_tarikh }}{% endif %}">
+            {% if field_errors.banakhat_tarikh %}
+            <div class="invalid-feedback">{{ field_errors.banakhat_tarikh }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="row g-4 mt-3">
+          <div class="col-md-6">
+            <label class="form-label required-field">Dastavej Date</label>
+            <input type="date" name="dastavej_tarikh" class="form-control {% if field_errors.dastavej_tarikh %}is-invalid{% endif %}" 
+                   required value="{% if form_data.dastavej_tarikh %}{{ form_data.dastavej_tarikh }}{% endif %}">
+            {% if field_errors.dastavej_tarikh %}
+            <div class="invalid-feedback">{{ field_errors.dastavej_tarikh }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label required-field">Broker Name</label>
+            <input type="text" name="broker_name" class="form-control {% if field_errors.broker_name %}is-invalid{% endif %}" 
+                   placeholder="Enter broker name" required 
+                   value="{% if form_data.broker_name %}{{ form_data.broker_name }}{% endif %}">
+            {% if field_errors.broker_name %}
+            <div class="invalid-feedback">{{ field_errors.broker_name }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="row g-4 mt-3">
+          <div class="col-md-6">
+            <label class="form-label">Location</label>
+            <input type="text" name="location" class="form-control {% if field_errors.location %}is-invalid{% endif %}" 
+                   placeholder="Enter additional location details" 
+                   value="{% if form_data.location %}{{ form_data.location }}{% endif %}">
+            {% if field_errors.location %}
+            <div class="invalid-feedback">{{ field_errors.location }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Remark</label>
+            <textarea name="remark" class="form-control {% if field_errors.remark %}is-invalid{% endif %}" 
+                      placeholder="Enter additional remarks or notes" rows="3">{% if form_data.remark %}{{ form_data.remark }}{% endif %}</textarea>
+            {% if field_errors.remark %}
+            <div class="invalid-feedback">{{ field_errors.remark }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Task Selection Section -->
+      <div class="form-section">
+        <div class="row g-4">
+          <div class="col-12">
+            <label class="form-label required-field">Select Tasks</label>
+            <div class="task-input-group">
+              <!-- Add Task Button -->
+              <div class="mb-3">
+                <button type="button" class="btn btn-primary" onclick="openAddTaskModal()">
+                  <i class="bi bi-plus"></i> Add Task
+                </button>
+              </div>
+              
+              <!-- Selected Task (Table Format) -->
+              <div class="mb-3">
+                <label class="form-label">Selected Task</label>
+                <div class="selected-tasks-table-container">
+                  <table class="selected-tasks-table">
+                    <thead>
+                      <tr>
+                        <th>SELECTED TASK</th>
+                        <th>ASSIGNED EMPLOYEE</th>
+                        <th>COMPLETION DAYS</th>
+                        <th>COMPLETION DATE</th>
+                      </tr>
+                    </thead>
+                    <tbody id="taskTableBody">
+                      {% for task in all_tasks %}
+                        {% if task.is_default %}
+                        <tr class="task-row default-task" data-task="{{ task.name }}" data-task-id="{{ task.id }}" data-assigned-employees="{{ task.assigned_employees_display }}" data-employee-count="{{ task.assigned_employees_count }}" data-completion-days="{{ task.completion_days }}">
+                          <td>
+                            <span class="task-name">{{ task.name }}</span>
+                            <button class="remove-btn" onclick="removeTask(this)">×</button>
+                          </td>
+                          <td>
+                            {% if task.assigned_employees_details %}
+                              <div class="employee-selection-container">
+                                {% for employee_detail in task.assigned_employees_details %}
+                                  <div class="employee-checkbox-item">
+                                    <input type="checkbox" 
+                                           id="emp_{{ task.id }}_{{ employee_detail.employee_id }}" 
+                                           name="selected_employees" 
+                                           value="{{ employee_detail.employee_id }}"
+                                           data-task-id="{{ task.id }}"
+                                           data-employee-name="{{ employee_detail.employee_name }}"
+                                           class="employee-checkbox"
+                                           checked>
+                                    <label for="emp_{{ task.id }}_{{ employee_detail.employee_id }}" class="employee-checkbox-label">
+                                      {{ employee_detail.employee_name }}
+                                    </label>
+                                  </div>
+                                {% endfor %}
+                              </div>
+                            {% else %}
+                              <span class="text-muted">No employee assigned</span>
+                            {% endif %}
+                          </td>
+                          <td>
+                            <div class="completion-days-container">
+                              <input type="number" 
+                                     class="completion-days-input" 
+                                     name="completion_days_{{ task.id }}"
+                                     id="completion_days_{{ task.id }}"
+                                     value="{{ task.completion_days }}" 
+                                     min="1" 
+                                     max="365"
+                                     data-task-id="{{ task.id }}"
+                                     data-original-days="{{ task.completion_days }}"
+                                     oninput="debouncedUpdateCompletionDays(this)" 
+                                     onchange="updateCompletionDays(this)">
+                              <span class="completion-days-label">days</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="completion-date-container">
+                              <span class="completion-date" id="completion_date_{{ task.id }}">
+                                <!-- Completion date will be calculated by JavaScript -->
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                        {% endif %}
+                      {% endfor %}
+                      <!-- This row will be shown/hidden by JavaScript based on actual task state -->
+                      <tr id="noTasksMessage" class="text-center text-muted" style="display: none;">
+                        <td colspan="4">No tasks available. Please add tasks first.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <!-- Not Selected Tasks (Non-Default Tasks) -->
+              <div class="mb-3">
+                <label class="form-label">Not Selected Tasks</label>
+                <div id="notSelectedTasks" class="task-tags">
+                  {% for task in all_tasks %}
+                    {% if not task.is_default %}
+                    <div class="task-chip custom-task" 
+                         data-task-name="{{ task.name }}" 
+                         data-task-id="{{ task.id }}"
+                         data-assigned-employees="{{ task.assigned_employees_display }}"
+                         data-employee-count="{{ task.assigned_employees_count }}"
+                         data-completion-days="{{ task.completion_days }}"
+                         onclick="selectTask(this)">
+                      {{ task.name }}
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                  <!-- This message will be shown/hidden by JavaScript based on actual task state -->
+                  <p id="noNonDefaultTasksMessage" class="text-muted" style="display: none;">No non-default tasks available.</p>
+                </div>
+              </div>
+              <input type="hidden" name="selected_tasks" id="selected_tasks" value="">
+              <input type="hidden" name="task_employee_selections" id="task_employee_selections" value="">
+              <input type="hidden" name="task_completion_days" id="task_completion_days" value="">
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- Submit Button -->
+      <div class="text-center mt-4">
+        <button type="submit" class="btn submit-btn">
+          <i class="bi bi-check-circle me-2"></i>
+          Submit Land Details
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Pass form data to JavaScript for restoration -->
+{% if form_data %}
+<script>
+window.formDataToRestore = {{ form_data|safe }};
+</script>
+{% endif %} 
+
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTaskForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="taskName" class="form-label">Task Name*</label>
+                                <input type="text" class="form-control" id="taskName" name="task_name" placeholder="Enter task name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="taskPosition" class="form-label">Position*</label>
+                                <input type="number" class="form-control" id="taskPosition" name="position" placeholder="Display position" required min="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="isDefault" class="form-label">Default Task*</label>
+                                <select class="form-control" id="isDefault" name="is_default" required>
+                                    <option value="">Select Option</option>
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="completionDays" class="form-label">Completion Days*</label>
+                                <input type="number" class="form-control" id="completionDays" name="completion_days" placeholder="Expected completion time in days" required min="0" value="0">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="assignEmployee" class="form-label">Employee Name*</label>
+                                <div class="input-group">
+                                    <select class="form-control" id="assignEmployee" name="assign_employee">
+                                        <option value="">Select Employee</option>
+                                        {% for employee in employees %}
+                                        <option value="{{ employee.id }}">{{ employee.full_name|default:employee.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="button" class="btn" onclick="openAddEmployeeModal()" title="Add New Employee">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                                <div id="selectedEmployeesBox" class="selected-employees-box mt-2" style="display: none;">
+                                    <div class="selected-employees-header">
+                                        <span>Selected Employees:</span>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearAllEmployees()">Clear All</button>
+                                    </div>
+                                    <div id="selectedEmployeesList" class="selected-employees-list">
+                                        <!-- Selected employees will be displayed here -->
+                                    </div>
+                                </div>
+                                <input type="hidden" id="selectedEmployeesInput" name="selected_employees" value="">
+
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary submit-btn" onclick="submitTask()">SUBMIT</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner">Processing...</div>
+</div>
+
+<!-- Add Sata Prakar Modal -->
+<div class="modal fade" id="addSataModalFromLand" tabindex="-1" aria-labelledby="addSataModalFromLandLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSataModalFromLandLabel">Add New Sata Prakar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSataFormFromLand">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="sataNameFromLand" class="form-label">Sata Name*</label>
+                        <input type="text" class="form-control" id="sataNameFromLand" name="sata_name" placeholder="Enter Sata Prakar Name (Press Enter to submit)" required>
+                        <small class="form-text text-muted">Press Enter key to quickly submit</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary submit-btn" onclick="submitSataFromLand()">SUBMIT</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Village Modal -->
+<div class="modal fade" id="addVillageModalFromLand" tabindex="-1" aria-labelledby="addVillageModalFromLandLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addVillageModalFromLandLabel">Add New Village</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addVillageFormFromLand">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">District</label>
+                        <input type="text" class="form-control" id="modalDistrictName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Taluka</label>
+                        <input type="text" class="form-control" id="modalTalukaName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="villageNameFromLand" class="form-label">Village Name*</label>
+                        <input type="text" class="form-control" id="villageNameFromLand" name="village" placeholder="Enter Village Name (Press Enter to submit)" required>
+                        <small class="form-text text-muted">Press Enter key to quickly submit</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary submit-btn" onclick="submitVillageFromLand()">SUBMIT</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Employee Modal -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addEmployeeModalLabel">Add New Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addEmployeeForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeType" class="form-label fw-bold">Employee Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="newEmployeeType" name="employee_type" required>
+                                    <option value="">Select Employee Type</option>
+                                    <option value="marketing">Marketing</option>
+                                    <option value="backoffice">Back Office</option>
+                                    <option value="legal_team">Legal Team</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeUsername" class="form-label fw-bold">Username <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="newEmployeeUsername" name="username" placeholder="Enter Username" required>
+                                <small class="text-muted">Choose a unique username for login</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeFullName" class="form-label fw-bold">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="newEmployeeFullName" name="full_name" placeholder="Enter Full Name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeEmail" class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="newEmployeeEmail" name="email" placeholder="Enter Email Address" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeePassword" class="form-label fw-bold">Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="newEmployeePassword" name="password" placeholder="Enter Password" required>
+                                    <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">Click the eye icon to show/hide password</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeMobile" class="form-label fw-bold">Mobile Number <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="newEmployeeMobile" name="mobile" placeholder="Enter Mobile Number (10 digits)" required pattern="[0-9]{10}" maxlength="10">
+                                <small class="text-muted">Enter exactly 10 digits</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeLocation" class="form-label fw-bold">Location <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="newEmployeeLocation" name="location" placeholder="Enter Location" required>
+                                <small class="text-muted">City, State, or Area covered</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeStatus" class="form-label fw-bold">Status <span class="text-danger">*</span></label>
+                                <select class="form-select" id="newEmployeeStatus" name="status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="newEmployeeAddress" class="form-label fw-bold">Address</label>
+                                <textarea class="form-control" id="newEmployeeAddress" name="address" rows="3" placeholder="Enter Complete Address"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitNewEmployee()">Add Employee</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/location_api.js' %}"></script>
+<script src="{% static 'js/add_land.js' %}"></script>
+<script>
+// Password toggle functionality for add employee modal
+function togglePasswordVisibility() {
+    const passwordField = document.getElementById('newEmployeePassword');
+    const toggleBtn = document.getElementById('togglePassword');
+    const icon = toggleBtn.querySelector('i');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        passwordField.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+
+// Initialize password toggle when modal is shown
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listener for password toggle button
+    const toggleBtn = document.getElementById('togglePassword');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', togglePasswordVisibility);
+    }
+});
+
+// Global variable for debouncing
+let completionDaysTimeout = null;
+
+// Debounced function for immediate updates
+function debouncedUpdateCompletionDays(input) {
+    // Clear existing timeout
+    if (completionDaysTimeout) {
+        clearTimeout(completionDaysTimeout);
+    }
+    
+    // Set new timeout for 200ms delay
+    completionDaysTimeout = setTimeout(() => {
+        updateCompletionDays(input);
+    }, 200);
+}
+
+// Function to update completion days for a specific task
+function updateCompletionDays(input) {
+    const taskId = input.getAttribute('data-task-id');
+    const newDays = input.value;
+    const originalDays = input.getAttribute('data-original-days');
+    
+    // Validate input
+    if (newDays < 1 || newDays > 365) {
+        input.value = originalDays;
+        alert('Completion days must be between 1 and 365');
+        return;
+    }
+    
+    // Update the data attribute
+    input.setAttribute('data-original-days', newDays);
+    
+    // Update the completion date display
+    updateCompletionDate(taskId, newDays);
+    
+    // Log the change
+    console.log(`Task ${taskId} completion days updated from ${originalDays} to ${newDays} days`);
+    
+    // You can add additional logic here to save the change to the database
+    // or update any other related data structures
+}
+
+    // Function to update completion date display
+    function updateCompletionDate(taskId, completionDays) {
+        const completionDateElement = document.getElementById(`completion_date_${taskId}`);
+        if (completionDateElement && completionDays) {
+            try {
+                const today = new Date();
+                const completionDate = new Date(today.getTime() + (completionDays * 24 * 60 * 60 * 1000));
+                const formattedDate = completionDate.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+                completionDateElement.textContent = formattedDate;
+            } catch (error) {
+                console.error('Error updating completion date:', error);
+                completionDateElement.textContent = 'Invalid days';
+            }
+        }
+    }
+
+    // Function to initialize completion dates for existing tasks
+    function initializeCompletionDates() {
+        const taskRows = document.querySelectorAll('#taskTableBody .task-row');
+        taskRows.forEach(row => {
+            const taskId = row.getAttribute('data-task-id');
+            const completionDaysInput = row.querySelector('.completion-days-input');
+            if (taskId && completionDaysInput) {
+                const completionDays = completionDaysInput.value;
+                if (completionDays && completionDays > 0) {
+                    updateCompletionDate(taskId, completionDays);
+                } else {
+                    const completionDateElement = document.getElementById(`completion_date_${taskId}`);
+                    if (completionDateElement) {
+                        completionDateElement.textContent = 'Not set';
+                    }
+                }
+            }
+        });
+    }
+
+    // Initialize completion dates when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Wait a bit for the DOM to be fully ready
+        setTimeout(initializeCompletionDates, 100);
+    });
+
+// Debug function to check selected tasks
+function debugSelectedTasks() {
+    console.log('=== DEBUGGING SELECTED TASKS ===');
+    
+    // Check the hidden input value
+    const selectedTasksInput = document.getElementById('selected_tasks');
+    console.log('selected_tasks input value:', selectedTasksInput ? selectedTasksInput.value : 'NOT FOUND');
+    
+    // Check all task rows in the table
+    const selectedTaskRows = document.querySelectorAll('#taskTableBody .task-row');
+    console.log('Number of task rows found:', selectedTaskRows.length);
+    
+    selectedTaskRows.forEach((row, index) => {
+        const taskName = row.getAttribute('data-task');
+        const taskId = row.getAttribute('data-task-id');
+        console.log(`Row ${index}: task="${taskName}", id="${taskId}"`);
+    });
+    
+    // Check if there are any tasks in the not selected section
+    const notSelectedTasks = document.querySelectorAll('#notSelectedTasks .task-chip');
+    console.log('Number of not selected tasks:', notSelectedTasks.length);
+    
+    console.log('=== END DEBUGGING ===');
+}
+
+// Enhanced updateSelectedTasks function
+function updateSelectedTasks() {
+    console.log('updateSelectedTasks called');
+    
+    const selectedTasksInput = document.getElementById('selected_tasks');
+    if (selectedTasksInput) {
+        // Collect task names from the table rows
+        const selectedTaskRows = document.querySelectorAll('#taskTableBody .task-row');
+        const taskNames = [];
+        
+        selectedTaskRows.forEach((row, index) => {
+            const taskName = row.getAttribute('data-task');
+            if (taskName) {
+                taskNames.push(taskName);
+                console.log(`Adding task "${taskName}" from row ${index}`);
+            } else {
+                console.error(`Row ${index} missing data-task attribute`);
+            }
+        });
+        
+        // Update both the hidden input and the global selectedTasks array
+        selectedTasksInput.value = taskNames.join(',');
+        if (window.selectedTasks) {
+            window.selectedTasks = taskNames; // Update the global array
+        }
+        
+        console.log('Updated selected tasks input:', selectedTasksInput.value);
+        console.log('Updated global selectedTasks array:', taskNames);
+    } else {
+        console.error('selected_tasks input element not found');
+    }
+    
+    // Update task message visibility after updating selected tasks
+    updateTaskMessageVisibility();
+}
+
+// Make this function globally available so add_land.js can call it
+window.updateSelectedTasks = updateSelectedTasks;
+
+// Add form submission handler to ensure tasks are updated before submit
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('Form submission detected, updating selected tasks...');
+            updateSelectedTasks();
+            
+            // Check if tasks are selected
+            const selectedTasksInput = document.getElementById('selected_tasks');
+            if (selectedTasksInput && !selectedTasksInput.value.trim()) {
+                e.preventDefault();
+                alert('Please select at least one task before submitting!');
+                return false;
+            }
+            
+            console.log('Form submitted with tasks:', selectedTasksInput ? selectedTasksInput.value : 'none');
+        });
+    }
+    
+    // Initialize task message visibility
+    updateTaskMessageVisibility();
+});
+
+// Function to update task message visibility based on actual task state
+function updateTaskMessageVisibility() {
+    console.log('Updating task message visibility...');
+    
+    // Check selected tasks table
+    const selectedTaskRows = document.querySelectorAll('#taskTableBody .task-row');
+    const noTasksMessage = document.getElementById('noTasksMessage');
+    
+    if (noTasksMessage) {
+        if (selectedTaskRows.length === 0) {
+            noTasksMessage.style.display = '';
+            console.log('Showing "No tasks available" message');
+        } else {
+            noTasksMessage.style.display = 'none';
+            console.log('Hiding "No tasks available" message - tasks found:', selectedTaskRows.length);
+        }
+    }
+    
+    // Check not selected tasks (non-default tasks)
+    const notSelectedTaskChips = document.querySelectorAll('#notSelectedTasks .task-chip');
+    const noNonDefaultTasksMessage = document.getElementById('noNonDefaultTasksMessage');
+    
+    if (noNonDefaultTasksMessage) {
+        if (notSelectedTaskChips.length === 0) {
+            noNonDefaultTasksMessage.style.display = '';
+            console.log('Showing "No non-default tasks available" message');
+        } else {
+            noNonDefaultTasksMessage.style.display = 'none';
+            console.log('Hiding "No non-default tasks available" message - tasks found:', notSelectedTaskChips.length);
+        }
+    }
+}
+
+// Make this function globally available so add_land.js can call it
+window.updateTaskMessageVisibility = updateTaskMessageVisibility;
+
+// Add Employee Functions - defined directly in template to ensure availability
+function openAddEmployeeModal() {
+    console.log('openAddEmployeeModal called from template');
+    
+    // Check if form exists
+    const form = document.getElementById('addEmployeeForm');
+    if (!form) {
+        console.error('addEmployeeForm not found');
+        alert('Employee form not found. Please refresh the page.');
+        return;
+    }
+    
+    // Check if modal exists
+    const modalElement = document.getElementById('addEmployeeModal');
+    if (!modalElement) {
+        console.error('addEmployeeModal not found');
+        alert('Employee modal not found. Please refresh the page.');
+        return;
+    }
+    
+    // Reset form
+    form.reset();
+    
+    // Show modal
+    try {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+        console.log('Modal opened successfully');
+    } catch (error) {
+        console.error('Error opening modal:', error);
+        alert('Error opening modal: ' + error.message);
+    }
+}
+
+function submitNewEmployee() {
+    console.log('submitNewEmployee called from template');
+    
+    const form = document.getElementById('addEmployeeForm');
+    if (!form) {
+        console.error('addEmployeeForm not found');
+        return;
+    }
+    
+    const formData = new FormData(form);
+    
+    // Validate required fields
+    const requiredFields = ['username', 'full_name', 'email', 'employee_type', 'password', 'mobile', 'location', 'status'];
+    for (let field of requiredFields) {
+        if (!formData.get(field)) {
+            alert(`Please fill in the ${field.replace('_', ' ')} field`);
+            return;
+        }
+    }
+    
+    // Show loading
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'flex';
+    }
+    
+    // Get CSRF token
+    let csrfToken = '';
+    const csrfElement = document.querySelector('[name=csrfmiddlewaretoken]') || 
+                       document.querySelector('input[name="csrfmiddlewaretoken"]') ||
+                       document.querySelector('meta[name="csrf-token"]');
+    
+    if (csrfElement) {
+        csrfToken = csrfElement.value || csrfElement.getAttribute('content') || '';
+    }
+    
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        alert('Security token not found. Please refresh the page and try again.');
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
+        return;
+    }
+    
+    fetch('/add_employee/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+        if (data.success) {
+            alert(data.message);
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addEmployeeModal'));
+            if (modal) modal.hide();
+            
+            // Add new employee to dropdown
+            addEmployeeToDropdown(data.employee);
+            
+            // Clear form
+            form.reset();
+            
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+        console.error('Error:', error);
+        alert('An error occurred while adding the employee. Please try again.');
+    });
+}
+
+function addEmployeeToDropdown(employee) {
+    console.log('Adding employee to dropdown:', employee);
+    
+    // Add to Add Task modal dropdown
+    const addDropdown = document.getElementById('assignEmployee');
+    if (addDropdown) {
+        const option = document.createElement('option');
+        option.value = employee.id;
+        option.textContent = employee.full_name || employee.username;
+        addDropdown.appendChild(option);
+        console.log('Employee added to dropdown successfully');
+    } else {
+        console.error('assignEmployee dropdown not found');
+    }
+}
+</script>
+{% endblock %}

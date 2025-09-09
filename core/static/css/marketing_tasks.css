@@ -1,0 +1,500 @@
+/* Marketing Tasks Styles */
+
+/* Marketing Header */
+.marketing-header {
+  background: white;
+  color: #333;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border-left: 4px solid #007bff;
+}
+
+.marketing-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  color: #333;
+}
+
+.marketing-header p {
+  margin: 5px 0 0 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+/* Statistics Cards */
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+  height: 100%;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card .stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  font-size: 24px;
+  color: white;
+}
+
+.stat-card .stat-content h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 5px 0;
+  color: #2c3e50;
+}
+
+.stat-card .stat-content p {
+  margin: 0;
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Card Color Variants */
+.total-card .stat-icon {
+  background: #007bff;
+}
+
+.pending-card .stat-icon {
+  background: #ffc107;
+}
+
+.progress-card .stat-icon {
+  background: #17a2b8;
+}
+
+.completed-card .stat-icon {
+  background: #28a745;
+}
+
+/* Quick Actions */
+.quick-actions {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-decoration: none;
+}
+
+.dashboard-btn {
+  background: #007bff;
+  color: white;
+}
+
+.dashboard-btn:hover {
+  background: #0056b3;
+  color: white;
+}
+
+.inventory-btn {
+  background: #28a745;
+  color: white;
+}
+
+.inventory-btn:hover {
+  background: #1e7e34;
+  color: white;
+}
+
+.profile-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.profile-btn:hover {
+  background: #545b62;
+  color: white;
+}
+
+/* Filters Section */
+.filters-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  margin-bottom: 20px;
+}
+
+.filters-section .form-label {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.filters-section .form-control,
+.filters-section .form-select {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 10px 12px;
+  transition: all 0.3s ease;
+}
+
+.filters-section .form-control:focus,
+.filters-section .form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.filters-section .btn-primary {
+  background: #007bff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.filters-section .btn-primary:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+}
+
+/* Tasks Table Section */
+.tasks-table-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  overflow: hidden;
+}
+
+.tasks-table-section .table {
+  margin: 0;
+}
+
+.tasks-table-section .table thead th {
+  background: #2c3e50;
+  color: white;
+  border: none;
+  padding: 15px 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tasks-table-section .table tbody td {
+  padding: 15px 12px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.tasks-table-section .table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Task Info */
+.task-info h6 {
+  margin: 0 0 5px 0;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.task-info small {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+/* Land Info */
+.land-info strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.land-info small {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.status-badge.in-progress {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.status-badge.complete {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+/* Action Buttons */
+.action-buttons .btn {
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  transition: all 0.3s ease;
+}
+
+.action-buttons .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.action-buttons .btn-primary {
+  background: #007bff;
+  border: none;
+}
+
+.action-buttons .btn-primary:hover {
+  background: #0056b3;
+}
+
+.action-buttons .btn-success {
+  background: #28a745;
+  border: none;
+}
+
+.action-buttons .btn-success:hover {
+  background: #1e7e34;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.empty-state i {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-state h4 {
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+/* Loading States */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .marketing-header {
+    padding: 15px;
+    text-align: center;
+  }
+  
+  .marketing-header h2 {
+    font-size: 1.5rem;
+    justify-content: center;
+  }
+  
+  .stat-card {
+    margin-bottom: 20px;
+  }
+  
+  .quick-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .action-btn {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+  
+  .filters-section .row {
+    margin: 0;
+  }
+  
+  .filters-section .col-md-3,
+  .filters-section .col-md-4,
+  .filters-section .col-md-2 {
+    margin-bottom: 15px;
+  }
+  
+  .tasks-table-section {
+    overflow-x: auto;
+  }
+  
+  .tasks-table-section .table {
+    min-width: 600px;
+  }
+}
+
+@media (max-width: 576px) {
+  .marketing-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .stat-card .stat-content h3 {
+    font-size: 1.5rem;
+  }
+  
+  .filters-section {
+    padding: 15px;
+  }
+  
+  .tasks-table-section .table thead th,
+  .tasks-table-section .table tbody td {
+    padding: 10px 8px;
+    font-size: 0.85rem;
+  }
+  
+  .task-info h6 {
+    font-size: 0.9rem;
+  }
+  
+  .action-buttons .btn {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+  }
+}
+
+/* Animation for loading states */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-card,
+.filters-section,
+.tasks-table-section {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.stat-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.stat-card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.stat-card:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+/* Hover effects for interactive elements */
+.tasks-table-section .table tbody tr {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tasks-table-section .table tbody tr:hover {
+  background-color: #f8f9fa;
+  transform: translateX(5px);
+}
+
+/* Focus states for accessibility */
+.action-btn:focus,
+.filters-section .form-control:focus,
+.filters-section .form-select:focus,
+.filters-section .btn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .quick-actions,
+  .filters-section,
+  .action-buttons {
+    display: none;
+  }
+  
+  .stat-card,
+  .tasks-table-section {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+  
+  .tasks-table-section .table thead th {
+    background: #f8f9fa !important;
+    color: #000 !important;
+  }
+}

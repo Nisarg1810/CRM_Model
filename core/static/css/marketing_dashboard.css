@@ -1,0 +1,410 @@
+/* Marketing Dashboard Styles */
+
+/* Marketing Header */
+.marketing-header {
+  background: white;
+  color: #333;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border-left: 4px solid #007bff;
+}
+
+.marketing-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  color: #333;
+}
+
+.marketing-header p {
+  margin: 5px 0 0 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+/* Statistics Cards */
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+  height: 100%;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card .stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  font-size: 24px;
+  color: white;
+}
+
+.stat-card .stat-content h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 5px 0;
+  color: #2c3e50;
+}
+
+.stat-card .stat-content p {
+  margin: 0;
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Card Color Variants */
+.total-card .stat-icon {
+  background: #007bff;
+}
+
+.pending-card .stat-icon {
+  background: #ffc107;
+}
+
+.progress-card .stat-icon {
+  background: #17a2b8;
+}
+
+.completed-card .stat-icon {
+  background: #28a745;
+}
+
+/* Quick Actions */
+.quick-actions {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-decoration: none;
+}
+
+.tasks-btn {
+  background: #007bff;
+  color: white;
+}
+
+.tasks-btn:hover {
+  background: #0056b3;
+  color: white;
+}
+
+.inventory-btn {
+  background: #28a745;
+  color: white;
+}
+
+.inventory-btn:hover {
+  background: #1e7e34;
+  color: white;
+}
+
+.profile-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.profile-btn:hover {
+  background: #545b62;
+  color: white;
+}
+
+/* Task Sections */
+.task-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  height: 100%;
+}
+
+.section-header {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f8f9fa;
+}
+
+.section-header h5 {
+  margin: 0;
+  font-weight: 600;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+}
+
+/* Task Scroll Container */
+.task-scroll-container {
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.task-scroll-container::-webkit-scrollbar {
+  width: 0; /* Chrome, Safari, Opera */
+  display: none;
+}
+
+/* Task Items */
+.task-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-left: 4px solid #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.task-item:hover {
+  background: #e9ecef;
+  transform: translateX(5px);
+}
+
+.task-item:last-child {
+  margin-bottom: 0;
+}
+
+.task-info h6 {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.task-land {
+  margin: 0 0 8px 0;
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.task-due {
+  margin: 0;
+  color: #6c757d;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+}
+
+.overdue-days {
+  color: #dc3545;
+  font-weight: 600;
+  margin-left: 5px;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.status-badge.in-progress {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.status-badge.complete {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-badge.overdue {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Task Section Variants */
+.overdue-section {
+  border-left: 4px solid #dc3545;
+}
+
+.upcoming-section {
+  border-left: 4px solid #ffc107;
+}
+
+.progress-section {
+  border-left: 4px solid #17a2b8;
+}
+
+.pending-section {
+  border-left: 4px solid #6c757d;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-state h4 {
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .marketing-header {
+    padding: 15px;
+    text-align: center;
+  }
+  
+  .marketing-header h2 {
+    font-size: 1.5rem;
+    justify-content: center;
+  }
+  
+  .stat-card {
+    margin-bottom: 20px;
+  }
+  
+  .quick-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .action-btn {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+  
+  .task-section {
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .marketing-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .stat-card .stat-content h3 {
+    font-size: 1.5rem;
+  }
+  
+  .task-item {
+    padding: 12px;
+  }
+  
+  .task-info h6 {
+    font-size: 0.9rem;
+  }
+}
+
+/* Animation for loading states */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-card,
+.task-section,
+.action-btn {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.stat-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.stat-card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.stat-card:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+/* Hover effects for interactive elements */
+.task-item {
+  cursor: pointer;
+}
+
+.task-item:hover .task-info h6 {
+  color: #007bff;
+}
+
+/* Focus states for accessibility */
+.action-btn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .quick-actions,
+  .action-btn {
+    display: none;
+  }
+  
+  .stat-card,
+  .task-section {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+}

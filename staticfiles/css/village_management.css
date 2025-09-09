@@ -1,0 +1,427 @@
+/* Village Management Page Styles - Matching Advocate Page */
+
+/* Page Header - Matching Advocate Table */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-icon {
+    width: 45px;
+    height: 45px;
+    background: transparent;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2c3e50;
+    font-size: 1.25rem;
+}
+
+.page-title {
+    margin: 0;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 1.35rem;
+}
+
+.btn-add {
+    background: #007bff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-add:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
+    color: white;
+}
+
+/* Table Container - Matching Advocate Table */
+.village-table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.village-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+.village-table th {
+    background: #e3f2fd; /* Light blue like Task Management */
+    color: #2c3e50;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    text-align: left;
+    border: none;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.village-table th:first-child {
+    width: 120px;
+    text-align: center;
+}
+
+.village-table th:nth-child(2) {
+    width: auto;
+    text-align: left;
+}
+
+.village-table th:last-child {
+    width: 120px;
+    text-align: center;
+}
+
+/* Search Section - Outside Table */
+.search-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.search-container {
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-input-container {
+    position: relative;
+    width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+.refresh-container {
+    margin-left: 1rem;
+}
+
+/* Refresh Button - Outside Table */
+.btn-refresh {
+    background: #007bff;
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.2s ease;
+}
+
+.btn-refresh:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    color: white;
+}
+
+/* Data Rows - Matching Advocate Table */
+.village-table tbody tr:not(.search-row) {
+    border-bottom: 1px solid #f1f3f4;
+    transition: all 0.2s ease;
+}
+
+.village-table tbody tr:not(.search-row):hover {
+    background-color: #f8f9fa;
+}
+
+.village-table tbody td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+    border: none;
+    font-size: 0.9rem;
+}
+
+.village-table tbody td:first-child {
+    color: #667eea;
+    font-weight: 600;
+    text-align: center;
+    width: 120px;
+}
+
+.village-table tbody td:nth-child(2) {
+    text-align: left;
+    padding-left: 1.5rem;
+}
+
+.village-table tbody td:last-child {
+    text-align: center;
+    width: 120px;
+}
+
+/* Action Buttons - Matching Advocate Table */
+
+.btn-delete {
+    background: #e74c3c;
+    border: none;
+    border-radius: 6px;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.2s ease;
+}
+
+.btn-delete:hover {
+    background: #c0392b;
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+    color: white;
+}
+
+/* Record Count - Matching Advocate Table */
+.record-count {
+    margin-top: 0.75rem;
+    color: #6c757d;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Alert Styling */
+#alertContainer {
+    max-width: 400px;
+}
+
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    color: white;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+}
+
+.loading-content {
+    text-align: center;
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn-primary {
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .table tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+/* Animation for table rows */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.table tbody tr {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+/* Custom scrollbar for table */
+.table-responsive::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #5a6fd8;
+}
+
+/* Village Modal Styling - Matching Advocate Page */
+#addVillageModal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+#addVillageModal .modal-header {
+    background: #007bff;
+    color: white;
+    border-radius: 12px 12px 0 0;
+    border-bottom: none;
+}
+
+#addVillageModal .modal-title {
+    font-weight: 600;
+    font-size: 18px;
+}
+
+#addVillageModal .modal-body {
+    padding: 25px;
+}
+
+#addVillageModal .form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+#addVillageModal .form-control,
+#addVillageModal .form-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    padding: 12px 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+#addVillageModal .form-control:focus,
+#addVillageModal .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+#addVillageModal .modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 20px 25px;
+}
+
+#addVillageModal .btn-primary {
+    background: #007bff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+#addVillageModal .btn-primary:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+}
+
+#addVillageModal .btn-secondary {
+    background: #6c757d;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+#addVillageModal .btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}

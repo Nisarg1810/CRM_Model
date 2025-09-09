@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="max-width:600px;">
+  <div class="card shadow-sm mb-4">
+    <div class="card-body text-center">
+      <img src="{% if user.profile_pic %}{{ user.profile_pic.url }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}{% endif %}" class="rounded-circle mb-2" width="100" height="100" alt="Profile Picture">
+      <h3 class="mb-0">{{ user.username }}</h3>
+      <span class="text-muted">Role: {{ user.role|capfirst }}</span>
+    </div>
+  </div>
+  <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
+    {% csrf_token %}
+    <h4 class="mb-3">Profile Details</h4>
+    <div class="mb-3">
+      <label class="form-label">Mobile</label>
+      <input type="tel" name="mobile" id="mobile" class="form-control" value="{{ user.mobile }}" required pattern="[0-9]{10}" maxlength="10" placeholder="Enter 10 digit mobile number">
+      <div class="invalid-feedback">Please enter a valid 10-digit mobile number.</div>
+      <small class="text-muted">Enter 10 digit mobile number (e.g., 9876543210)</small>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Profile Picture</label>
+      <input type="file" name="profile_pic" class="form-control">
+      <small class="text-muted">Allowed: images only. Max 5MB.</small>
+    </div>
+    <hr>
+    <h5>Change Password</h5>
+    <div class="mb-3">
+      <label class="form-label">Current Password</label>
+      <input type="password" name="current_password" class="form-control" placeholder="Enter your current password">
+      <small class="text-muted">Required to change password</small>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">New Password</label>
+      <input type="password" name="new_password" class="form-control" placeholder="Enter new password">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Confirm New Password</label>
+      <input type="password" name="confirm_password" class="form-control" placeholder="Confirm new password">
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Update Profile</button>
+  </form>
+</div>
+
+<!-- Password validation script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const mobile = document.querySelector('#mobile');
+    const currentPassword = document.querySelector('input[name="current_password"]');
+    const newPassword = document.querySelector('input[name="new_password"]');
+    const confirmPassword = document.querySelector('input[name="confirm_password"]');
+    
+    form.addEventListener('submit', function(e) {
+        // Validate mobile number
+        if (!mobile.value || !/^[0-9]{10}$/.test(mobile.value)) {
+            e.preventDefault();
+            alert('Please enter a valid 10-digit mobile number.');
+            mobile.focus();
+            mobile.classList.add('is-invalid');
+            return false;
+        }
+        
+        // Check if password change is requested
+        if (newPassword.value || confirmPassword.value) {
+            // Password change requested - validate current password
+            if (!currentPassword.value) {
+                e.preventDefault();
+                alert('Please enter your current password to change password.');
+                currentPassword.focus();
+                return false;
+            }
+            
+            // Validate new password
+            if (!newPassword.value) {
+                e.preventDefault();
+                alert('Please enter a new password.');
+                newPassword.focus();
+                return false;
+            }
+            
+            // Validate password confirmation
+            if (newPassword.value !== confirmPassword.value) {
+                e.preventDefault();
+                alert('New passwords do not match.');
+                confirmPassword.focus();
+                return false;
+            }
+            
+            // Validate password strength (optional)
+            if (newPassword.value.length < 8) {
+                e.preventDefault();
+                alert('Password must be at least 8 characters long.');
+                newPassword.focus();
+                return false;
+            }
+        }
+    });
+    
+    // Real-time password confirmation validation
+    confirmPassword.addEventListener('input', function() {
+        if (newPassword.value && this.value) {
+            if (newPassword.value !== this.value) {
+                this.setCustomValidity('Passwords do not match');
+                this.classList.add('is-invalid');
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid');
+            }
+        }
+    });
+    
+    // Real-time mobile validation
+    mobile.addEventListener('input', function() {
+        const mobileValue = this.value.replace(/\D/g, ''); // Remove non-digits
+        this.value = mobileValue; // Update input with only digits
+        
+        if (mobileValue.length === 10) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else {
+            this.classList.remove('is-valid');
+            if (mobileValue.length > 0) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        }
+    });
+    
+    // Clear validation on input
+    newPassword.addEventListener('input', function() {
+        confirmPassword.setCustomValidity('');
+        confirmPassword.classList.remove('is-invalid');
+    });
+});
+</script>
+{% endblock %} 

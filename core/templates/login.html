@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+{% block login_content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <div class="card shadow">
+        <div class="card-body p-4">
+          <div class="text-center mb-4">
+            <h3 class="card-title text-primary">CRM Dashboard Login</h3>
+            <p class="text-muted">Enter your credentials to access the dashboard</p>
+          </div>
+          
+          {% if messages %}
+            {% for message in messages %}
+              {% if message.tags == 'error' or 'Invalid username' in message or 'password' in message|lower %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          
+          <form method="POST">
+            {% csrf_token %}
+            {% if next %}
+              <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" class="form-control" id="username" name="username" 
+                     placeholder="Enter username" required autocomplete="username">
+            </div>
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input type="password" class="form-control" id="password" name="password" 
+                     placeholder="Enter password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mb-3">
+              <i class="fas fa-sign-in-alt me-2"></i>Login to Dashboard
+            </button>
+          </form>
+        </div>
+      </div>
+      
+      <div class="text-center mt-3">
+        <p class="text-muted">
+          <i class="fas fa-info-circle me-1"></i>
+          After login, you'll be redirected to your dashboard based on your role.
+        </p>
+        {% if next %}
+          <p class="text-info small">
+            <i class="fas fa-arrow-right me-1"></i>
+            You'll be redirected to your intended destination after login.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %} 

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Sata Prakar{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/sata_prakar.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sata-prakar-container">
+    <!-- Header -->
+    <div class="sata-header">
+        <h1>Sata Prakar</h1>
+        <button class="btn btn-primary add-sata-btn" onclick="openAddSataModal()">
+            <i class="bi bi-plus"></i> ADD SATA PRAKAR
+        </button>
+    </div>
+
+    <!-- Search and Refresh -->
+    <div class="sata-controls">
+        <div class="search-container">
+            <input type="text" id="sataSearch" placeholder="Search Sata Prakar" class="search-input">
+        </div>
+        <button class="btn btn-outline-primary refresh-btn" onclick="refreshSata()">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+    </div>
+
+    <!-- Sata Prakar Table -->
+    <div class="sata-table-container">
+        <table class="sata-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Sata Name</th>
+                    <th>Created Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="sataTableBody">
+                {% for sata in sata_prakar_list %}
+                <tr class="sata-row" data-sata-id="{{ sata.id }}">
+                    <td>{{ sata.id }}</td>
+                    <td>
+                        <i class="bi bi-file-text sata-icon"></i>
+                        {{ sata.name }}
+                    </td>
+                    <td>{{ sata.created_at|date:"M d, Y" }}</td>
+                    <td class="actions-cell">
+                        <button class="btn btn-sm btn-primary edit-btn" onclick="editSata({{ sata.id }})" title="Edit Sata Prakar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" onclick="deleteSata({{ sata.id }})" title="Delete Sata Prakar">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="no-sata">No Sata Prakar found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Sata Prakar Modal -->
+<div class="modal fade" id="addSataModal" tabindex="-1" aria-labelledby="addSataModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSataModalLabel">Add New Sata Prakar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSataForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="sataName" class="form-label">Sata Name*</label>
+                        <input type="text" class="form-control" id="sataName" name="sata_name" placeholder="Enter Sata Prakar Name (Press Enter to submit)" required>
+                        <small class="form-text text-muted">Press Enter key to quickly submit</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary submit-btn" onclick="submitSata()">SUBMIT</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Sata Prakar Modal -->
+<div class="modal fade" id="editSataModal" tabindex="-1" aria-labelledby="editSataModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSataModalLabel">Edit Sata Prakar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editSataForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="editSataId" name="sata_id">
+                    <div class="mb-3">
+                        <label for="editSataName" class="form-label">Sata Name*</label>
+                        <input type="text" class="form-control" id="editSataName" name="sata_name" placeholder="Enter Sata Prakar Name (Press Enter to update)" required>
+                        <small class="form-text text-muted">Press Enter key to quickly update</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="updateSata()">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner">Processing...</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/sata_prakar.js' %}"></script>
+{% endblock %} 

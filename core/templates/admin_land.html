@@ -1,0 +1,615 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Land Property{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_land.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Page Header -->
+  <div class="page-header d-flex justify-content-between align-items-center">
+    <h2>
+      <i class="bi bi-geo-alt me-3"></i>
+      Land Property
+    </h2>
+    <div class="header-actions">
+      <a href="{% url 'inventory_land' %}" class="btn btn-outline-success me-2">
+        <i class="bi bi-box-seam me-2"></i>
+        View Inventory
+      </a>
+      <a href="{% url 'add_land' %}" class="add-land-btn">
+        <i class="bi bi-plus-circle me-2"></i>
+        ADD LAND
+      </a>
+    </div>
+  </div>
+
+  <!-- Display error message if any -->
+  {% if error_message %}
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    {{ error_message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% endif %}
+
+  <!-- Search and Filter Section -->
+  <div class="search-section">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-2 col-sm-6 col-12">
+        <label class="form-label">Land Id</label>
+        <input type="text" class="form-control search-input" id="landIdSearch" placeholder="Search ID">
+      </div>
+      <div class="col-md-2 col-sm-6 col-12">
+        <label class="form-label">Village-Old-New Sr No</label>
+        <div class="input-group">
+          <input type="text" class="form-control search-input" id="villageSearch" placeholder="Search Village Name">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+        </div>
+      </div>
+      <div class="col-md-2 col-sm-6 col-12">
+        <label class="form-label">Soda Tarikh</label>
+        <input type="date" class="form-control search-input" id="sodaDateFilter">
+      </div>
+      <div class="col-md-2 col-sm-6 col-12">
+        <label class="form-label">Banakhat</label>
+        <input type="date" class="form-control search-input" id="banakhatDateFilter">
+      </div>
+      <div class="col-md-2 col-sm-6 col-12">
+        <label class="form-label">Dastaveg</label>
+        <input type="date" class="form-control search-input" id="dastavegDateFilter">
+      </div>
+      <div class="col-md-2 col-sm-6 col-12">
+        <label class="form-label">Sata Prakar</label>
+        <select class="form-control search-input" id="sataPrakarSearch">
+          <option value="">All Sata Prakar</option>
+          {% for sata in sata_prakar_list %}
+            <option value="{{ sata.name }}">{{ sata.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <div class="action-buttons-container">
+          <button class="action-btn refresh-btn" onclick="refreshData()" title="Refresh Data">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+          <button class="action-btn download-btn" onclick="downloadData()" title="Download Data">
+            <i class="bi bi-download"></i>
+          </button>
+          <button class="action-btn inventory-toggle-btn" onclick="toggleInventoryView()" title="Toggle Inventory View">
+            <i class="bi bi-box-seam"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lands Table with Responsive Wrapper -->
+  <div class="land-table">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th scope="col">Land Id</th>
+            <th scope="col">Property Holder Name</th>
+            <th scope="col">Village-Old-New Sr No</th>
+            <th scope="col">SQ Meter</th>
+            <th scope="col">Soda Tarikh</th>
+            <th scope="col">Banakhat</th>
+            <th scope="col">Dastaveg</th>
+            <th scope="col">Sata Prakar</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for land in lands %}
+          <tr>
+            <td>
+              <div class="land-id">{{ land.id }}</div>
+              <div class="land-actions">
+                <a href="{% url 'land-tasks' land.id %}" class="btn btn-sm btn-outline-primary tasks-btn" title="View Tasks">
+                  <i class="bi bi-list-task me-1"></i>TASKS
+                </a>
+              </div>
+              <div class="edit-remove-links">
+                <a href="#" onclick="showEditLandModal({{ land.id }})">Edit</a> | 
+                <a href="#" onclick="removeLand({{ land.id }})">Remove</a>
+              </div>
+            </td>
+            <td>
+              <div class="property-holder">{{ land.name }}</div>
+            </td>
+            <td>
+              <div class="village-info">{{ land.village.name }}</div>
+              <div class="serial-numbers">
+                Old: {{ land.old_sr_no }} | New: {{ land.new_sr_no }}
+              </div>
+            </td>
+            <td>
+              <span class="sq-meter-badge">{{ land.total_area }} sq m</span>
+            </td>
+            <td>
+              <div class="date-info">{{ land.soda_tarikh|date:"d/m/Y" }}</div>
+            </td>
+            <td>
+              <div class="date-info">{{ land.banakhat_tarikh|date:"d/m/Y" }}</div>
+            </td>
+            <td>
+              <div class="date-info">{{ land.dastavej_tarikh|date:"d/m/Y" }}</div>
+            </td>
+            <td>
+              <span class="sata-prakar-badge">{{ land.sata_prakar }}</span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="action-btn view-btn" onclick="viewLand({{ land.id }})" title="View">
+                  <i class="bi bi-file-text"></i>
+                </button>
+                {% if land.status != 'inventory' %}
+                <button class="action-btn inventory-btn" onclick="sendToInventory({{ land.id }})" title="Send to Inventory">
+                  <i class="bi bi-box-seam"></i>
+                </button>
+                {% else %}
+                <span class="badge bg-success">In Inventory</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9" class="text-center py-4">
+              <i class="bi bi-inbox text-muted" style="font-size: 48px;"></i>
+              <p class="text-muted mt-2">No land properties found</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- Edit Land Modal -->
+<div class="modal fade" id="editLandModal" tabindex="-1" aria-labelledby="editLandModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <form method="POST" action="" id="editLandForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="editLandModalLabel">
+            <i class="bi bi-pencil-square me-2"></i>Edit Land Property
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <!-- Property Holder Name -->
+            <div class="col-md-6">
+              <label class="form-label">Property Holder Name <span class="text-danger">*</span></label>
+              <input type="text" name="name" id="edit_name" class="form-control" required>
+            </div>
+
+            <!-- State -->
+            <div class="col-md-6">
+              <label class="form-label">State <span class="text-danger">*</span></label>
+              <input type="text" name="state" id="edit_state" class="form-control" value="Gujarat" readonly>
+            </div>
+
+            <!-- District -->
+            <div class="col-md-6">
+              <label class="form-label">District <span class="text-danger">*</span></label>
+              <select name="district" id="edit_district" class="form-select" required>
+                <option value="">Select District</option>
+              </select>
+            </div>
+
+            <!-- Taluka -->
+            <div class="col-md-6">
+              <label class="form-label">Taluka <span class="text-danger">*</span></label>
+              <select name="taluka" id="edit_taluka" class="form-select" required>
+                <option value="">Select Taluka</option>
+              </select>
+            </div>
+
+            <!-- Village Name -->
+            <div class="col-md-6">
+              <label class="form-label">Village Name <span class="text-danger">*</span></label>
+                                      <select name="village" id="edit_village_name" class="form-select" required>
+                            <option value="">Select Village</option>
+                        </select>
+            </div>
+
+            <!-- Old SR No -->
+            <div class="col-md-6">
+              <label class="form-label">Old SR No <span class="text-danger">*</span></label>
+              <input type="text" name="old_sr_no" id="edit_old_sr_no" class="form-control" required>
+            </div>
+
+            <!-- New SR No -->
+            <div class="col-md-6">
+              <label class="form-label">New SR No <span class="text-danger">*</span></label>
+              <input type="text" name="new_sr_no" id="edit_new_sr_no" class="form-control" required>
+            </div>
+
+            <!-- Sata Prakar -->
+            <div class="col-md-6">
+              <label class="form-label">Sata Prakar <span class="text-danger">*</span></label>
+              <select name="sata_prakar" id="edit_sata_prakar" class="form-select" required>
+                <option value="">Select Sata Prakar</option>
+                {% for sata in sata_prakar_list %}
+                <option value="{{ sata.name }}">{{ sata.name }}</option>
+                {% empty %}
+                <option value="" disabled>No Sata Prakar available. Please add some first.</option>
+                {% endfor %}
+              </select>
+              {% if not sata_prakar_list %}
+              <div class="form-text text-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                No Sata Prakar entries found. Please go to <a href="{% url 'sata_prakar' %}" class="text-decoration-none">Sata Prakar</a> page and add some entries first.
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Built Up Area -->
+            <div class="col-md-6">
+              <label class="form-label">Built Up Area (sq m) <span class="text-danger">*</span></label>
+              <input type="number" name="built_up_area" id="edit_built_up_area" class="form-control" step="0.01" required>
+            </div>
+
+            <!-- Unutilized Area -->
+            <div class="col-md-6">
+              <label class="form-label">Unutilized Area (sq m) <span class="text-danger">*</span></label>
+              <input type="number" name="unutilized_area" id="edit_unutilized_area" class="form-control" step="0.01" required>
+            </div>
+
+            <!-- Total Area -->
+            <div class="col-md-6">
+              <label class="form-label">Total Area (sq m) <span class="text-danger">*</span></label>
+              <input type="number" name="total_area" id="edit_total_area" class="form-control" step="0.01" required>
+            </div>
+
+            <!-- Past Date -->
+            <div class="col-md-6">
+              <label class="form-label">Past Date</label>
+              <input type="date" name="past_date" id="edit_past_date" class="form-control">
+            </div>
+
+            <!-- Soda Tarikh -->
+            <div class="col-md-6">
+              <label class="form-label">Soda Tarikh <span class="text-danger">*</span></label>
+              <input type="date" name="soda_tarikh" id="edit_soda_tarikh" class="form-control" required>
+            </div>
+
+            <!-- Banakhat Tarikh -->
+            <div class="col-md-6">
+              <label class="form-label">Banakhat Tarikh <span class="text-danger">*</span></label>
+              <input type="date" name="banakhat_tarikh" id="edit_banakhat_tarikh" class="form-control" required>
+            </div>
+
+            <!-- Dastavej Tarikh -->
+            <div class="col-md-6">
+              <label class="form-label">Dastavej Tarikh <span class="text-danger">*</span></label>
+              <input type="date" name="dastavej_tarikh" id="edit_dastavej_tarikh" class="form-control" required>
+            </div>
+
+            <!-- Broker Name -->
+            <div class="col-md-6">
+              <label class="form-label">Broker Name <span class="text-danger">*</span></label>
+              <input type="text" name="broker_name" id="edit_broker_name" class="form-control" required>
+            </div>
+
+            <!-- Location -->
+            <div class="col-md-6">
+              <label class="form-label">Location</label>
+              <input type="text" name="location" id="edit_location" class="form-control" placeholder="Enter additional location details">
+            </div>
+
+            <!-- Remark -->
+            <div class="col-md-6">
+              <label class="form-label">Remark</label>
+              <textarea name="remark" id="edit_remark" class="form-control" placeholder="Enter additional remarks or notes" rows="3"></textarea>
+            </div>
+
+            <!-- Task Selection Section -->
+            <div class="col-md-12">
+              <div class="task-input-group">
+                <!-- Add Task Button -->
+                <div class="mb-3">
+                  <button type="button" class="btn btn-primary" onclick="openAddTaskModalEdit()">
+                    <i class="bi bi-plus"></i> Add Task
+                  </button>
+                </div>
+                
+                <!-- Selected Task (Table Format) -->
+                <div class="mb-3">
+                  <label class="form-label">Selected Task</label>
+                  <div class="selected-tasks-table-container">
+                    <table class="selected-tasks-table">
+                      <thead>
+                        <tr>
+                          <th>SELECTED TASK</th>
+                          <th>ASSIGNED EMPLOYEE</th>
+                          <th>COMPLETION DAYS</th>
+                        </tr>
+                      </thead>
+                      <tbody id="edit_taskTableBody">
+                        <!-- Selected tasks will be loaded here -->
+                        <!-- This row will be shown/hidden by JavaScript based on actual task state -->
+                        <tr id="edit_noTasksMessage" class="text-center text-muted" style="display: none;">
+                          <td colspan="3">No tasks available. Please add tasks first.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                
+                <!-- Not Selected Tasks (All Tasks) -->
+                <div class="mb-3">
+                  <label class="form-label">Not Selected Tasks</label>
+                  <div id="edit_notSelectedTasks" class="task-tags">
+                    {% for task in all_tasks %}
+                      <div class="task-chip {% if task.is_default %}default-task{% else %}custom-task{% endif %}" 
+                           data-task-name="{{ task.name }}" 
+                           data-task-id="{{ task.id }}"
+                           data-assigned-employees="{{ task.assigned_employees_display }}"
+                           data-employee-count="{{ task.assigned_employees_count }}"
+                           data-completion-days="{{ task.completion_days }}"
+                           onclick="selectTaskEdit(this)">
+                        {{ task.name }}
+                      </div>
+                    {% empty %}
+                    <p class="text-muted">No tasks available.</p>
+                    {% endfor %}
+                    <!-- This message will be shown/hidden by JavaScript based on actual task state -->
+                    <p id="edit_noNonDefaultTasksMessage" class="text-muted" style="display: none;">No non-default tasks available.</p>
+                  </div>
+                </div>
+                
+                <input type="hidden" name="selected_tasks" id="edit_selected_tasks" value="">
+                <input type="hidden" name="task_employee_selections" id="edit_task_employee_selections" value="">
+                <input type="hidden" name="task_completion_days" id="edit_task_completion_days" value="">
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Task Modal for Edit -->
+<div class="modal fade" id="addTaskModalEdit" tabindex="-1" aria-labelledby="addTaskModalEditLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTaskModalEditLabel">Add New Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTaskFormEdit">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editTaskName" class="form-label">Task Name*</label>
+                                <input type="text" class="form-control" id="editTaskName" name="task_name" placeholder="Enter task name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editTaskPosition" class="form-label">Position*</label>
+                                <input type="number" class="form-control" id="editTaskPosition" name="position" placeholder="Display position" required min="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editIsDefault" class="form-label">Default Task*</label>
+                                <select class="form-control" id="editIsDefault" name="is_default" required>
+                                    <option value="">Select Option</option>
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editCompletionDays" class="form-label">Completion Days*</label>
+                                <input type="number" class="form-control" id="editCompletionDays" name="completion_days" placeholder="Expected completion time in days" required min="0" value="0">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="editAssignEmployee" class="form-label">Employee Name*</label>
+                                <div class="input-group">
+                                    <select class="form-control" id="editAssignEmployee" name="assign_employee">
+                                        <option value="">Select Employee</option>
+                                        {% for employee in employees %}
+                                        <option value="{{ employee.id }}" data-employee-type="{{ employee.employee_type }}">
+                                            {{ employee.full_name|default:employee.username }} 
+                                            {% if employee.employee_type %}({{ employee.employee_type|title }}){% endif %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+
+                                    <button type="button" class="btn" onclick="openAddEmployeeModal()" title="Add New Employee">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                                <div id="editSelectedEmployeesBox" class="selected-employees-box mt-2" style="display: none;">
+                                    <div class="selected-employees-header">
+                                        <span>Selected Employees:</span>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearAllEmployeesEdit()">Clear All</button>
+                                    </div>
+                                    <div id="editSelectedEmployeesList" class="selected-employees-list">
+                                        <!-- Selected employees will be displayed here -->
+                                    </div>
+                                </div>
+                                <input type="hidden" id="editSelectedEmployeesInput" name="selected_employees" value="">
+                                <small class="form-text text-muted">The first selected employee will be the primary employee.</small>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary submit-btn" onclick="submitTaskEdit()">SUBMIT</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner">Processing...</div>
+</div>
+
+<!-- Add Employee Modal -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addEmployeeModalLabel">Add New Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addEmployeeForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeType" class="form-label fw-bold">Employee Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="newEmployeeType" name="employee_type" required>
+                                    <option value="">Select Employee Type</option>
+                                    <option value="marketing">Marketing</option>
+                                    <option value="backoffice">Back Office</option>
+                                    <option value="legal_team">Legal Team</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeUsername" class="form-label fw-bold">Username <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="newEmployeeUsername" name="username" placeholder="Enter Username" required>
+                                <small class="text-muted">Choose a unique username for login</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeFullName" class="form-label fw-bold">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="newEmployeeFullName" name="full_name" placeholder="Enter Full Name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeEmail" class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="newEmployeeEmail" name="email" placeholder="Enter Email Address" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeePassword" class="form-label fw-bold">Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="newEmployeePassword" name="password" placeholder="Enter Password" required>
+                                    <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">Click the eye icon to show/hide password</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeMobile" class="form-label fw-bold">Mobile Number <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="newEmployeeMobile" name="mobile" placeholder="Enter Mobile Number (10 digits)" required pattern="[0-9]{10}" maxlength="10">
+                                <small class="text-muted">Enter exactly 10 digits</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeLocation" class="form-label fw-bold">Location <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="newEmployeeLocation" name="location" placeholder="Enter Location" required>
+                                <small class="text-muted">City, State, or Area covered</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeStatus" class="form-label fw-bold">Status <span class="text-danger">*</span></label>
+                                <select class="form-select" id="newEmployeeStatus" name="status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="newEmployeeAddress" class="form-label fw-bold">Address</label>
+                                <textarea class="form-control" id="newEmployeeAddress" name="address" rows="3" placeholder="Enter Complete Address"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitNewEmployee()">Add Employee</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/admin_land.js' %}?v=2"></script>
+<script>
+// Password toggle functionality for add employee modal
+function togglePasswordVisibility() {
+    const passwordField = document.getElementById('newEmployeePassword');
+    const toggleBtn = document.getElementById('togglePassword');
+    const icon = toggleBtn.querySelector('i');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        passwordField.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+
+// Initialize password toggle when modal is shown
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listener for password toggle button
+    const toggleBtn = document.getElementById('togglePassword');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', togglePasswordVisibility);
+    }
+});
+</script>
+{% endblock %} 

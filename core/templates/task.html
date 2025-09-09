@@ -1,0 +1,420 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Task Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/task.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="assigned-task-container">
+    <!-- Header -->
+    <div class="task-header">
+        <h1>Task Management</h1>
+        <button class="btn add-task-btn" onclick="openAddTaskModal()">
+            <i class="bi bi-plus"></i> ADD TASK
+        </button>
+    </div>
+
+    <!-- Search and Refresh -->
+    <div class="task-controls">
+        <div class="search-container">
+            <input type="text" id="taskSearch" placeholder="Search Task Name" class="search-input">
+        </div>
+        <button class="btn btn-outline-primary refresh-btn" onclick="refreshTasks()">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+    </div>
+
+    <!-- Task Table -->
+    <div class="task-table-container">
+        <table class="task-table">
+            <thead>
+                <tr>
+                    <th>Task Id</th>
+                    <th>Task Name</th>
+                    <th>Position</th>
+                    <th>Employee Name</th>
+                    <th>Default</th>
+                    <th>Completion Days</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="taskTableBody">
+                {% for task in tasks %}
+                <tr class="task-row" data-task-id="{{ task.id }}">
+                    <td>{{ task.id }}</td>
+                    <td>
+                        <i class="bi bi-list task-icon"></i>
+                        {{ task.name }}
+                    </td>
+                    <td>{{ task.position }}</td>
+                    <td>
+                        <i class="bi bi-people employee-icon"></i>
+                        {% if task.task_manages.all %}
+                            {% for task_manage in task.task_manages.all %}
+                                <span class="badge bg-primary me-1">
+                                    {{ task_manage.employee.full_name|default:task_manage.employee.username }}
+                                </span>
+                            {% endfor %}
+
+                        {% else %}
+                            {% if task.marketing_task %}
+                                <span class="badge bg-info text-dark">Marketing Employee</span>
+                            {% else %}
+                                <span class="text-muted">No employees assigned</span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {% if task.is_default %}bg-success{% else %}bg-secondary{% endif %}">
+                            {% if task.is_default %}Yes{% else %}No{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ task.completion_days }} days</td>
+                    <td class="actions-cell">
+                        <button class="btn edit-btn" onclick="editTask({{ task.id }})" title="Edit Task">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn delete-btn" onclick="deleteTask({{ task.id }})" title="Delete Task">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="no-tasks">No tasks created yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTaskForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="taskName" class="form-label">Task Name*</label>
+                                <input type="text" class="form-control" id="taskName" name="task_name" placeholder="Enter task name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="taskPosition" class="form-label">Position*</label>
+                                <input type="number" class="form-control" id="taskPosition" name="position" placeholder="Display position" required min="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="isDefault" class="form-label">Default Task*</label>
+                                <select class="form-control" id="isDefault" name="is_default" required>
+                                    <option value="">Select Option</option>
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="completionDays" class="form-label">Completion Days*</label>
+                                <input type="number" class="form-control" id="completionDays" name="completion_days" placeholder="Expected completion time in days" required min="0" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="marketingTask" class="form-label">Marketing Task</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="marketingTask" name="marketing_task" value="false">
+                                    <label class="form-check-label" for="marketingTask" id="marketingTaskLabel">
+                                        No
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="assignEmployee" class="form-label">Employee Name*</label>
+                                <div class="input-group">
+                                    <select class="form-control" id="assignEmployee" name="assign_employee">
+                                        <option value="">Select Employee</option>
+                                        {% for employee in employees %}
+                                        <option value="{{ employee.id }}">{{ employee.full_name|default:employee.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="button" class="btn" onclick="openAddEmployeeModal()" title="Add New Employee">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                                <div id="selectedEmployeesBox" class="selected-employees-box mt-2" style="display: none;">
+                                    <div class="selected-employees-header">
+                                        <span>Selected Employees:</span>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearAllEmployees()">Clear All</button>
+                                    </div>
+                                    <div id="selectedEmployeesList" class="selected-employees-list">
+                                        <!-- Selected employees will be displayed here -->
+                                    </div>
+                                </div>
+                                <input type="hidden" id="selectedEmployeesInput" name="selected_employees" value="">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary submit-btn" onclick="submitTask()">SUBMIT</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Task Modal -->
+<div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTaskForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="editTaskId" name="task_id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editTaskName" class="form-label">Task Name*</label>
+                                <input type="text" class="form-control" id="editTaskName" name="task_name" placeholder="Enter task name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editTaskPosition" class="form-label">Position*</label>
+                                <input type="number" class="form-control" id="editTaskPosition" name="position" required min="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editIsDefault" class="form-label">Default Task*</label>
+                                <select class="form-control" id="editIsDefault" name="is_default" required>
+                                    <option value="">Select Option</option>
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editCompletionDays" class="form-label">Completion Days*</label>
+                                <input type="number" class="form-control" id="editCompletionDays" name="completion_days" placeholder="Expected completion time in days" required min="0">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editMarketingTask" class="form-label">Marketing Task</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="editMarketingTask" name="marketing_task" value="false">
+                                    <label class="form-check-label" for="editMarketingTask">
+                                        <span id="editMarketingTaskLabel" class="text-muted">No</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="editAssignEmployee" class="form-label">Employee Name*</label>
+                                <div class="input-group">
+                                    <select class="form-control" id="editAssignEmployee" name="assign_employee">
+                                        <option value="">Select Employee</option>
+                                        {% for employee in employees %}
+                                        <option value="{{ employee.id }}">{{ employee.full_name|default:employee.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="button" class="btn" onclick="openAddEmployeeModal()" title="Add New Employee">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                                <div id="editSelectedEmployeesBox" class="selected-employees-box mt-2" style="display: none;">
+                                    <div class="selected-employees-header">
+                                        <span>Selected Employees:</span>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearAllEditEmployees()">Clear All</button>
+                                    </div>
+                                    <div id="editSelectedEmployeesList" class="selected-employees-list">
+                                        <!-- Selected employees will be displayed here -->
+                                    </div>
+                                </div>
+                                <input type="hidden" id="editSelectedEmployeesInput" name="selected_employees" value="">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="updateTask()">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner">Processing...</div>
+</div>
+
+<!-- Add Employee Modal -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addEmployeeModalLabel">Add New Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addEmployeeForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeType" class="form-label fw-bold">Employee Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="newEmployeeType" name="employee_type" required>
+                                    <option value="">Select Employee Type</option>
+                                    <option value="marketing">Marketing</option>
+                                    <option value="backoffice">Back Office</option>
+                                    <option value="legal_team">Legal Team</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeUsername" class="form-label fw-bold">Username <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="newEmployeeUsername" name="username" placeholder="Enter Username" required>
+                                <small class="text-muted">Choose a unique username for login</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeFullName" class="form-label fw-bold">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="newEmployeeFullName" name="full_name" placeholder="Enter Full Name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeEmail" class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="newEmployeeEmail" name="email" placeholder="Enter Email Address" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeePassword" class="form-label fw-bold">Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="newEmployeePassword" name="password" placeholder="Enter Password" required>
+                                    <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">Click the eye icon to show/hide password</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeMobile" class="form-label fw-bold">Mobile Number <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="newEmployeeMobile" name="mobile" placeholder="Enter Mobile Number (10 digits)" required pattern="[0-9]{10}" maxlength="10">
+                                <small class="text-muted">Enter exactly 10 digits</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeLocation" class="form-label fw-bold">Location <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="newEmployeeLocation" name="location" placeholder="Enter Location" required>
+                                <small class="text-muted">City, State, or Area covered</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newEmployeeStatus" class="form-label fw-bold">Status <span class="text-danger">*</span></label>
+                                <select class="form-select" id="newEmployeeStatus" name="status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="newEmployeeAddress" class="form-label fw-bold">Address</label>
+                                <textarea class="form-control" id="newEmployeeAddress" name="address" rows="3" placeholder="Enter Complete Address"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitNewEmployee()">Add Employee</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/task.js' %}?v=1.1"></script>
+<script>
+// Password toggle functionality for add employee modal
+function togglePasswordVisibility() {
+    const passwordField = document.getElementById('newEmployeePassword');
+    const toggleBtn = document.getElementById('togglePassword');
+    const icon = toggleBtn.querySelector('i');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        passwordField.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+
+// Initialize password toggle when modal is shown
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listener for password toggle button
+    const toggleBtn = document.getElementById('togglePassword');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', togglePasswordVisibility);
+    }
+});
+</script>
+{% endblock %} 

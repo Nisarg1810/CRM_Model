@@ -1,0 +1,1148 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block page_title %}Employees{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/contact-table.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_employees.css' %}">
+<style>
+  .employee-item {
+    /* Removed transitions for cleaner look */
+  }
+  .employee-item:hover {
+    background-color: #f8f9fa;
+  }
+  .alert {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+
+</style>
+{% endblock %}
+{% block content %}
+<!-- Stats Cards -->
+<div class="stats-cards row mb-4 g-3">
+  <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6 stats-card">
+    <div class="card text-center shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title">Total Employees</h6>
+        <h3>{{ developers|length }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6 stats-card">
+    <div class="card text-center shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title">Active</h6>
+        <h3>{{ active_developers|default:developers|length }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6 stats-card">
+    <div class="card text-center shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title">Marketing</h6>
+        <h3>{{ marketing_devs|default:0 }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6 stats-card">
+    <div class="card text-center shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title">Back Office</h6>
+        <h3>{{ backoffice_devs|default:0 }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6 stats-card">
+    <div class="card text-center shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title">Legal Team</h6>
+        <h3>{{ legal_devs|default:0 }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6 stats-card">
+    <div class="card text-center shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title">Other</h6>
+        <h3>{{ other_devs|default:0 }}</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action Buttons Row -->
+<div class="action-buttons-row">
+  <div class="action-buttons-left">
+    <button class="btn btn-outline-primary" id="exportCSV">
+      <i class="bi bi-download me-1"></i> 
+      <span class="d-none d-sm-inline">Export CSV</span>
+      <span class="d-sm-none">Export</span>
+    </button>
+    <button class="btn btn-outline-secondary" id="bulkDeleteBtn" style="display:none;">
+      <i class="bi bi-trash me-1"></i> 
+      <span class="d-none d-sm-inline">Delete Selected</span>
+      <span class="d-sm-none">Delete</span>
+    </button>
+    <button class="btn btn-outline-info" id="refreshBtn">
+      <i class="bi bi-arrow-clockwise me-1"></i> 
+      <span class="d-none d-sm-inline">Refresh</span>
+      <span class="d-sm-none">Refresh</span>
+    </button>
+  </div>
+  
+  <div class="action-buttons-right">
+    <a href="{% url 'add_employee_page' %}" class="btn btn-success">
+      <i class="bi bi-person-plus me-1"></i> 
+      <span class="d-none d-sm-inline">Add Employee</span>
+      <span class="d-sm-none">Add</span>
+    </a>
+  </div>
+</div>
+
+
+
+
+
+
+  <!-- Desktop Table View -->
+  <div class="table-container contact-table-container">
+    <table class="contact-table employee-table">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Name</th>
+          <th scope="col">Type</th>
+          <th scope="col">Phone No.</th>
+          <th scope="col">Email</th>
+          <th scope="col">Address</th>
+          <th scope="col">Status</th>
+        </tr>
+        <!-- Search/Filter Row -->
+        <tr class="filter-row">
+          <th>
+            <button class="refresh-btn" id="refreshBtn" title="Refresh">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </th>
+          <th>
+            <input type="text" class="filter-input" id="nameSearch" placeholder="Name">
+          </th>
+          <th>
+            <select class="filter-select" id="typeFilter">
+              <option value="">Type</option>
+              <option value="marketing">Marketing</option>
+              <option value="backoffice">Back Office</option>
+              <option value="legal_team">Legal Team</option>
+              <option value="other">Other</option>
+            </select>
+          </th>
+          <th>
+            <input type="text" class="filter-input" id="phoneSearch" placeholder="Mobile No">
+          </th>
+          <th>
+            <input type="text" class="filter-input" id="emailSearch" placeholder="Email">
+          </th>
+          <th>
+            <!-- Address filter can be added here if needed -->
+          </th>
+          <th>
+            <!-- Status filter can be added here if needed -->
+          </th>
+        </tr>
+      </thead>
+      <tbody id="employeesTableBody">
+        {% for dev in developers %}
+        <tr class="employee-row employee-item" 
+            data-dev-id="{{ dev.id }}"
+            data-name="{{ dev.full_name|default:dev.username|lower }}" 
+            data-type="{{ dev.employee_type|default:''|lower }}"
+            data-phone="{{ dev.mobile|default:''|lower }}"
+            data-email="{{ dev.email|default:''|lower }}"
+            data-address="{{ dev.address|default:''|lower }}">
+          <td>{{ dev.id }}</td>
+          <td>
+            <div class="d-flex align-items-center">
+              <i class="bi bi-person me-2"></i>
+              <div>
+                <div class="fw-bold">{{ dev.full_name|default:dev.username }}</div>
+                                  <div class="small">
+                    <a href="#" class="text-primary me-2" data-bs-toggle="modal" data-bs-target="#editEmployeeModal{{ dev.id }}">Edit</a>
+                    <a href="{% url 'admin_chat' dev.username %}" class="text-info me-2">
+                      Chat
+                    </a>
+                    <a href="#" class="text-danger" onclick="deleteEmployee('{{ dev.id }}', '{{ dev.full_name|default:dev.username }}')">Delete</a>
+                  </div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="contact-type">{{ dev.get_employee_type_display|default:'Not specified' }}</span>
+          </td>
+          <td>
+            <div class="phone-number">
+              <i class="bi bi-telephone phone-icon"></i>
+              {{ dev.mobile|default:'Not specified' }}
+            </div>
+          </td>
+          <td>
+            <div class="email-address">
+              <i class="bi bi-envelope email-icon"></i>
+              {{ dev.email|default:'Not specified' }}
+            </div>
+          </td>
+          <td>
+            {% if dev.address %}
+              <i class="bi bi-geo-alt me-1"></i>{{ dev.address }}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge status-badge clickable {% if dev.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}" 
+                  onclick="changeStatus('{{ dev.id }}')" 
+                  data-employee-id="{{ dev.id }}"
+                  style="cursor: pointer;">
+              {{ dev.get_status_display|default:'Not specified' }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Mobile Cards View (Hidden on desktop) -->
+  <div class="mobile-view">
+    {% for dev in developers %}
+    <div class="mobile-employee-card employee-item" 
+         data-dev-id="{{ dev.id }}"
+         data-name="{{ dev.full_name|default:dev.username|lower }}" 
+         data-type="{{ dev.employee_type|default:''|lower }}"
+         data-phone="{{ dev.mobile|default:''|lower }}"
+         data-email="{{ dev.email|default:''|lower }}"
+         data-address="{{ dev.address|default:''|lower }}">
+      
+      <div class="employee-header">
+        <div>
+          <div class="employee-name">{{ dev.full_name|default:dev.username }}</div>
+          <div class="employee-id">ID: {{ dev.id }}</div>
+        </div>
+        <input type="checkbox" class="form-check-input employee-select" value="{{ dev.id }}">
+      </div>
+      
+      <div class="employee-details">
+        <div class="detail-item">
+          <div class="detail-label">Type</div>
+          <div class="detail-value">{{ dev.get_employee_type_display|default:'Not specified' }}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Phone</div>
+          <div class="detail-value">{{ dev.mobile|default:'Not specified' }}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Email</div>
+          <div class="detail-value">{{ dev.email|default:'Not specified' }}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Address</div>
+          <div class="detail-value">{{ dev.address|default:'-' }}</div>
+        </div>
+      </div>
+      
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="badge bg-info">{{ dev.get_employee_type_display|default:'Not specified' }}</span>
+        <span class="badge status-badge clickable {% if dev.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}" 
+              onclick="changeStatus('{{ dev.id }}')" 
+              data-employee-id="{{ dev.id }}"
+              style="cursor: pointer;">
+          {{ dev.get_status_display|default:'Not specified' }}
+        </span>
+      </div>
+      
+      <div class="employee-actions">
+        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editEmployeeModal{{ dev.id }}">
+          <i class="bi bi-pencil-square me-1"></i> Edit
+        </button>
+        <a href="{% url 'admin_chat' dev.username %}" class="btn btn-info btn-sm">
+          <i class="bi bi-chat-dots me-1"></i> Chat
+        </a>
+        <button class="btn btn-danger btn-sm" onclick="deleteEmployee('{{ dev.id }}', '{{ dev.username }}')">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Edit Employee Modals -->
+{% for dev in developers %}
+    <div class="modal fade" id="editEmployeeModal{{ dev.id }}" tabindex="-1" aria-labelledby="editEmployeeModalLabel{{ dev.id }}" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <form method="POST" action="{% url 'edit_employee' dev.id %}" enctype="multipart/form-data" class="editEmployeeForm" data-dev-id="{{ dev.id }}">
+            {% csrf_token %}
+            <div class="modal-header bg-primary text-white">
+                          <h5 class="modal-title" id="editEmployeeModalLabel{{ dev.id }}">
+              <i class="bi bi-pencil-square me-2"></i>Edit Employee: {{ dev.full_name|default:dev.username }}
+            </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row g-3">
+                <!-- Left Column -->
+                <div class="col-md-6">
+                  <!-- Employee Type -->
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Employee Type <span class="text-danger">*</span></label>
+                    <select name="employee_type" class="form-select" required>
+                      <option value="">Select Employee Type</option>
+                      <option value="marketing" {% if dev.employee_type == 'marketing' %}selected{% endif %}>Marketing</option>
+                      <option value="backoffice" {% if dev.employee_type == 'backoffice' %}selected{% endif %}>Back Office</option>
+                      <option value="legal_team" {% if dev.employee_type == 'legal_team' %}selected{% endif %}>Legal Team</option>
+                      <option value="other" {% if dev.employee_type == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                  </div>
+                  
+                  <!-- Email -->
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                    <input type="email" name="email" class="form-control" value="{{ dev.email|default:'' }}" placeholder="Enter Email Address" required>
+                  </div>
+                  
+                  <!-- Mobile Number -->
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Mobile Number <span class="text-danger">*</span></label>
+                                    <input type="tel" name="mobile" id="mobileFieldEdit{{ dev.id }}" class="form-control" value="{{ dev.mobile }}" placeholder="Enter Mobile Number (10 digits)" required pattern="[0-9]{10}" maxlength="10">
+                <small class="text-muted">Enter exactly 10 digits</small>
+                <div id="mobileErrorEdit{{ dev.id }}" class="text-danger small" style="display: none;">Mobile number must be exactly 10 digits</div>
+                  </div>
+                  
+                  <!-- Status -->
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Status <span class="text-danger">*</span></label>
+                    <select name="status" class="form-select" required>
+                      <option value="">Select Status</option>
+                      <option value="active" {% if dev.status == 'active' %}selected{% endif %}>Active</option>
+                      <option value="inactive" {% if dev.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                  </div>
+                  
+                  <!-- Address -->
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Address</label>
+                    <textarea name="address" class="form-control" rows="3" placeholder="Enter Complete Address">{{ dev.address|default:'' }}</textarea>
+                  </div>
+                  
+
+                </div>
+                
+                <!-- Right Column -->
+                <div class="col-md-6">
+                  <!-- Full Name -->
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Full Name <span class="text-danger">*</span></label>
+                    <input type="text" name="full_name" class="form-control" value="{{ dev.full_name|default:'' }}" placeholder="Enter Full Name" required>
+                  </div>
+                  
+                  <!-- Password -->
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Password</label>
+                    <div class="input-group">
+                      <input type="password" name="password" id="passwordFieldEdit{{ dev.id }}" class="form-control" placeholder="Leave blank to keep current password">
+                      <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('passwordFieldEdit{{ dev.id }}')">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                    </div>
+                    <small class="text-muted">Leave blank to keep current password</small>
+                  </div>
+                  
+                  <!-- Location -->
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Location <span class="text-danger">*</span></label>
+                    <input type="text" name="location" class="form-control" value="{{ dev.location|default:'' }}" placeholder="Enter Location" required>
+                    <small class="text-muted">City, State, or Area covered</small>
+                  </div>
+                  
+                  <!-- Username -->
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Username <span class="text-danger">*</span></label>
+                    <input type="text" name="username" class="form-control" value="{{ dev.username }}" required>
+                  </div>
+                  
+                  <!-- Profile Photo -->
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Profile Photo</label>
+                    <div class="upload-area border-2 border-dashed border-secondary rounded p-3 text-center">
+                      <i class="bi bi-cloud-upload fs-1 text-muted"></i>
+                      <p class="mb-1">Click to upload or drag and drop</p>
+                      <p class="small text-muted mb-0">PNG, JPG, GIF up to 10MB</p>
+                      <input type="file" name="profile_pic" class="form-control mt-2" accept="image/*">
+                    </div>
+                    {% if dev.profile_pic %}
+                    <div class="mt-2 text-center">
+                      <img src="{{ dev.profile_pic.url }}" alt="Current Profile" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
+                      <p class="text-muted small mt-1">Current photo</p>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer bg-light">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="bi bi-x-circle me-1"></i> Cancel
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-1"></i> Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+  <!-- Add Employee Modal -->
+  <div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+      <form method="POST" action="{% url 'add_employee' %}" enctype="multipart/form-data" id="addEmployeeForm">
+          {% csrf_token %}
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="addEmployeeModalLabel">
+            <i class="bi bi-person-plus me-2"></i>Add New Employee
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+          <div class="row g-3">
+            <!-- Employee Type -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Employee Type <span class="text-danger">*</span></label>
+              <select name="employee_type" class="form-select" required>
+                <option value="">Select Employee Type</option>
+                <option value="full_time">Full Time</option>
+                <option value="part_time">Part Time</option>
+                <option value="contract">Contract</option>
+                <option value="intern">Intern</option>
+              </select>
+            </div>
+            
+            <!-- Full Name -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Full Name <span class="text-danger">*</span></label>
+              <input type="text" name="full_name" class="form-control" placeholder="Full Name" required>
+            </div>
+            
+            <!-- Email -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+              <input type="email" name="email" class="form-control" placeholder="Email" required>
+            </div>
+            
+            <!-- Password Generator -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Password Generator <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <input type="password" name="password" id="passwordField" class="form-control" placeholder="Password" required>
+                <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button type="button" class="btn btn-primary" id="generatePassword">
+                  Generate Password
+                </button>
+              </div>
+            </div>
+            
+            <!-- Mobile -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Mobile <span class="text-danger">*</span></label>
+              <input type="text" name="mobile" class="form-control" placeholder="Mobile" required>
+            </div>
+            
+            <!-- Location -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Location <span class="text-danger">*</span></label>
+              <input type="text" name="location" class="form-control" placeholder="Location (area covered)" required>
+            </div>
+            
+            <!-- Address -->
+            <div class="col-12">
+              <label class="form-label fw-bold">Address</label>
+              <textarea name="address" class="form-control" rows="3" placeholder="Address"></textarea>
+            </div>
+            
+            <!-- Role -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Role <span class="text-danger">*</span></label>
+              <select name="role" class="form-select role-select" required onchange="toggleSpecialization(this, 'add')">
+                <option value="employee">Employee</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            
+            <!-- Specialization -->
+            <div class="col-md-6 specialization-group-add">
+              <label class="form-label fw-bold">Specialization <span class="text-danger">*</span></label>
+              <select name="specialization" class="form-select" required>
+                <option value="">Select Specialization</option>
+                <option value="Python Developer">Python Developer</option>
+                <option value="Java Developer">Java Developer</option>
+                <option value="Frontend Developer">Frontend Developer</option>
+                <option value="Backend Developer">Backend Developer</option>
+              </select>
+            </div>
+            
+
+            
+            <!-- Username -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Username <span class="text-danger">*</span></label>
+              <input type="text" name="username" class="form-control" placeholder="Username" required>
+            </div>
+          </div>
+          
+          <!-- Profile Photo Upload -->
+          <div class="mt-4">
+            <label class="form-label fw-bold">Upload your Profile Photo</label>
+            <div class="upload-area" id="uploadArea">
+              <div class="text-center p-4 border-2 border-dashed border-secondary rounded">
+                <i class="bi bi-cloud-upload display-4 text-muted"></i>
+                <p class="mt-2 mb-0 text-muted">Click to upload or drag and drop</p>
+                <p class="text-muted small">PNG, JPG, GIF up to 10MB</p>
+                <input type="file" name="profile_pic" id="profilePicInput" class="d-none" accept="image/*">
+              </div>
+              <div id="imagePreview" class="mt-3 text-center" style="display:none;">
+                <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+                <button type="button" class="btn btn-sm btn-outline-danger mt-2" id="removeImage">
+                  <i class="bi bi-trash me-1"></i>Remove
+                </button>
+              </div>
+            </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-lg px-4">
+            <i class="bi bi-check-circle me-2"></i>SAVE
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete <strong id="deleteEmployeeName"></strong>?</p>
+        <p class="text-danger"><small>This action cannot be undone.</small></p>
+          </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form method="POST" id="deleteEmployeeForm" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Toggle specialization field based on role
+function toggleSpecialization(select, suffix) {
+  var val = select.value;
+  var group = document.querySelector('.specialization-group-' + suffix);
+  if (group) group.style.display = (val === 'employee') ? '' : 'none';
+}
+
+// Search and filter functionality
+function filterEmployees() {
+  const nameSearch = document.getElementById('nameSearch').value.toLowerCase();
+  const typeFilter = document.getElementById('typeFilter').value.toLowerCase();
+  const phoneSearch = document.getElementById('phoneSearch').value.toLowerCase();
+  const emailSearch = document.getElementById('emailSearch').value.toLowerCase();
+  
+  const rows = document.querySelectorAll('.employee-row');
+  
+  rows.forEach(row => {
+    const name = row.getAttribute('data-name');
+    const type = row.getAttribute('data-type');
+    const phone = row.getAttribute('data-phone');
+    const email = row.getAttribute('data-email');
+    
+    const matchesName = name.includes(nameSearch);
+    const matchesType = !typeFilter || type === typeFilter;
+    const matchesPhone = phone.includes(phoneSearch);
+    const matchesEmail = email.includes(emailSearch);
+    
+    if (matchesName && matchesType && matchesPhone && matchesEmail) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+
+
+// Select all functionality
+function toggleSelectAll() {
+  const selectAll = document.getElementById('selectAllEmployees');
+  const checkboxes = document.querySelectorAll('.employee-select');
+  const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+  
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = selectAll.checked;
+  });
+  
+  updateBulkDeleteButton();
+}
+
+// Update bulk delete button visibility
+function updateBulkDeleteButton() {
+  const checkboxes = document.querySelectorAll('.employee-select:checked');
+  const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+  
+  if (checkboxes.length > 0) {
+    bulkDeleteBtn.style.display = '';
+  } else {
+    bulkDeleteBtn.style.display = 'none';
+  }
+}
+
+// Delete employee function
+function deleteEmployee(id, name) {
+  document.getElementById('deleteEmployeeName').textContent = name;
+  document.getElementById('deleteEmployeeForm').action = `/delete_employee/${id}/`;
+  
+  const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+  deleteModal.show();
+}
+
+// Export CSV functionality
+function exportCSV() {
+  const employees = [];
+  document.querySelectorAll('.developer-card').forEach(card => {
+    if (card.style.display !== 'none') {
+      const name = card.querySelector('.card-title').textContent;
+      const id = card.querySelector('small').textContent.replace('ID: ', '');
+      const mobile = card.querySelector('.row .col-6:first-child .fw-bold').textContent;
+      const role = card.querySelector('.badge').textContent;
+      const specialization = card.querySelector('.row .col-6:first-child + div .fw-bold').textContent;
+      
+      employees.push([name, id, mobile, role, specialization]);
+    }
+  });
+  
+  const csvContent = "data:text/csv;charset=utf-8," 
+    + "Name,ID,Mobile,Role,Specialization\n"
+    + employees.map(row => row.join(',')).join('\n');
+  
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "employees.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// Clear filters
+function clearFilters() {
+  document.getElementById('nameSearch').value = '';
+  document.getElementById('typeFilter').value = '';
+  document.getElementById('phoneSearch').value = '';
+  document.getElementById('emailSearch').value = '';
+  filterEmployees();
+}
+
+// Password generation function
+function generatePassword() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+  let password = '';
+  for (let i = 0; i < 12; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  document.getElementById('passwordField').value = password;
+}
+
+// Toggle password visibility
+function togglePasswordVisibility() {
+  const passwordField = document.getElementById('passwordField');
+  const toggleBtn = document.getElementById('togglePassword');
+  const icon = toggleBtn.querySelector('i');
+  
+  if (passwordField.type === 'password') {
+    passwordField.type = 'text';
+    icon.className = 'bi bi-eye-slash';
+  } else {
+    passwordField.type = 'password';
+    icon.className = 'bi bi-eye';
+  }
+}
+
+// File upload functionality
+function setupFileUpload() {
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('profilePicInput');
+  const imagePreview = document.getElementById('imagePreview');
+  const previewImg = document.getElementById('previewImg');
+  const removeBtn = document.getElementById('removeImage');
+  
+  // Click to upload
+  uploadArea.addEventListener('click', () => {
+    fileInput.click();
+  });
+  
+  // Drag and drop
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#0d6efd';
+    uploadArea.style.backgroundColor = '#f8f9fa';
+  });
+  
+  uploadArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#6c757d';
+    uploadArea.style.backgroundColor = 'transparent';
+  });
+  
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#6c757d';
+    uploadArea.style.backgroundColor = 'transparent';
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  });
+  
+  // File input change
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleFileSelect(e.target.files[0]);
+    }
+  });
+  
+  // Remove image
+  removeBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    imagePreview.style.display = 'none';
+    uploadArea.style.display = 'block';
+  });
+  
+  function handleFileSelect(file) {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        imagePreview.style.display = 'block';
+        uploadArea.querySelector('.border-dashed').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert('Please select an image file.');
+    }
+  }
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize specialization toggle for add modal
+  var addRole = document.querySelector('.role-select[name="role"]');
+  if (addRole) toggleSpecialization(addRole, 'add');
+  
+  // Password functionality
+  document.getElementById('generatePassword').addEventListener('click', generatePassword);
+  document.getElementById('togglePassword').addEventListener('click', togglePasswordVisibility);
+  
+  // File upload functionality
+  setupFileUpload();
+  
+  // Search and filter event listeners
+  document.getElementById('nameSearch').addEventListener('input', filterEmployees);
+  document.getElementById('typeFilter').addEventListener('change', filterEmployees);
+  document.getElementById('phoneSearch').addEventListener('input', filterEmployees);
+  document.getElementById('emailSearch').addEventListener('input', filterEmployees);
+  
+
+  
+  // Select all event listener
+  document.getElementById('selectAllEmployees').addEventListener('change', toggleSelectAll);
+  
+  // Individual checkbox event listeners
+  document.querySelectorAll('.employee-select').forEach(checkbox => {
+    checkbox.addEventListener('change', updateBulkDeleteButton);
+  });
+  
+  // Clear filters event listener
+  document.getElementById('clearFilters').addEventListener('click', clearFilters);
+  
+  // Export CSV event listener
+  document.getElementById('exportCSV').addEventListener('click', exportCSV);
+  
+  // Apply filters event listener
+  document.getElementById('applyFilters').addEventListener('click', filterEmployees);
+  
+  // Mobile number validation for edit forms
+  function validateMobileNumberEdit(devId) {
+    const mobileField = document.getElementById(`mobileFieldEdit${devId}`);
+    const mobileError = document.getElementById(`mobileErrorEdit${devId}`);
+    const mobileValue = mobileField.value.replace(/\D/g, ''); // Remove non-digits
+    
+    if (mobileValue.length !== 10) {
+      mobileError.style.display = 'block';
+      mobileField.classList.add('is-invalid');
+      return false;
+    } else {
+      mobileError.style.display = 'none';
+      mobileField.classList.remove('is-invalid');
+      mobileField.value = mobileValue; // Set the cleaned value
+      return true;
+    }
+  }
+  
+  // Edit Employee Form AJAX Submission
+  document.querySelectorAll('.editEmployeeForm').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const devId = this.getAttribute('data-dev-id');
+      
+      // Validate mobile number
+      if (!validateMobileNumberEdit(devId)) {
+        return;
+      }
+      
+      const formData = new FormData(this);
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      
+      // Disable submit button and show loading
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Saving...';
+      
+      fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Update the employee in the list
+          updateEmployeeInList(data.employee);
+          
+          // Close modal and reset form
+          const modal = bootstrap.Modal.getInstance(document.getElementById(`editEmployeeModal${devId}`));
+          modal.hide();
+          
+          // Show success message
+          showAlert('success', data.message);
+          
+          // Update statistics
+          updateEmployeeStats();
+        } else {
+          showAlert('danger', data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'An error occurred while updating the employee.');
+      })
+      .finally(() => {
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      });
+    });
+  });
+  
+  // Add Employee Form AJAX Submission
+  document.getElementById('addEmployeeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    // Disable submit button and show loading
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Adding...';
+    
+    fetch('{% url "add_employee" %}', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Add new employee to the list
+        if (data.employee) {
+          addEmployeeToList(data.employee);
+        }
+        
+        // Close modal and reset form
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addEmployeeModal'));
+        modal.hide();
+        this.reset();
+        
+        // Reset image preview
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('uploadArea').querySelector('.border-dashed').style.display = 'block';
+        
+        // Show success message
+        showAlert('success', data.message);
+        
+        // Reload page to update the list properly
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        showAlert('danger', data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showAlert('danger', 'An error occurred while adding the employee.');
+    })
+    .finally(() => {
+      // Re-enable submit button
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+    });
+  });
+});
+
+// Function to add new employee to the list
+function addEmployeeToList(employee) {
+  // Always add to list view
+  const listItem = createListItem(employee);
+  const tbody = document.querySelector('#employeesTable tbody');
+  tbody.appendChild(listItem);
+}
+
+
+
+// Function to create list item
+function createListItem(developer) {
+  const tr = document.createElement('tr');
+  tr.className = 'developer-item';
+  tr.setAttribute('data-role', developer.role);
+  tr.setAttribute('data-specialization', developer.specialization);
+  
+  tr.innerHTML = `
+    <td>
+      <div class="form-check">
+        <input type="checkbox" class="form-check-input developer-select" value="${developer.id}">
+      </div>
+    </td>
+    <td>
+      <div class="d-flex align-items-center">
+        <img src="${developer.profile_pic || '/static/images/default-avatar.png'}" 
+             class="rounded-circle me-2" width="40" height="40" alt="Profile">
+        <div>
+          <div class="fw-bold">${developer.full_name}</div>
+          <small class="text-muted">@${developer.username}</small>
+        </div>
+      </div>
+    </td>
+    <td>${developer.email}</td>
+    <td>${developer.mobile}</td>
+    <td>${developer.location}</td>
+    <td><span class="badge bg-primary">${developer.role}</span></td>
+    <td><span class="badge bg-info">${developer.specialization}</span></td>
+    <td>
+      <div class="btn-group btn-group-sm">
+        <button class="btn btn-outline-primary" onclick="editDeveloper(${developer.id})">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-outline-danger" onclick="deleteDeveloper(${developer.id})">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </td>
+  `;
+  
+  return tr;
+}
+
+
+
+// Function to show alerts
+function showAlert(type, message) {
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+  alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  alertDiv.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  document.body.appendChild(alertDiv);
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (alertDiv.parentNode) {
+      alertDiv.remove();
+    }
+  }, 5000);
+}
+
+// Function to update developer in the list
+function updateDeveloperInList(developer) {
+  // Always update list view
+  const listItem = document.querySelector(`tr[data-dev-id="${developer.id}"]`);
+  if (listItem) {
+    listItem.setAttribute('data-role', developer.role);
+    listItem.setAttribute('data-specialization', developer.specialization);
+    
+    // Update the content
+    const nameElement = listItem.querySelector('.fw-bold');
+    const usernameElement = listItem.querySelector('.text-muted');
+    const emailElement = listItem.querySelector('td:nth-child(3)');
+    const mobileElement = listItem.querySelector('td:nth-child(4)');
+    const locationElement = listItem.querySelector('td:nth-child(5)');
+    const roleBadge = listItem.querySelector('.badge.bg-primary');
+    const specializationBadge = listItem.querySelector('.badge.bg-info');
+    const profileImg = listItem.querySelector('img');
+    
+    if (nameElement) nameElement.textContent = developer.full_name;
+    if (usernameElement) usernameElement.textContent = `@${developer.username}`;
+    if (emailElement) emailElement.textContent = developer.email;
+    if (mobileElement) mobileElement.textContent = developer.mobile;
+    if (locationElement) locationElement.textContent = developer.location;
+    if (roleBadge) roleBadge.textContent = developer.role;
+    if (specializationBadge) specializationBadge.textContent = developer.specialization;
+    if (profileImg && developer.profile_pic) {
+      profileImg.src = developer.profile_pic;
+    }
+  }
+}
+
+// Function to update developer statistics
+function updateDeveloperStats() {
+  const developers = document.querySelectorAll('.developer-item');
+  const totalDevs = developers.length;
+  const activeDevs = developers.length; // Assuming all are active for now
+  
+  // Update stats cards
+  document.querySelector('.card-title:contains("Total Developers")').nextElementSibling.textContent = totalDevs;
+  document.querySelector('.card-title:contains("Active")').nextElementSibling.textContent = activeDevs;
+  
+  // Update specialization counts
+  const pythonDevs = Array.from(developers).filter(d => d.getAttribute('data-specialization') === 'Python Developer').length;
+  const javaDevs = Array.from(developers).filter(d => d.getAttribute('data-specialization') === 'Java Developer').length;
+  const frontendDevs = Array.from(developers).filter(d => d.getAttribute('data-specialization') === 'Frontend Developer').length;
+  const backendDevs = Array.from(developers).filter(d => d.getAttribute('data-specialization') === 'Backend Developer').length;
+  
+  // Update specialization stats (you'll need to add IDs to these elements)
+  const pythonElement = document.querySelector('.card-title:contains("Python Devs")');
+  const javaElement = document.querySelector('.card-title:contains("Java Devs")');
+  const frontendElement = document.querySelector('.card-title:contains("Frontend")');
+  const backendElement = document.querySelector('.card-title:contains("Backend")');
+  
+  if (pythonElement) pythonElement.nextElementSibling.textContent = pythonDevs;
+  if (javaElement) javaElement.nextElementSibling.textContent = javaDevs;
+  if (frontendElement) frontendElement.nextElementSibling.textContent = frontendDevs;
+  if (backendElement) backendElement.nextElementSibling.textContent = backendDevs;
+}
+
+// Add mobile validation event listeners for edit forms
+document.addEventListener('DOMContentLoaded', function() {
+  // Add mobile validation for all edit forms
+  document.querySelectorAll('.editDeveloperForm').forEach(form => {
+    const devId = form.getAttribute('data-dev-id');
+    const mobileField = document.getElementById(`mobileFieldEdit${devId}`);
+    
+    if (mobileField) {
+      // Mobile number validation on input
+      mobileField.addEventListener('input', function() {
+        // Remove non-digits
+        this.value = this.value.replace(/\D/g, '');
+        validateMobileNumberEdit(devId);
+      });
+      
+      // Mobile number validation on blur
+      mobileField.addEventListener('blur', function() {
+        validateMobileNumberEdit(devId);
+      });
+    }
+  });
+});
+
+{% block extra_js %}
+<script src="{% static 'js/admin_functions.js' %}"></script>
+<script src="{% static 'js/admin_status.js' %}"></script>
+<script>
+// Delete employee function - defined directly in template to ensure availability
+function deleteEmployee(employeeId, name) {
+    console.log('deleteEmployee called with:', employeeId, name);
+    
+    if (confirm(`Are you sure you want to delete employee "${name}"?`)) {
+        try {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/delete_employee/${employeeId}/`;
+            
+            // Get CSRF token from multiple possible sources
+            let csrfToken = '';
+            const csrfElement = document.querySelector('[name=csrfmiddlewaretoken]') || 
+                               document.querySelector('input[name="csrfmiddlewaretoken"]') ||
+                               document.querySelector('meta[name="csrf-token"]');
+            
+            console.log('CSRF element found:', csrfElement);
+            
+            if (csrfElement) {
+                csrfToken = csrfElement.value || csrfElement.getAttribute('content') || '';
+                console.log('CSRF token value:', csrfToken);
+            }
+            
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                alert('Security token not found. Please refresh the page and try again.');
+                return;
+            }
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            
+            form.appendChild(csrfInput);
+            document.body.appendChild(form);
+            
+            console.log('Form created and submitted:', form);
+            form.submit();
+        } catch (error) {
+            console.error('Error in deleteEmployee:', error);
+            alert('An error occurred while deleting the employee. Please try again.');
+        }
+    }
+}
+
+// Log function availability when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('deleteEmployee function available:', typeof deleteEmployee);
+});
+</script>
+{% endblock %}
+{% endblock %} 

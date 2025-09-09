@@ -1,0 +1,197 @@
+/* Sell Land Modal Styling */
+
+/* Read-only form styling */
+.form-control-readonly {
+    background-color: #f8f9fa !important;
+    border: 1px solid #ced4da !important;
+    color: #495057 !important;
+    cursor: not-allowed !important;
+    opacity: 0.8 !important;
+}
+
+.form-control-readonly:focus {
+    border-color: #ced4da !important;
+    box-shadow: none !important;
+    background-color: #f8f9fa !important;
+}
+
+.form-control-readonly option {
+    background-color: #f8f9fa !important;
+    color: #495057 !important;
+}
+
+/* Read-only installment styling */
+.read-only-installment {
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 8px !important;
+    padding: 10px !important;
+    margin-bottom: 8px !important;
+}
+
+.read-only-installment .installment-fields {
+    background-color: transparent !important;
+}
+
+.read-only-installment .installment-field input {
+    background-color: #ffffff !important;
+    border: 1px solid #ced4da !important;
+    color: #495057 !important;
+}
+
+.read-only-installment .installment-field label {
+    color: #6c757d !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+}
+
+/* Wide modal optimizations */
+#sellLandModal .modal-body {
+    padding: 1rem;
+}
+
+#sellLandModal .land-summary {
+    margin-bottom: 1rem !important;
+    padding: 0.75rem !important;
+}
+
+#sellLandModal .land-summary h6 {
+    margin-bottom: 0.5rem !important;
+    padding-bottom: 0.25rem !important;
+}
+
+#sellLandModal .form-label {
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+}
+
+#sellLandModal .form-text {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+#sellLandModal .alert {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+#sellLandModal .alert small {
+    font-size: 0.75rem;
+}
+
+#sellLandModal .input-group {
+    margin-bottom: 0.5rem;
+}
+
+#sellLandModal .row.g-2 > * {
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+}
+
+#sellLandModal .row.g-2 {
+    margin-right: -0.5rem;
+    margin-left: -0.5rem;
+}
+
+/* Installment section styling */
+.installment-fields {
+    display: grid;
+    grid-template-columns: 80px 100px 80px 140px 40px;
+    gap: 10px;
+    align-items: end;
+}
+
+.installment-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.installment-field label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.installment-field input,
+.installment-field select {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.5rem;
+}
+
+.installment-field input[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
+}
+
+.installment-field input[type="number"]::-webkit-outer-spin-button,
+.installment-field input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none; /* Chrome, Safari, Edge */
+    margin: 0;
+}
+
+.remove-installment-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.remove-installment-btn:hover {
+    background: #c82333;
+    transform: scale(1.1);
+}
+
+/* Validation styling */
+.is-valid {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+#installmentValidationMessage {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+/* Read-only installment grid */
+.read-only-installment .installment-fields {
+    /* Adjusted to 4 columns after removing 'Days' field from display */
+    grid-template-columns: 120px 80px 140px 100px; /* Payment Method, %, Due Date, Status */
+    gap: 10px;
+    align-items: end;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .installment-fields {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .installment-field {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .installment-field label {
+        margin-bottom: 5px;
+    }
+    
+    .read-only-installment .installment-fields {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}

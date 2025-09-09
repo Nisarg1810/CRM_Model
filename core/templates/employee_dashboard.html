@@ -1,0 +1,740 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load date_filters %}
+{% block page_title %}Employee Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employee_dashboard.css' %}">
+<style>
+  .task-scroll-container {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+  
+  .task-scroll-container::-webkit-scrollbar {
+    width: 0; /* Chrome, Safari, Opera */
+    display: none;
+  }
+  
+  .task-scroll-container::-webkit-scrollbar-track {
+    display: none;
+  }
+  
+  .task-scroll-container::-webkit-scrollbar-thumb {
+    display: none;
+  }
+  
+  .task-scroll-container::-webkit-scrollbar-thumb:hover {
+    display: none;
+  }
+  
+  /* Force scrollbar to show when needed */
+  .task-scroll-container .list-group {
+    min-height: 0;
+  }
+  
+  /* Show scrollbar on hover for better UX */
+  .task-scroll-container:hover {
+    scrollbar-width: thin;
+    scrollbar-color: #6c757d #f8f9fa;
+  }
+  
+  .task-scroll-container:hover::-webkit-scrollbar {
+    width: 6px;
+    display: block;
+  }
+  
+  .task-scroll-container:hover::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 3px;
+    display: block;
+  }
+  
+  .task-scroll-container:hover::-webkit-scrollbar-thumb {
+    background: #6c757d;
+    border-radius: 3px;
+    display: block;
+  }
+  
+  .task-scroll-container:hover::-webkit-scrollbar-thumb:hover {
+    background: #495057;
+  }
+  
+  /* Enhanced Task Details Modal Styling */
+  .modal-header.bg-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+    border-bottom: 2px solid #0a58ca;
+  }
+  
+  .modal-header .modal-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  
+  .card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+  }
+  
+  .card-header {
+    border-radius: 8px 8px 0 0 !important;
+  }
+  
+  .card-body p {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8f9fa;
+  }
+  
+  .card-body p:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+  
+  .badge {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  
+  .text-primary h6, .text-success h6, .text-info h6 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid currentColor;
+  }
+  
+
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+  <!-- Header with Profile and Welcome -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+    <div class="d-flex align-items-center">
+      <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=6c757d&color=fff" class="rounded-circle me-3" width="60" height="60" alt="Dev Avatar">
+      <div>
+        <h2 class="mb-0">Welcome, {{ user.username }}</h2>
+        <small class="text-muted">Employee{% if user and user.specialization %} &mdash; {{ user.specialization }}{% endif %}</small>
+      </div>
+    </div>
+  </div>
+
+      <!-- Stats Cards -->
+    <div class="row mb-4 g-3">
+      <div class="col-md-2 col-6">
+        <div class="card text-center shadow-sm h-100 stats-card">
+          <div class="card-body">
+            <h6 class="card-title">Total Assigned</h6>
+            <h3>{{ total_assigned_tasks }}</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card text-center shadow-sm h-100 stats-card">
+          <div class="card-body">
+            <h6 class="card-title">Pending</h6>
+            <h3>{{ pending_tasks }}</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card text-center shadow-sm h-100 stats-card">
+          <div class="card-body">
+            <h6 class="card-title">In Progress</h6>
+            <h3>{{ in_progress_tasks }}</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card text-center shadow-sm h-100 stats-card">
+          <div class="card-body">
+            <h6 class="card-title">Completed</h6>
+            <h3>{{ completed_tasks }}</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-12">
+        <div class="card text-center shadow-sm h-100 stats-card border-danger">
+          <div class="card-body">
+            <h6 class="card-title text-danger">Overdue Tasks</h6>
+            <h3 class="text-danger">{{ overdue_tasks_count }}</h3>
+            <small class="text-muted">Tasks past due date</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+  <!-- Task Status Overview - Four Detailed Boxes -->
+  <div class="row mb-4 g-3">
+    <!-- Pending Tasks Details -->
+    <div class="col-md-6">
+      <div class="card border-info shadow-sm h-100 task-status-card">
+        <div class="card-header bg-info text-white">
+          <h6 class="mb-0"><i class="bi bi-hourglass-split me-2"></i>Pending Tasks</h6>
+        </div>
+        <div class="card-body">
+          {% if pending_details %}
+            <div class="list-group list-group-flush task-scroll-container" style="max-height: 300px; overflow-y: auto; min-height: 200px;">
+              {% for task in pending_details %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1">
+                  <strong>{{ task.task.name }}</strong>
+                  <br>
+                  <small class="text-muted">
+                    <i class="bi bi-building me-2"></i>{{ task.land.name }}
+                    <br>
+                    <i class="bi bi-calendar-plus me-2"></i>Assigned: {{ task.assigned_date|date:"M d, Y" }}
+                    {% if task.due_date %}
+                      <br>
+                      <i class="bi bi-calendar-event me-2"></i>Due: {{ task.due_date|date:"M d, Y" }}
+                    {% endif %}
+                  </small>
+                </div>
+                <div class="d-flex flex-column gap-1">
+                  <span class="badge bg-info">Pending</span>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-success btn-sm" onclick="startTask({{ task.id }})" title="Start Task">
+                      <i class="bi bi-play-fill"></i>
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="viewTaskDetails({{ task.id }})" title="View Details">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted text-center mb-0">No pending tasks</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Overdue Tasks Details -->
+    <div class="col-md-6">
+      <div class="card border-danger shadow-sm h-100 task-status-card">
+        <div class="card-header bg-danger text-white">
+          <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Overdue Tasks</h6>
+        </div>
+        <div class="card-body">
+          {% if overdue_details %}
+            <div class="list-group list-group-flush task-scroll-container" style="max-height: 300px; overflow-y: auto; min-height: 200px;">
+              {% for task in overdue_details %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1">
+                  <strong>{{ task.task.name }}</strong>
+                  <br>
+                  <small class="text-muted">
+                    <i class="bi bi-building me-2"></i>{{ task.land.name }}
+                    <br>
+                    <i class="bi bi-calendar-plus me-2"></i>Assigned: {{ task.assigned_date|date:"M d, Y" }}
+                    {% if task.due_date %}
+                      <br>
+                      <i class="bi bi-calendar-event me-2"></i>Due: {{ task.due_date|date:"M d, Y" }}
+                      <br>
+                      <i class="bi bi-exclamation-triangle me-2"></i>Overdue by {{ task.days_overdue }} days
+                    {% endif %}
+                  </small>
+                </div>
+                <div class="d-flex flex-column gap-1">
+                  <span class="badge bg-danger">Overdue</span>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-warning btn-sm" onclick="startTask({{ task.id }})" title="Start Task">
+                      <i class="bi bi-play-fill"></i>
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="viewTaskDetails({{ task.id }})" title="View Details">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted text-center mb-0">No overdue tasks</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4 g-3">
+    <!-- In Progress Tasks Details -->
+    <div class="col-md-6">
+      <div class="card border-primary shadow-sm h-100 task-status-card">
+        <div class="card-header bg-primary text-white">
+          <h6 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i>In Progress Tasks</h6>
+        </div>
+        <div class="card-body">
+          {% if in_progress_details %}
+            <div class="list-group list-group-flush task-scroll-container" style="max-height: 300px; overflow-y: auto; min-height: 200px;">
+              {% for task in in_progress_details %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1">
+                  <strong>{{ task.task.name }}</strong>
+                  <br>
+                  <small class="text-muted">
+                    <i class="bi bi-building me-2"></i>{{ task.land.name }}
+                    <br>
+                    <i class="bi bi-calendar-plus me-2"></i>Assigned: {{ task.assigned_date|date:"M d, Y" }}
+                    {% if task.due_date %}
+                      <br>
+                      <i class="bi bi-calendar-event me-2"></i>Due: {{ task.due_date|date:"M d, Y" }}
+                    {% endif %}
+                  </small>
+                </div>
+                <div class="d-flex flex-column gap-1">
+                  <span class="badge bg-primary">In Progress</span>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-success btn-sm" onclick="showCompletionModal({{ task.id }})" title="Mark Complete">
+                      <i class="bi bi-check-circle"></i>
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="viewTaskDetails({{ task.id }})" title="View Details">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted text-center mb-0">No in progress tasks</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Deadlines Details -->
+    <div class="col-md-6">
+      <div class="card border-warning shadow-sm h-100 task-status-card">
+        <div class="card-header bg-warning text-dark">
+          <h6 class="mb-0">
+            <i class="bi bi-alarm me-2"></i>Upcoming Deadlines
+            <small class="d-block mt-1" style="font-size: 0.75rem; opacity: 0.8;">
+              Tasks due within the next 3 days
+            </small>
+          </h6>
+        </div>
+        <div class="card-body">
+          {% if upcoming_details %}
+            <div class="list-group list-group-flush task-scroll-container" style="max-height: 300px; overflow-y: auto; min-height: 200px;">
+              <!-- Info message about upcoming deadlines -->
+              <div class="alert alert-info alert-sm mb-2" style="font-size: 0.8rem;">
+                <i class="bi bi-lightbulb me-1"></i>
+                <strong>Tip:</strong> These tasks are due soon. Start working on them to meet your deadlines!
+              </div>
+              
+              {% for task in upcoming_details %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1">
+                  <strong>{{ task.task.name }}</strong>
+                  <br>
+                  <small class="text-muted">
+                    <i class="bi bi-building me-2"></i>{{ task.land.name }}
+                    <br>
+                    <i class="bi bi-calendar-plus me-2"></i>Assigned: {{ task.assigned_date|date:"M d, Y" }}
+                    {% if task.due_date %}
+                      <br>
+                      <i class="bi bi-calendar-event me-2"></i>Due: {{ task.due_date|date:"M d, Y" }}
+                      <br>
+                      <i class="bi bi-clock me-2"></i>{{ task.days_until_due }} days left
+                    {% endif %}
+                  </small>
+                </div>
+                <div class="d-flex flex-column gap-1">
+                  <span class="badge bg-warning text-dark">Upcoming</span>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-success btn-sm" onclick="startTask({{ task.id }})" title="Start Task">
+                      <i class="bi bi-play-fill"></i>
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="viewTaskDetails({{ task.id }})" title="View Details">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center text-muted">
+              <p class="mb-2">No upcoming deadlines</p>
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                This box shows tasks due within the next 3 days
+              </small>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Task Details Modal -->
+<div class="modal fade" id="taskDetailsModal" tabindex="-1" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="taskDetailsModalLabel">
+          <i class="bi bi-info-circle me-2"></i>Task Details
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="taskDetailsContent">
+        <!-- Task details will be loaded here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Completion Modal -->
+<div class="modal fade" id="completionModal" tabindex="-1" aria-labelledby="completionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="completionModalLabel">
+          <i class="bi bi-check-circle me-2"></i>
+          Complete Task
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="completionForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Completion Notes <span class="text-danger">*</span></label>
+              <textarea name="notes" class="form-control" rows="4" placeholder="Describe what was completed, any important details, or additional information..." required></textarea>
+              <small class="text-muted">Please provide a clear description of the work completed</small>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label">Upload Photos <span class="text-muted">(Optional but recommended)</span></label>
+              <input type="file" name="photos" class="form-control" accept="image/*" multiple id="photoUpload">
+              <small class="text-muted">You can select multiple photos (JPG, PNG, GIF). Max 5 photos, 5MB each.</small>
+              <div id="photoPreview" class="mt-2 d-none">
+                <div class="row g-2" id="photoPreviewRow"></div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label">Upload Documents <span class="text-muted">(Optional)</span></label>
+              <input type="file" name="pdf" class="form-control" accept=".pdf,.doc,.docx" id="documentUpload">
+              <small class="text-muted">Upload any relevant documents (PDF, DOC, DOCX). Max 10MB.</small>
+              <div id="documentPreview" class="mt-2 d-none">
+                <div class="alert alert-info py-2">
+                  <i class="bi bi-file-earmark-text me-2"></i>
+                  <span id="documentName"></span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-12">
+              <div class="alert alert-success">
+                <i class="bi bi-check-circle me-2"></i>
+                <strong>Almost Done!</strong> Your completion will be reviewed by an administrator. Please ensure all information is accurate.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle me-2"></i>
+            Submit Completion
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentTaskId = null;
+
+// Function to view task details
+function viewTaskDetails(taskId) {
+  fetch(`/employee/get_task_details/${taskId}/`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const taskData = data.task_data;
+        const modal = document.getElementById('taskDetailsModal');
+        const content = document.getElementById('taskDetailsContent');
+        
+        // Debug: Log the task data to see what's being received
+        console.log('Task data received:', taskData);
+        console.log('Land details:', taskData.land_details);
+        console.log('Date fields:', {
+            past_date: taskData.land_details.past_date,
+            soda_tarikh: taskData.land_details.soda_tarikh,
+            banakhat_tarikh: taskData.land_details.banakhat_tarikh,
+            dastavej_tarikh: taskData.land_details.dastavej_tarikh
+        });
+        
+        content.innerHTML = `
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <h6 class="text-primary"><strong>Task Information</strong></h6>
+                            <p><strong>Task Name:</strong> ${taskData.task_name}</p>
+                            <p><strong>Status:</strong> <span class="badge bg-secondary">${taskData.status.charAt(0).toUpperCase() + taskData.status.slice(1).replace('_', ' ')}</span></p>
+                            <p><strong>Assigned Date:</strong> ${taskData.assigned_date}</p>
+                            <p><strong>Due Date:</strong> ${taskData.due_date || 'Not set'}</p>
+                            <p><strong>Completion Days:</strong> ${taskData.completion_days || 'Not specified'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="text-info"><i class="bi bi-building me-2"></i><strong>Land Information</strong></h6>
+                            <div class="card border-info">
+                                <div class="card-body p-3">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <p><strong>Land Name:</strong> ${taskData.land_name}</p>
+                                            <p><strong>Location:</strong> ${taskData.land_details.village}, ${taskData.land_details.taluka}, ${taskData.land_details.district}</p>
+                                            <p><strong>State:</strong> ${taskData.land_details.state}</p>
+                                            <p><strong>Document Type:</strong> ${taskData.land_details.sata_prakar}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Total Area:</strong> ${taskData.land_details.total_area} sq m</p>
+                                            <p><strong>Built-up Area:</strong> ${taskData.land_details.built_up_area || 'Not specified'} sq m</p>
+                                            <p><strong>Unutilized Area:</strong> ${taskData.land_details.unutilized_area || 'Not specified'} sq m</p>
+                                            <p><strong>Broker:</strong> ${taskData.land_details.broker_name || 'Not specified'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="text-warning"><i class="bi bi-calendar-event me-2"></i><strong>Important Dates & Numbers</strong></h6>
+                            <div class="card border-warning">
+                                <div class="card-body p-3">
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <p><strong>Past Date:</strong> ${taskData.land_details.past_date ? new Date(taskData.land_details.past_date).toLocaleDateString('en-IN') : 'Not set'}</p>
+                                            <p><strong>Soda Tarikh:</strong> ${taskData.land_details.soda_tarikh ? new Date(taskData.land_details.soda_tarikh).toLocaleDateString('en-IN') : 'Not set'}</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p><strong>Banakhat Tarikh:</strong> ${taskData.land_details.banakhat_tarikh ? new Date(taskData.land_details.banakhat_tarikh).toLocaleDateString('en-IN') : 'Not set'}</p>
+                                            <p><strong>Dastavej Tarikh:</strong> ${taskData.land_details.dastavej_tarikh ? new Date(taskData.land_details.dastavej_tarikh).toLocaleDateString('en-IN') : 'Not set'}</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p><strong>Old SR No:</strong> ${taskData.land_details.old_sr_no || 'Not specified'}</p>
+                                            <p><strong>New SR No:</strong> ${taskData.land_details.new_sr_no || 'Not specified'}</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p><strong>Land ID:</strong> ${taskData.land_id || 'N/A'}</p>
+                                            <p><strong>Document Type:</strong> ${taskData.land_details.sata_prakar}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ${taskData.admin_approval_notes ? `
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="text-info">Admin Notes</h6>
+                            <div class="alert alert-info border">
+                                <i class="bi bi-info-circle me-2"></i>
+                                ${taskData.admin_approval_notes}
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+        
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+      } else {
+        alert('Error: ' + data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error fetching task details');
+    });
+}
+
+// Function to start task (mark as in_progress)
+function startTask(taskId) {
+  if (!confirm('Are you sure you want to start this task?')) {
+    return;
+  }
+  
+  fetch(`/api/tasks/${taskId}/start/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Task started successfully!');
+      location.reload(); // Refresh to show updated status
+    } else {
+      alert('Error: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error starting task');
+  });
+}
+
+// Function to show completion modal
+function showCompletionModal(taskId) {
+  currentTaskId = taskId;
+  const modal = new bootstrap.Modal(document.getElementById('completionModal'));
+  modal.show();
+}
+
+// Handle completion form submission
+document.addEventListener('DOMContentLoaded', function() {
+  const completionForm = document.getElementById('completionForm');
+  if (completionForm) {
+    completionForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      submitTaskCompletion();
+    });
+  }
+  
+  // Photo upload preview
+  const photoUpload = document.getElementById('photoUpload');
+  if (photoUpload) {
+    photoUpload.addEventListener('change', function(e) {
+      const files = e.target.files;
+      const preview = document.getElementById('photoPreview');
+      const previewRow = document.getElementById('photoPreviewRow');
+      
+      if (files.length > 0) {
+        preview.classList.remove('d-none');
+        previewRow.innerHTML = '';
+        
+        for (let i = 0; i < Math.min(files.length, 5); i++) {
+          const file = files[i];
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const col = document.createElement('div');
+            col.className = 'col-3';
+            col.innerHTML = `
+              <img src="${e.target.result}" class="img-thumbnail" style="width: 100%; height: 80px; object-fit: cover;" alt="Preview">
+            `;
+            previewRow.appendChild(col);
+          };
+          reader.readAsDataURL(file);
+        }
+      } else {
+        preview.classList.add('d-none');
+      }
+    });
+  }
+  
+  // Document upload preview
+  const documentUpload = document.getElementById('documentUpload');
+  if (documentUpload) {
+    documentUpload.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      const preview = document.getElementById('documentPreview');
+      const documentName = document.getElementById('documentName');
+      
+      if (file) {
+        documentName.textContent = file.name;
+        preview.classList.remove('d-none');
+      } else {
+        preview.classList.add('d-none');
+      }
+    });
+  }
+});
+
+function submitTaskCompletion() {
+  if (!currentTaskId) {
+    alert('No task selected');
+    return;
+  }
+  
+  console.log('Submitting task completion for task ID:', currentTaskId);
+  
+  const formData = new FormData(document.getElementById('completionForm'));
+  
+  // Get CSRF token
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  console.log('CSRF Token:', csrfToken);
+  
+  // Log form data for debugging
+  for (let [key, value] of formData.entries()) {
+    console.log('Form data:', key, value);
+  }
+  
+  fetch(`/api/tasks/${currentTaskId}/submit-completion/`, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRFToken': csrfToken
+    }
+  })
+  .then(response => {
+    console.log('Response status:', response.status);
+    return response.json();
+  })
+  .then(data => {
+    console.log('Response data:', data);
+    if (data.success) {
+      alert('Task completion submitted successfully! It will be reviewed by an administrator.');
+      // Close the modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('completionModal'));
+      modal.hide();
+      // Reset the form
+      document.getElementById('completionForm').reset();
+      // Reload the page to show updated status
+      location.reload();
+    } else {
+      alert('Error: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error submitting task completion. Please try again.');
+  });
+}
+
+// Get CSRF token function
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script>
+{% endblock %} 

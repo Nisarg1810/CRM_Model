@@ -1,0 +1,1082 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block page_title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/contact-table.css' %}">
+<style>
+  .task-scroll-container {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+  
+  .task-scroll-container::-webkit-scrollbar {
+    width: 0; /* Chrome, Safari, Opera */
+    display: none;
+  }
+  
+  .task-scroll-container::-webkit-scrollbar-track {
+    display: none;
+  }
+  
+  .task-scroll-container::-webkit-scrollbar-thumb {
+    display: none;
+  }
+  
+  .task-scroll-container::-webkit-scrollbar-thumb:hover {
+    display: none;
+  }
+  
+  /* Force scrollbar to show when needed */
+  .task-scroll-container .list-group {
+    min-height: 0;
+  }
+  
+  /* Show scrollbar on hover for better UX */
+  .task-scroll-container:hover {
+    scrollbar-width: thin;
+    scrollbar-color: #6c757d #f8f9fa;
+  }
+  
+  .task-scroll-container:hover::-webkit-scrollbar {
+    width: 6px;
+    display: block;
+  }
+  
+  .task-scroll-container:hover::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 3px;
+    display: block;
+  }
+  
+  .task-scroll-container:hover::-webkit-scrollbar-thumb {
+    background: #6c757d;
+    border-radius: 3px;
+    display: block;
+  }
+  
+  .task-scroll-container:hover::-webkit-scrollbar-thumb:hover {
+    background: #495057;
+  }
+  
+  /* Enhanced Pending Approval Tasks Styling */
+  .task-status-card .list-group-item {
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+  }
+  
+  .task-status-card .list-group-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+  }
+  
+  .task-status-card .list-group-item:not(:last-child) {
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .task-status-card .btn {
+    transition: all 0.2s ease;
+    font-weight: 500;
+  }
+  
+  .task-status-card .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .task-status-card .badge {
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .task-status-card h6 {
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+  
+  .task-status-card .text-muted {
+    font-size: 0.8rem;
+  }
+  
+  .task-status-card .fw-medium {
+    font-weight: 500 !important;
+  }
+</style>
+{% endblock %}
+<!-- Header with Title and Action Buttons -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">Admin Dashboard</h2>
+    <small class="text-muted">Welcome, {{ user.username }}</small>
+  </div>
+  <div class="d-flex gap-2 ms-auto">
+    <button class="btn btn-outline-primary" id="exportCSV">
+      <i class="bi bi-download me-1"></i> Export CSV
+    </button>
+    <button class="btn btn-outline-info" id="refreshBtn">
+      <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+    </button>
+  </div>
+</div>
+
+
+
+
+
+  <!-- Task Status Overview -->
+  <div class="row mb-4 g-3">
+  <div class="col-md-3 col-6">
+    <div class="card border-warning shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <i class="bi bi-clock-history text-warning fs-4 me-2"></i>
+          <h6 class="card-title mb-0">Pending Approval Tasks</h6>
+        </div>
+        <h3 class="text-warning mb-2">{{ pending_approval_tasks }}</h3>
+        <small class="text-muted">Tasks awaiting approval</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="card border-danger shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <i class="bi bi-exclamation-triangle text-danger fs-4 me-2"></i>
+          <h6 class="card-title mb-0">Overdue Tasks</h6>
+        </div>
+        <h3 class="text-danger mb-2">{{ overdue_tasks }}</h3>
+        <small class="text-muted">Tasks past due date</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="card border-info shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <i class="bi bi-hourglass-split text-info fs-4 me-2"></i>
+          <h6 class="card-title mb-0">Pending Tasks</h6>
+        </div>
+        <h3 class="text-info mb-2">{{ pending_tasks }}</h3>
+        <small class="text-muted">Tasks not yet started</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="card border-primary shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <i class="bi bi-arrow-repeat text-primary fs-4 me-2"></i>
+          <h6 class="card-title mb-0">In Progress Tasks</h6>
+        </div>
+        <h3 class="text-primary mb-2">{{ in_progress_tasks }}</h3>
+        <small class="text-muted">Tasks currently being worked on</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Status Details -->
+<div class="row mb-4 g-3">
+  <!-- Pending Approval Tasks Details -->
+  <div class="col-md-6">
+    <div class="card border-warning shadow-sm h-100 task-status-card">
+      <div class="card-header bg-warning text-white">
+        <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Pending Approval Tasks</h6>
+      </div>
+      <div class="card-body p-0">
+        {% if pending_approval_details %}
+          <div class="list-group list-group-flush task-scroll-container" style="max-height: 300px; overflow-y: auto; min-height: 200px;">
+            {% for task in pending_approval_details %}
+            <div class="list-group-item border-0 py-3 px-3">
+              <!-- Task Header Row -->
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="flex-grow-1">
+                  <h6 class="mb-1 fw-bold text-dark">{{ task.task.name }}</h6>
+                  <div class="d-flex align-items-center gap-3 text-muted small">
+                    <span class="d-flex align-items-center">
+                      <i class="bi bi-person me-1 text-primary"></i>
+                      <span class="fw-medium">{{ task.employee.full_name|default:task.employee.username }}</span>
+                    </span>
+                    <span class="d-flex align-items-center">
+                      <i class="bi bi-building me-1 text-success"></i>
+                      <span class="fw-medium">{{ task.land.name }}</span>
+                    </span>
+                    <span class="d-flex align-items-center">
+                      <i class="bi bi-calendar me-1 text-warning"></i>
+                      <span class="fw-medium">Due: {{ task.due_date|date:"d/m/Y"|default:"Not set" }}</span>
+                    </span>
+                  </div>
+                </div>
+                <span class="badge bg-warning text-dark px-2 py-1 fw-medium">Pending Approval</span>
+              </div>
+              
+              <!-- Action Buttons Row -->
+              <div class="d-flex justify-content-end gap-2 mt-3">
+                <button class="btn btn-success btn-sm px-3" onclick="showApprovalModal({{ task.id }})" title="Approve Task">
+                  <i class="bi bi-check-lg me-1"></i>Approve
+                </button>
+                <button class="btn btn-warning btn-sm px-3" onclick="showReassignModal({{ task.id }})" title="Reassign Task">
+                  <i class="bi bi-arrow-repeat me-1"></i>Reassign
+                </button>
+                <button class="btn btn-info btn-sm px-3" onclick="viewCompletionDetails({{ task.id }})" title="View Details">
+                  <i class="bi bi-eye me-1"></i>View
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <i class="bi bi-check-circle text-muted fs-1 mb-3 d-block"></i>
+            <p class="text-muted mb-0">No pending approval tasks</p>
+            <small class="text-muted">All tasks are up to date!</small>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Overdue Tasks Details -->
+  <div class="col-md-6">
+    <div class="card border-danger shadow-sm h-100 task-status-card">
+      <div class="card-header bg-danger text-white">
+        <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Overdue Tasks</h6>
+      </div>
+      <div class="card-body">
+        {% if overdue_details %}
+          <div class="list-group list-group-flush task-scroll-container" style="max-height: 300px; overflow-y: auto; min-height: 200px;">
+            {% for task in overdue_details %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ task.task.name }}</strong>
+                <br>
+                <small class="text-muted">
+                  <i class="bi bi-person me-1"></i>{{ task.employee.full_name|default:task.employee.username }}
+                  <i class="bi bi-building me-2 ms-2"></i>{{ task.land.name }}
+                  <i class="bi bi-calendar me-2 ms-2"></i>Due: {{ task.due_date|date:"d/m/Y"|default:"Not set" }}
+                </small>
+              </div>
+              <span class="badge bg-danger">Overdue</span>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted text-center mb-0">No overdue tasks</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mb-4 g-3">
+  <!-- Pending Tasks Details -->
+  <div class="col-md-6">
+    <div class="card border-info shadow-sm h-100 task-status-card">
+      <div class="card-header bg-info text-white">
+        <h6 class="mb-0"><i class="bi bi-hourglass-split me-2"></i>Pending Tasks</h6>
+      </div>
+      <div class="card-body">
+        {% if pending_details %}
+          <div class="list-group list-group-flush task-scroll-container" style="max-height: 300px; overflow-y: auto; min-height: 200px;">
+            {% for task in pending_details %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ task.task.name }}</strong>
+                <br>
+                <small class="text-muted">
+                  <i class="bi bi-person me-1"></i>{{ task.employee.full_name|default:task.employee.username }}
+                  <i class="bi bi-building me-2 ms-2"></i>{{ task.land.name }}
+                  <i class="bi bi-calendar me-2 ms-2"></i>Due: {{ task.due_date|date:"d/m/Y"|default:"Not set" }}
+                </small>
+              </div>
+              <span class="badge bg-info">Pending</span>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted text-center mb-0">No pending tasks</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- In Progress Tasks Details -->
+  <div class="col-md-6">
+    <div class="card border-primary shadow-sm h-100 task-status-card">
+      <div class="card-header bg-primary text-white">
+        <h6 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i>In Progress Tasks</h6>
+      </div>
+      <div class="card-body">
+        {% if in_progress_details %}
+          <div class="list-group list-group-flush task-scroll-container" style="max-height: 300px; overflow-y: auto; min-height: 200px;">
+            {% for task in in_progress_details %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ task.task.name }}</strong>
+                <br>
+                <small class="text-muted">
+                  <i class="bi bi-person me-1"></i>{{ task.employee.full_name|default:task.employee.username }}
+                  <i class="bi bi-building me-2 ms-2"></i>{{ task.land.name }}
+                  <i class="bi bi-calendar me-2 ms-2"></i>Due: {{ task.due_date|date:"d/m/Y"|default:"Not set" }}
+                </small>
+              </div>
+              <span class="badge bg-primary">In Progress</span>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted text-center mb-0">No in progress tasks</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Delete Button Row (Hidden by default) -->
+<div class="row mb-4" id="bulkDeleteRow" style="display:none;">
+  <div class="col-12">
+    <div class="d-flex justify-content-start">
+      <button class="btn btn-outline-secondary" id="bulkDeleteBtn">
+        <i class="bi bi-trash me-1"></i> Delete Selected
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Employees Section -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Employees</h4>
+  <a href="{% url 'add_employee_page' %}" class="btn btn-success">
+    <i class="bi bi-person-plus me-1"></i> Add Employee
+  </a>
+</div>
+
+<div class="contact-table-container">
+    <table class="contact-table">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Name</th>
+          <th scope="col">Type</th>
+          <th scope="col">Phone No.</th>
+          <th scope="col">Email</th>
+          <th scope="col">Address</th>
+          <th scope="col">Status</th>
+        </tr>
+        <!-- Search/Filter Row -->
+        <tr class="filter-row">
+          <th>
+            <button class="refresh-btn" id="refreshBtn" title="Refresh">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </th>
+          <th>
+            <input type="text" class="filter-input" id="nameSearch" placeholder="Name">
+          </th>
+          <th>
+            <select class="filter-select" id="typeFilter">
+              <option value="">Type</option>
+              <option value="marketing">Marketing</option>
+              <option value="backoffice">Back Office</option>
+              <option value="legal_team">Legal Team</option>
+              <option value="other">Other</option>
+            </select>
+          </th>
+          <th>
+            <input type="text" class="filter-input" id="phoneSearch" placeholder="Mobile No">
+          </th>
+          <th>
+            <input type="text" class="filter-input" id="emailSearch" placeholder="Email">
+          </th>
+          <th>
+            <!-- Address filter can be added here if needed -->
+          </th>
+          <th>
+            <!-- Status filter can be added here if needed -->
+          </th>
+        </tr>
+      </thead>
+      <tbody id="developersTableBody">
+        {% if developers %}
+          {% for dev in developers %}
+                  <tr class="employee-row employee-item" 
+            data-dev-id="{{ dev.id }}"
+              data-name="{{ dev.full_name|default:dev.username|lower }}" 
+              data-type="{{ dev.employee_type|default:''|lower }}"
+              data-phone="{{ dev.mobile|default:''|lower }}"
+              data-email="{{ dev.email|default:''|lower }}"
+              data-address="{{ dev.address|default:''|lower }}">
+            <td>{{ dev.id }}</td>
+            <td>
+              <div class="d-flex align-items-center">
+                <i class="bi bi-person me-2"></i>
+                <div>
+                  <div class="fw-bold">{{ dev.full_name|default:dev.username }}</div>
+                  <div class="small">
+                    <a href="#" class="text-primary me-2" data-bs-toggle="modal" data-bs-target="#editEmployeeModal{{ dev.id }}">Edit</a>
+                    <a href="{% url 'admin_chat' dev.username %}" class="text-info me-2">
+                      Chat
+                    </a>
+                    <a href="#" class="text-danger" onclick="deleteEmployee('{{ dev.id }}', '{{ dev.full_name|default:dev.username }}')">Delete</a>
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="contact-type">{{ dev.get_employee_type_display|default:'Not specified' }}</span>
+            </td>
+            <td>
+              <div class="phone-number">
+                <i class="bi bi-telephone phone-icon"></i>
+                {{ dev.mobile|default:'Not specified' }}
+              </div>
+            </td>
+            <td>
+              <div class="email-address">
+                <i class="bi bi-envelope email-icon"></i>
+                {{ dev.email|default:'Not specified' }}
+              </div>
+            </td>
+            <td>
+              {% if dev.address %}
+                <i class="bi bi-geo-alt me-1"></i>{{ dev.address }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge status-badge clickable {% if dev.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}" 
+                    onclick="changeStatus('{{ dev.id }}')" 
+                    data-employee-id="{{ dev.id }}"
+                    style="cursor: pointer;">
+                {{ dev.get_status_display|default:'Not specified' }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-4">
+              <div class="text-muted">
+                <i class="bi bi-people fs-1 d-block mb-2"></i>
+                <h5>No Employees Found</h5>
+                <p>No employees have been added yet. Click the "Add Employee" button to get started.</p>
+                <a href="{% url 'add_employee_page' %}" class="btn btn-success">
+                  <i class="bi bi-person-plus me-1"></i> Add Your First Employee
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<hr>
+
+<!-- Edit Employee Modals -->
+{% for dev in developers %}
+    <div class="modal fade" id="editEmployeeModal{{ dev.id }}" tabindex="-1" aria-labelledby="editEmployeeModalLabel{{ dev.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+              <form method="POST" action="{% url 'edit_employee' dev.id %}" enctype="multipart/form-data" class="editEmployeeForm" data-dev-id="{{ dev.id }}">
+        {% csrf_token %}
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="editEmployeeModalLabel{{ dev.id }}">
+            <i class="bi bi-pencil-square me-2"></i>Edit Employee: {{ dev.full_name|default:dev.username }}
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <!-- Left Column -->
+            <div class="col-md-6">
+              <!-- Employee Type -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">Employee Type <span class="text-danger">*</span></label>
+                <select name="employee_type" class="form-select" required>
+                  <option value="">Select Employee Type</option>
+                  <option value="marketing" {% if dev.employee_type == 'marketing' %}selected{% endif %}>Marketing</option>
+                  <option value="backoffice" {% if dev.employee_type == 'backoffice' %}selected{% endif %}>Back Office</option>
+                  <option value="legal_team" {% if dev.employee_type == 'legal_team' %}selected{% endif %}>Legal Team</option>
+                  <option value="other" {% if dev.employee_type == 'other' %}selected{% endif %}>Other</option>
+                </select>
+              </div>
+              
+              <!-- Email -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                <input type="email" name="email" class="form-control" value="{{ dev.email|default:'' }}" placeholder="Enter Email Address" required>
+              </div>
+              
+              <!-- Mobile Number -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">Mobile Number <span class="text-danger">*</span></label>
+                                  <input type="tel" name="mobile" id="mobileFieldEdit{{ dev.id }}" class="form-control" value="{{ dev.mobile }}" placeholder="Enter Mobile Number (10 digits)" required pattern="[0-9]{10}" maxlength="10">
+                <small class="text-muted">Enter exactly 10 digits</small>
+                <div id="mobileErrorEdit{{ dev.id }}" class="text-danger small" style="display: none;">Mobile number must be exactly 10 digits</div>
+              </div>
+              
+              <!-- Status -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">Status <span class="text-danger">*</span></label>
+                <select name="status" class="form-select" required>
+                  <option value="">Select Status</option>
+                  <option value="active" {% if dev.status == 'active' %}selected{% endif %}>Active</option>
+                  <option value="inactive" {% if dev.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+              </div>
+              
+              <!-- Address -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">Address</label>
+                <textarea name="address" class="form-control" rows="3" placeholder="Enter Complete Address">{{ dev.address|default:'' }}</textarea>
+              </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="col-md-6">
+              <!-- Full Name -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">Full Name <span class="text-danger">*</span></label>
+                <input type="text" name="full_name" class="form-control" value="{{ dev.full_name|default:'' }}" placeholder="Enter Full Name" required>
+              </div>
+              
+              <!-- Password -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">Password</label>
+                <div class="input-group">
+                                  <input type="password" name="password" id="passwordFieldEdit{{ dev.id }}" class="form-control" placeholder="Leave blank to keep current password">
+                <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('passwordFieldEdit{{ dev.id }}')">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+                <small class="text-muted">Leave blank to keep current password</small>
+              </div>
+              
+              <!-- Location -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">Location <span class="text-danger">*</span></label>
+                <input type="text" name="location" class="form-control" value="{{ dev.location|default:'' }}" placeholder="Enter Location" required>
+                <small class="text-muted">City, State, or Area covered</small>
+              </div>
+              
+              <!-- Username -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">Username <span class="text-danger">*</span></label>
+                <input type="text" name="username" class="form-control" value="{{ dev.username }}" required>
+              </div>
+              
+              <!-- Profile Photo -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">Profile Photo</label>
+                <div class="upload-area border-2 border-dashed border-secondary rounded p-3 text-center">
+                  <i class="bi bi-cloud-upload fs-1 text-muted"></i>
+                  <p class="mb-1">Click to upload or drag and drop</p>
+                  <p class="small text-muted mb-0">PNG, JPG, GIF up to 10MB</p>
+                  <input type="file" name="profile_pic" class="form-control mt-2" accept="image/*">
+                </div>
+                {% if dev.profile_pic %}
+                <div class="mt-2 text-center">
+                  <img src="{{ dev.profile_pic.url }}" alt="Current Profile" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
+                  <p class="text-muted small mt-1">Current photo</p>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i> Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle me-1"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- All Tasks Section -->
+<div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+  <h4 class="mb-0">All Tasks</h4>
+  <button type="button" class="btn btn-primary" onclick="openAddTaskModal()">
+    <i class="bi bi-plus-circle me-1"></i> Add Task
+  </button>
+</div>
+
+<div class="contact-table-container">
+  <table class="contact-table">
+    <thead>
+      <tr>
+        <th scope="col">Task Name</th>
+        <th scope="col">Position</th>
+        <th scope="col">Default</th>
+        <th scope="col">Completion Days</th>
+        <th scope="col">Employee Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for task in tasks %}
+      <tr id="task-{{ task.id }}" class="task-row">
+        <td>
+          <div class="d-flex align-items-center">
+            <i class="bi bi-list-task me-2 text-primary"></i>
+            <div>
+              <div class="fw-bold">{{ task.name }}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="task-position">{{ task.position }}</span>
+        </td>
+        <td>
+          {% if task.is_default %}
+            <span class="badge bg-success">Yes</span>
+          {% else %}
+            <span class="badge bg-secondary">No</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="completion-days">
+            <i class="bi bi-calendar-check me-2 text-info"></i>
+            {{ task.completion_days }} days
+          </div>
+        </td>
+        <td>
+          <div class="assigned-employees">
+            {% if task.get_assigned_employees_display %}
+              <i class="bi bi-people me-2 text-success"></i>
+              {{ task.get_assigned_employees_display }}
+            {% else %}
+              <i class="bi bi-person-x me-2 text-muted"></i>
+              <span class="text-muted">No employees assigned</span>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Task Completion Details Modal -->
+<div class="modal fade" id="completionDetailsModal" tabindex="-1" aria-labelledby="completionDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="completionDetailsModalLabel">
+          <i class="bi bi-check-circle text-success me-2"></i>
+          Task Completion Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="completionDetailsContent">
+        <!-- Completion details will be loaded here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Approval Modal -->
+<div class="modal fade" id="adminApprovalModal" tabindex="-1" aria-labelledby="adminApprovalModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="adminApprovalModalLabel">
+          <i class="bi bi-shield-check text-primary me-2"></i>
+          Approve Task Completion
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="adminApprovalForm">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="adminNotes" class="form-label">Admin Notes <span class="text-muted">(Optional)</span></label>
+            <textarea name="admin_notes" id="adminNotes" class="form-control" rows="4" placeholder="Enter any notes, feedback, or approval comments..."></textarea>
+          </div>
+          <div class="alert alert-success">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Note:</strong> Approving this task will mark it as complete and update the employee's task count.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle me-2"></i>
+            Approve Task
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Task Reassignment Modal -->
+<div class="modal fade" id="taskReassignmentModal" tabindex="-1" aria-labelledby="taskReassignmentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="taskReassignmentModalLabel">
+          <i class="bi bi-arrow-repeat text-warning me-2"></i>
+          Reassign Task
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="taskReassignmentForm">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="reassignmentNotes" class="form-label">Reassignment Notes <span class="text-danger">*</span></label>
+            <textarea name="reassignment_notes" id="reassignmentNotes" class="form-control" rows="4" placeholder="Enter notes about why this task is being reassigned..." required></textarea>
+          </div>
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Note:</strong> Reassigning this task will set it to "In Progress" status and the employee will see your reassignment notes.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning">
+            <i class="bi bi-arrow-repeat me-2"></i>
+            Reassign Task
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+  <div class="loading-content">
+    <div class="spinner-border text-light" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3 text-light">Processing...</p>
+  </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addTaskForm">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="taskName" class="form-label">Task Name*</label>
+                <input type="text" class="form-control" id="taskName" name="task_name" placeholder="Enter task name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="taskPosition" class="form-label">Position*</label>
+                <input type="number" class="form-control" id="taskPosition" name="position" placeholder="Display position" required min="1">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="isDefault" class="form-label">Default Task*</label>
+                <select class="form-control" id="isDefault" name="is_default" required>
+                  <option value="">Select Option</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="completionDays" class="form-label">Completion Days*</label>
+                <input type="number" class="form-control" id="completionDays" name="completion_days" placeholder="Expected completion time in days" required min="0" value="0">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="marketingTask" class="form-label">Marketing Task</label>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="marketingTask" name="marketing_task" value="false">
+                  <label class="form-check-label" for="marketingTask">
+                    <span id="marketingTaskLabel" class="text-muted">No</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <div class="mb-3">
+                <label for="assignEmployee" class="form-label">Employee Name*</label>
+                <div class="input-group">
+                  <select class="form-control" id="assignEmployee" name="assign_employee">
+                    <option value="">Select Employee</option>
+                    {% for employee in employees %}
+                    <option value="{{ employee.id }}">{{ employee.full_name|default:employee.username }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="button" class="btn" onclick="openAddEmployeeModal()" title="Add New Employee">
+                    <i class="bi bi-plus"></i>
+                  </button>
+                </div>
+                <div id="selectedEmployeesBox" class="selected-employees-box mt-2" style="display: none;">
+                  <div class="selected-employees-header">
+                    <span>Selected Employees:</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearAllEmployees()">Clear All</button>
+                  </div>
+                  <div id="selectedEmployeesList" class="selected-employees-list">
+                    <!-- Selected employees will be displayed here -->
+                  </div>
+                </div>
+                <input type="hidden" id="selectedEmployeesInput" name="selected_employees" value="">
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary submit-btn" onclick="submitTask()">SUBMIT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Employee Modal -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addEmployeeModalLabel">Add New Employee</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addEmployeeForm">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newEmployeeType" class="form-label fw-bold">Employee Type <span class="text-danger">*</span></label>
+                <select class="form-select" id="newEmployeeType" name="employee_type" required>
+                  <option value="">Select Employee Type</option>
+                  <option value="marketing">Marketing</option>
+                  <option value="backoffice">Back Office</option>
+                  <option value="legal_team">Legal Team</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newEmployeeUsername" class="form-label fw-bold">Username <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="newEmployeeUsername" name="username" placeholder="Enter Username" required>
+                <small class="text-muted">Choose a unique username for login</small>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newEmployeeFullName" class="form-label fw-bold">Full Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="newEmployeeFullName" name="full_name" placeholder="Enter Full Name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newEmployeeEmail" class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" id="newEmployeeEmail" name="email" placeholder="Enter Email Address" required>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newEmployeePassword" class="form-label fw-bold">Password <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <input type="password" class="form-control" id="newEmployeePassword" name="password" placeholder="Enter Password" required>
+                  <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+                <small class="text-muted">Click the eye icon to show/hide password</small>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newEmployeeMobile" class="form-label fw-bold">Mobile Number <span class="text-danger">*</span></label>
+                <input type="tel" class="form-control" id="newEmployeeMobile" name="mobile" placeholder="Enter Mobile Number (10 digits)" required pattern="[0-9]{10}" maxlength="10">
+                <small class="text-muted">Enter exactly 10 digits</small>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newEmployeeLocation" class="form-label fw-bold">Location <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="newEmployeeLocation" name="location" placeholder="Enter Location" required>
+                <small class="text-muted">City, State, or Area covered</small>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="newEmployeeStatus" class="form-label fw-bold">Status <span class="text-danger">*</span></label>
+                <select class="form-select" id="newEmployeeStatus" name="status" required>
+                  <option value="">Select Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <div class="mb-3">
+                <label for="newEmployeeAddress" class="form-label fw-bold">Address</label>
+                <textarea class="form-control" id="newEmployeeAddress" name="address" rows="3" placeholder="Enter Complete Address"></textarea>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitNewEmployee()">Add Employee</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/admin_dashboard.js' %}?v=1.1"></script>
+<script src="{% static 'js/admin_functions.js' %}?v=1.1"></script>
+<script src="{% static 'js/admin_status.js' %}?v=1.1"></script>
+<script>
+// Password toggle functionality for add employee modal
+function togglePasswordVisibility() {
+    const passwordField = document.getElementById('newEmployeePassword');
+    const toggleBtn = document.getElementById('togglePassword');
+    const icon = toggleBtn.querySelector('i');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        passwordField.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+
+// Delete employee function - defined directly in template to ensure availability
+function deleteEmployee(employeeId, name) {
+    console.log('deleteEmployee called with:', employeeId, name);
+    
+    if (confirm(`Are you sure you want to delete employee "${name}"?`)) {
+        try {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/delete_employee/${employeeId}/`;
+            
+            // Get CSRF token from multiple possible sources
+            let csrfToken = '';
+            const csrfElement = document.querySelector('[name=csrfmiddlewaretoken]') || 
+                               document.querySelector('input[name="csrfmiddlewaretoken"]') ||
+                               document.querySelector('meta[name="csrf-token"]');
+            
+            console.log('CSRF element found:', csrfElement);
+            
+            if (csrfElement) {
+                csrfToken = csrfElement.value || csrfElement.getAttribute('content') || '';
+                console.log('CSRF token value:', csrfToken);
+            }
+            
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                alert('Security token not found. Please refresh the page and try again.');
+                return;
+            }
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            
+            form.appendChild(csrfInput);
+            document.body.appendChild(form);
+            
+            console.log('Form created and submitted:', form);
+            form.submit();
+        } catch (error) {
+            console.error('Error in deleteEmployee:', error);
+            alert('An error occurred while deleting the employee. Please try again.');
+        }
+    }
+}
+
+// Initialize password toggle when modal is shown
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listener for password toggle button
+    const toggleBtn = document.getElementById('togglePassword');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', togglePasswordVisibility);
+    }
+    
+    // Log function availability
+    console.log('deleteEmployee function available:', typeof deleteEmployee);
+    
+    // Initialize Export CSV and Refresh buttons
+    const exportCSVBtn = document.getElementById('exportCSV');
+    const refreshBtn = document.getElementById('refreshBtn');
+    
+    if (exportCSVBtn) {
+        exportCSVBtn.addEventListener('click', function() {
+            if (typeof exportDashboardData === 'function') {
+                exportDashboardData();
+            } else {
+                console.error('exportDashboardData function not found');
+                // Fallback functionality
+                alert('Export functionality is being loaded. Please try again in a moment.');
+            }
+        });
+        console.log('Export CSV button initialized');
+    }
+    
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            if (typeof refreshDashboard === 'function') {
+                refreshDashboard();
+            } else {
+                console.error('refreshDashboard function not found');
+                // Fallback functionality
+                window.location.reload();
+            }
+        });
+        console.log('Refresh button initialized');
+    }
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,659 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>Personal CRM</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <!-- Loader -->
+  <div class="loader" id="loader">
+    <div class="loader-spinner"></div>
+  </div>
+  
+  {% if not request.resolver_match or request.resolver_match.url_name != 'login' %}
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="{% if user.is_authenticated and user.role == 'admin' %}{% url 'admin-dashboard' %}{% elif user.is_authenticated and user.role == 'employee' and user.employee_type == 'marketing' %}{% url 'marketing-dashboard' %}{% elif user.is_authenticated and user.role == 'employee' %}{% url 'employee-dashboard' %}{% else %}{% url 'login' %}{% endif %}" class="sidebar-brand">
+          <i class="bi bi-briefcase me-2"></i>
+          <span class="nav-text">Personal CRM</span>
+        </a>
+      </div>
+      
+      {% if user.is_authenticated %}
+        <nav class="sidebar-nav">
+          {% if user.role == 'admin' %}
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'admin-dashboard' %}active{% endif %}" href="{% url 'admin-dashboard' %}">
+                <i class="bi bi-speedometer2 nav-icon"></i>
+                <span class="nav-text">Dashboard</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'admin-employees' %}active{% endif %}" href="{% url 'admin-employees' %}">
+                <i class="bi bi-people nav-icon"></i>
+                <span class="nav-text">Employees</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'admin-clients' %}active{% endif %}" href="{% url 'admin-clients' %}">
+                <i class="bi bi-person-badge nav-icon"></i>
+                <span class="nav-text">Clients</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'admin-land' %}active{% endif %}" href="{% url 'admin-land' %}">
+                <i class="bi bi-building nav-icon"></i>
+                <span class="nav-text">Land</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'inventory_land' %}active{% endif %}" href="{% url 'inventory_land' %}">
+                <i class="bi bi-box-seam nav-icon"></i>
+                <span class="nav-text">Inventory</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'sold_land' %}active{% endif %}" href="{% url 'sold_land' %}">
+                <i class="bi bi-currency-dollar nav-icon"></i>
+                <span class="nav-text">Sold Lands</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'land_installments' %}active{% endif %}" href="{% url 'land_installments' %}">
+                <i class="bi bi-cash-coin nav-icon"></i>
+                <span class="nav-text">Land Installments</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'admin-assigned-tasks' %}active{% endif %}" href="{% url 'admin-assigned-tasks' %}">
+                <i class="bi bi-clipboard-check nav-icon"></i>
+                <span class="nav-text">Assigned Tasks</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'tasks' %}active{% endif %}" href="{% url 'tasks' %}">
+                <i class="bi bi-list-task nav-icon"></i>
+                <span class="nav-text">Task Management</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'sata_prakar' %}active{% endif %}" href="{% url 'sata_prakar' %}">
+                <i class="bi bi-file-earmark-text nav-icon"></i>
+                <span class="nav-text">Sata Prakar</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'advocates' %}active{% endif %}" href="{% url 'advocates' %}">
+                <i class="bi bi-person-badge nav-icon"></i>
+                <span class="nav-text">Advocates</span>
+              </a>
+            </div>
+
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'village_management' %}active{% endif %}" href="{% url 'village_management' %}">
+                <i class="bi bi-geo-alt nav-icon"></i>
+                <span class="nav-text">Village List</span>
+              </a>
+            </div>
+
+
+
+          {% elif user.role == 'employee' and user.employee_type == 'marketing' %}
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'marketing-dashboard' %}active{% endif %}" href="{% url 'marketing-dashboard' %}">
+                <i class="bi bi-speedometer2 nav-icon"></i>
+                <span class="nav-text">Dashboard</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'marketing-tasks' %}active{% endif %}" href="{% url 'marketing-tasks' %}">
+                <i class="bi bi-list-task nav-icon"></i>
+                <span class="nav-text">My Tasks</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'admin-clients' %}active{% endif %}" href="{% url 'admin-clients' %}">
+                <i class="bi bi-person-badge nav-icon"></i>
+                <span class="nav-text">Clients</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'inventory_land' %}active{% endif %}" href="{% url 'inventory_land' %}">
+                <i class="bi bi-box-seam nav-icon"></i>
+                <span class="nav-text">Inventory</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'sold_land' %}active{% endif %}" href="{% url 'sold_land' %}">
+                <i class="bi bi-currency-dollar nav-icon"></i>
+                <span class="nav-text">Sold Lands</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'land_installments' %}active{% endif %}" href="{% url 'land_installments' %}">
+                <i class="bi bi-cash-coin nav-icon"></i>
+                <span class="nav-text">Land Installments</span>
+              </a>
+            </div>
+          {% elif user.role == 'employee' %}
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'employee-dashboard' %}active{% endif %}" href="{% url 'employee-dashboard' %}">
+                <i class="bi bi-speedometer2 nav-icon"></i>
+                <span class="nav-text">Dashboard</span>
+              </a>
+            </div>
+            <div class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'employee-tasks' %}active{% endif %}" href="{% url 'employee-tasks' %}">
+                <i class="bi bi-list-task nav-icon"></i>
+                <span class="nav-text">My Tasks</span>
+              </a>
+            </div>
+
+          {% endif %}
+        </nav>
+      {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+      <!-- Top Bar -->
+      <div class="top-bar">
+        <div class="d-flex align-items-center">
+          <button class="sidebar-toggle me-3" id="sidebarToggle">
+            <i class="bi bi-list"></i>
+          </button>
+          <h4 class="mb-0">{% block page_title %}{% endblock %}</h4>
+        </div>
+        
+        {% if user.is_authenticated %}
+          <div class="user-info">
+            <!-- Reminder Dropdown -->
+            <div class="dropdown position-relative me-2">
+              <button class="btn btn-outline-warning position-relative" type="button" id="reminderDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-bell"></i>
+                <span class="notification-badge" id="reminder-count-badge" style="display:none;">0</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="reminderDropdown" style="min-width: 500px; max-width: 650px;">
+                <li class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-light">
+                  <span class="fw-bold text-warning fs-5">
+                    <i class="bi bi-bell me-2"></i>Upcoming Reminders
+                  </span>
+                  <button class="btn btn-warning btn-sm px-3 py-2" type="button" data-bs-toggle="modal" data-bs-target="#globalReminderModal">
+                    <i class="bi bi-plus-circle me-2"></i>Make Reminder
+                  </button>
+                </li>
+                <div style="max-height: 450px; overflow-y: auto; padding: 8px;">
+                  <ul class="list-unstyled mb-0" id="reminder-list">
+                    <li class="px-4 py-3 text-center text-muted">
+                      <i class="bi bi-hourglass-split me-2"></i> Loading reminders...
+                    </li>
+                  </ul>
+                </div>
+              </ul>
+            </div>
+            
+            <!-- Chat Button (Admin and Employee) -->
+            {% if user.role == 'admin' %}
+            <div class="dropdown position-relative me-2">
+              <a href="{% url 'admin_chat_index' %}" class="btn btn-outline-primary position-relative" type="button">
+                <i class="bi bi-chat-dots"></i>
+                <span class="notification-badge" id="chat-unread-badge" style="display:none;">0</span>
+              </a>
+            </div>
+            {% elif user.role == 'employee' %}
+            <div class="dropdown position-relative me-2">
+              <a href="{% url 'employee-chat' %}" class="btn btn-outline-primary position-relative" type="button">
+                <i class="bi bi-chat-dots"></i>
+                <span class="notification-badge" id="chat-unread-badge" style="display:none;">0</span>
+              </a>
+            </div>
+            {% endif %}
+            
+            <!-- Notification Bell -->
+            <div class="dropdown position-relative">
+              <button class="btn btn-outline-secondary position-relative" type="button" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-bell"></i>
+                <span class="notification-badge" id="notif-unread-badge" style="display:none;">0</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notifDropdown" style="min-width: 350px; max-width: 450px;">
+                <li class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                  <span class="fw-bold text-primary">
+                    <i class="bi bi-bell me-1"></i>Notifications
+                  </span>
+                  <button class="btn btn-link btn-sm p-0 text-decoration-none" id="markAllReadBtn">
+                    <i class="bi bi-check2-all me-1"></i>Mark all read
+                  </button>
+                </li>
+                <div style="max-height: 350px; overflow-y: auto;">
+                  <ul class="list-unstyled mb-0" id="notif-list">
+                    <li class="px-3 py-2 text-center text-muted">
+                      <i class="bi bi-hourglass-split"></i> Loading...
+                    </li>
+                  </ul>
+                </div>
+              </ul>
+            </div>
+            
+            <!-- User Info -->
+            <div class="dropdown">
+              <div class="d-flex align-items-center" data-bs-toggle="dropdown">
+                <div class="user-avatar me-2">
+                  {{ user.username|first|upper }}
+                </div>
+                <div class="d-none d-md-block">
+                  <div class="fw-bold">{{ user.username }}</div>
+                  <small class="text-muted">{{ user.role|capfirst }}</small>
+                </div>
+              </div>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+              </ul>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Content Area -->
+      <div class="content-area">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  {% else %}
+    <!-- Login Page Layout -->
+    <div class="main-content login-page">
+      {% block login_content %}{% endblock %}
+    </div>
+  {% endif %}
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{% static 'js/main.js' %}"></script>
+  <script>
+    // Sidebar Toggle Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('mainContent');
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+          // On mobile, show/hide sidebar
+          if (window.innerWidth <= 768) {
+            sidebar.classList.toggle('show');
+          } else {
+            // On desktop, collapse/expand sidebar
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+          }
+        });
+      }
+      
+      // Close sidebar when clicking outside on mobile
+      document.addEventListener('click', function(event) {
+        if (window.innerWidth <= 768) {
+          const isClickInsideSidebar = sidebar.contains(event.target);
+          const isClickOnToggle = sidebarToggle.contains(event.target);
+          
+          if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('show')) {
+            sidebar.classList.remove('show');
+          }
+        }
+      });
+      
+      // Handle window resize
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+          sidebar.classList.remove('show');
+          if (!sidebar.classList.contains('collapsed')) {
+            sidebar.classList.remove('collapsed');
+            mainContent.classList.remove('expanded');
+          }
+        } else {
+          sidebar.classList.remove('collapsed');
+          mainContent.classList.remove('expanded');
+        }
+      });
+      
+      // Initialize sidebar state
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('collapsed');
+        mainContent.classList.remove('expanded');
+      }
+      
+      // Chat unread count functionality
+      updateChatUnreadCount();
+      setInterval(updateChatUnreadCount, 30000); // Update every 30 seconds
+    });
+    
+    // Function to update chat unread count
+    function updateChatUnreadCount() {
+      const chatBadge = document.getElementById('chat-unread-badge');
+      if (!chatBadge) return;
+      
+      fetch('/chat/unread_count')
+        .then(response => response.json())
+        .then(data => {
+          if (data.unread_count > 0) {
+            chatBadge.textContent = data.unread_count;
+            chatBadge.style.display = 'flex';
+          } else {
+            chatBadge.style.display = 'none';
+          }
+        })
+        .catch(error => {
+          console.error('Error updating chat unread count:', error);
+        });
+    }
+  </script>
+
+  <!-- Global Reminder JavaScript -->
+  <script>
+    // Handle Global Reminder Form Submission
+    document.addEventListener('DOMContentLoaded', function() {
+        const globalReminderForm = document.getElementById('globalReminderForm');
+        let isSubmitting = false; // Flag to prevent duplicate submissions
+        
+        if (globalReminderForm && !globalReminderForm.hasEventListener) {
+            // Mark that event listener has been added
+            globalReminderForm.hasEventListener = true;
+            
+            globalReminderForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Prevent duplicate submissions
+                if (isSubmitting) {
+                    return;
+                }
+                
+                // Get form data
+                const title = document.getElementById('globalReminderTitle').value.trim();
+                const description = document.getElementById('globalReminderDescription').value.trim();
+                const reminderTime = document.getElementById('globalReminderTime').value;
+                const priority = document.getElementById('globalReminderPriority').value;
+                
+                // Validate required fields
+                if (!title || !description || !reminderTime) {
+                    alert('Please fill in all required fields.');
+                    return;
+                }
+                
+                // Set submitting flag and disable submit button
+                isSubmitting = true;
+                const submitButton = globalReminderForm.querySelector('button[type="submit"]');
+                const originalText = submitButton.innerHTML;
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Creating...';
+                
+                // Prepare data for API
+                const reminderData = {
+                    title: title,
+                    description: description,
+                    reminder_time: reminderTime,
+                    priority: priority
+                };
+                
+                // Get CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                 document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                                 getCookie('csrftoken');
+                
+                // Submit to API
+                fetch('/api/reminders/create/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify(reminderData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Success - close modal and reset form
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('globalReminderModal'));
+                        modal.hide();
+                        globalReminderForm.reset();
+                        
+                        // Show success message
+                        alert('Reminder created successfully!');
+                        
+                        // Optionally refresh page or update UI
+                        // window.location.reload();
+                    } else {
+                        alert('Error creating reminder: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error creating reminder. Please try again.');
+                })
+                .finally(() => {
+                    // Reset submitting flag and enable submit button
+                    isSubmitting = false;
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                });
+            });
+        }
+        
+        // Reset form when modal is closed
+        const globalReminderModal = document.getElementById('globalReminderModal');
+        if (globalReminderModal && !globalReminderModal.hasResetListener) {
+            globalReminderModal.hasResetListener = true;
+            globalReminderModal.addEventListener('hidden.bs.modal', function() {
+                document.getElementById('globalReminderForm').reset();
+                isSubmitting = false; // Reset flag when modal closes
+            });
+        }
+    });
+    
+    // Helper function to get CSRF cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Load upcoming reminders when dropdown is opened
+    function loadUpcomingReminders() {
+        const reminderList = document.getElementById('reminder-list');
+        const reminderBadge = document.getElementById('reminder-count-badge');
+        
+        if (!reminderList) return;
+        
+        // Show loading state
+        reminderList.innerHTML = '<li class="px-3 py-2 text-center text-muted"><i class="bi bi-hourglass-split"></i> Loading reminders...</li>';
+        
+        fetch('/api/reminders/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.reminders) {
+                const reminders = data.reminders;
+                
+                // Update badge count
+                if (reminders.length > 0) {
+                    reminderBadge.textContent = reminders.length;
+                    reminderBadge.style.display = 'flex';
+                } else {
+                    reminderBadge.style.display = 'none';
+                }
+                
+                // Display reminders
+                if (reminders.length === 0) {
+                    reminderList.innerHTML = '<li class="px-4 py-4 text-center text-muted"><i class="bi bi-check-circle text-success me-2"></i> No upcoming reminders</li>';
+                } else {
+                    let reminderHtml = '';
+                    reminders.forEach(reminder => {
+                        const priorityClass = getPriorityClass(reminder.priority_value);
+                        const isOverdue = reminder.is_overdue;
+                        const overdueClass = isOverdue ? 'border-danger bg-light-danger' : '';
+                        
+                        reminderHtml += `
+                            <li class="px-4 py-4 border-bottom reminder-item ${overdueClass}" data-reminder-id="${reminder.id}" style="margin: 4px 8px; border-radius: 8px;">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1 me-3">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge ${priorityClass} me-2">${reminder.priority}</span>
+                                            ${isOverdue ? '<span class="badge bg-danger me-2"><i class="bi bi-exclamation-triangle me-1"></i>Overdue</span>' : ''}
+                                        </div>
+                                        <h6 class="mb-2 fw-bold text-dark">${reminder.title}</h6>
+                                        <p class="mb-2 text-muted small lh-sm">${reminder.description}</p>
+                                        <div class="d-flex align-items-center text-muted small">
+                                            <i class="bi bi-clock me-1"></i>
+                                            <span>${reminder.reminder_time}</span>
+                                        </div>
+                                    </div>
+                                    <div class="ms-auto">
+                                        <button class="btn btn-sm btn-outline-success px-3 py-2" onclick="markReminderCompleted(${reminder.id})" title="Mark as completed">
+                                            <i class="bi bi-check-lg me-1"></i>Done
+                                        </button>
+                                    </div>
+                                </div>
+                            </li>
+                        `;
+                    });
+                    reminderList.innerHTML = reminderHtml;
+                }
+            } else {
+                reminderList.innerHTML = '<li class="px-4 py-4 text-center text-danger"><i class="bi bi-exclamation-triangle me-2"></i> Error loading reminders</li>';
+                reminderBadge.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading reminders:', error);
+            reminderList.innerHTML = '<li class="px-4 py-4 text-center text-danger"><i class="bi bi-exclamation-triangle me-2"></i> Error loading reminders</li>';
+            reminderBadge.style.display = 'none';
+        });
+    }
+    
+    // Get priority badge class
+    function getPriorityClass(priority) {
+        switch(priority) {
+            case 'urgent': return 'bg-danger';
+            case 'high': return 'bg-warning';
+            case 'medium': return 'bg-info';
+            case 'low': return 'bg-secondary';
+            default: return 'bg-secondary';
+        }
+    }
+    
+    // Mark reminder as completed
+    function markReminderCompleted(reminderId) {
+        if (!confirm('Mark this reminder as completed?')) return;
+        
+        fetch(`/api/reminders/${reminderId}/complete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload reminders to update the list
+                loadUpcomingReminders();
+            } else {
+                alert('Error marking reminder as completed: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error marking reminder as completed. Please try again.');
+        });
+    }
+    
+    // Load reminders when dropdown is shown
+    document.addEventListener('DOMContentLoaded', function() {
+        const reminderDropdown = document.getElementById('reminderDropdown');
+        if (reminderDropdown) {
+            reminderDropdown.addEventListener('shown.bs.dropdown', function() {
+                loadUpcomingReminders();
+            });
+            
+            // Load reminders on page load for badge count
+            loadUpcomingReminders();
+        }
+    });
+  </script>
+  
+  {% block extra_js %}{% endblock %}
+  <!-- Global Reminder Modal -->
+  <div class="modal fade" id="globalReminderModal" tabindex="-1" aria-labelledby="globalReminderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="globalReminderModalLabel">
+                    <i class="bi bi-bell me-2"></i>Create Global Reminder
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="globalReminderForm">
+                <div class="modal-body">
+                    <!-- Title -->
+                    <div class="mb-3">
+                        <label for="globalReminderTitle" class="form-label">Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="globalReminderTitle" placeholder="Enter reminder title" required>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label for="globalReminderDescription" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="globalReminderDescription" rows="4" placeholder="Enter reminder description..." required></textarea>
+                    </div>
+                    
+                    <!-- Reminder Time -->
+                    <div class="mb-3">
+                        <label for="globalReminderTime" class="form-label">Reminder Time <span class="text-danger">*</span></label>
+                        <input type="datetime-local" class="form-control" id="globalReminderTime" required>
+                    </div>
+                    
+                    <!-- Priority -->
+                    <div class="mb-3">
+                        <label for="globalReminderPriority" class="form-label">Priority</label>
+                        <select class="form-select" id="globalReminderPriority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-bell me-2"></i>Create Reminder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+  </div>
+
+  </body>
+</html>

@@ -1,0 +1,133 @@
+<!-- Add Client Modal -->
+<div class="modal fade" id="addClientModal" tabindex="-1" aria-labelledby="addClientModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="addClientModalLabel">
+          <i class="bi bi-person-plus me-2"></i>Add Client Basic Details
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="addClientForm">
+        <div class="modal-body">
+          <div class="row g-3">
+            <!-- Client Identification -->
+            <div class="col-12">
+              <h6 class="text-primary border-bottom pb-2">Client Identification</h6>
+            </div>
+            <div class="col-md-4">
+              <label for="clientType" class="form-label">Client Type <span class="text-danger">*</span></label>
+              <select class="form-select" id="clientType" name="client_type" required>
+                <option value="">Select Type</option>
+                <option value="property_owner">Property Owner</option>
+                <option value="lead_generation">Lead Generation</option>
+                <option value="web_by_reference">Web By Reference</option>
+                <option value="direct_visit">Direct Visit</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="searchPropertyTitle" class="form-label">Search Property Title</label>
+              <input type="text" class="form-control" id="searchPropertyTitle" name="search_property_title" placeholder="Search Property Title">
+            </div>
+            <div class="col-md-4">
+              <label for="clientName" class="form-label">Client Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="clientName" name="client_name" placeholder="Client Full Name" required>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="col-12 mt-3">
+              <h6 class="text-primary border-bottom pb-2">Contact Information</h6>
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+            </div>
+            <div class="col-md-6">
+              <label for="mobileNo" class="form-label">Mobile No <span class="text-danger">*</span></label>
+              <input type="tel" class="form-control" id="mobileNo" name="mobile_no" placeholder="Mobile No" required>
+            </div>
+            <div class="col-md-6">
+              <label for="anotherMobileNo" class="form-label">Another Mobile No</label>
+              <input type="tel" class="form-control" id="anotherMobileNo" name="another_mobile_no" placeholder="Another Mobile No">
+            </div>
+            <div class="col-md-6">
+              <label for="whatsappNo" class="form-label">WhatsApp No <span class="text-danger">*</span></label>
+              <input type="tel" class="form-control" id="whatsappNo" name="whatsapp_no" placeholder="WhatsApp No" required>
+            </div>
+            <div class="col-md-6">
+              <label for="panNo" class="form-label">PAN No</label>
+              <input type="text" class="form-control" id="panNo" name="pan_no" placeholder="PAN No">
+            </div>
+            <div class="col-md-6">
+              <label for="adharCardNo" class="form-label">Adhar Card No</label>
+              <input type="text" class="form-control" id="adharCardNo" name="adhar_card_no" placeholder="Adhar Card No">
+            </div>
+
+            <!-- Address and Investment Details -->
+            <div class="col-12 mt-3">
+              <h6 class="text-primary border-bottom pb-2">Address and Investment Details</h6>
+            </div>
+            <div class="col-12">
+              <label for="address" class="form-label">Address</label>
+              <textarea class="form-control" id="address" name="address" rows="3" placeholder="Address"></textarea>
+            </div>
+            <div class="col-md-6">
+              <label for="approxInvestment" class="form-label">Approx Investment</label>
+              <input type="number" class="form-control" id="approxInvestment" name="approx_investment" placeholder="Add Approx Investment" step="0.01">
+            </div>
+            <div class="col-md-6">
+              <label for="choiceInParticularProperty" class="form-label">Choice In Particular Property</label>
+              <input type="text" class="form-control" id="choiceInParticularProperty" name="choice_in_particular_property" placeholder="Add Choice In Particular">
+            </div>
+
+            <!-- Important Events -->
+            <div class="col-12 mt-3">
+              <h6 class="text-primary border-bottom pb-2">Other Important Events Pertaining to Existing Client</h6>
+            </div>
+            <div class="col-md-4">
+              <label for="dob" class="form-label">DOB</label>
+              <input type="date" class="form-control" id="dob" name="dob">
+            </div>
+            <div class="col-md-4">
+              <label for="anniversary" class="form-label">Anniversary</label>
+              <input type="date" class="form-control" id="anniversary" name="anniversary">
+            </div>
+            <div class="col-md-4">
+              <label for="anyEvent" class="form-label">Any Event</label>
+              <input type="date" class="form-control" id="anyEvent" name="any_event">
+            </div>
+
+            <!-- Additional Information -->
+            <div class="col-12 mt-3">
+              <h6 class="text-primary border-bottom pb-2">Additional Information</h6>
+            </div>
+            <div class="col-12">
+              <label for="remark" class="form-label">Remark</label>
+              <textarea class="form-control" id="remark" name="remark" rows="3" placeholder="Additional remarks or notes about the client"></textarea>
+            </div>
+
+            <!-- Status -->
+            <div class="col-12 mt-3">
+              <h6 class="text-primary border-bottom pb-2">Client Status</h6>
+            </div>
+            <div class="col-md-6">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="isActive" name="is_active" checked>
+                <label class="form-check-label" for="isActive">
+                  <strong>Active Client</strong>
+                </label>
+                <div class="form-text">Uncheck to mark client as inactive</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-1"></i>Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

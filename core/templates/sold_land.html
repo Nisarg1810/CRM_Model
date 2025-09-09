@@ -1,0 +1,517 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Sold Lands{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventory.css' %}">
+<link rel="stylesheet" href="{% static 'css/installments.css' %}">
+<link rel="stylesheet" href="{% static 'css/sold_land.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Page Header -->
+  <div class="page-header d-flex justify-content-between align-items-center">
+    <div class="header-content">
+      <h2>
+        <i class="bi bi-currency-dollar me-3"></i>
+        Sold Lands
+      </h2>
+      <p class="header-subtitle">Manage and view all sold and in-process lands</p>
+    </div>
+    <div class="header-actions">
+      <a href="{% url 'inventory_land' %}" class="btn btn-success">
+        <i class="bi bi-box-seam me-2"></i>
+        View Inventory
+      </a>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-section">
+    <div class="row g-4">
+      <div class="col-lg-3 col-md-6">
+        <div class="stat-card in-process-card">
+          <div class="stat-icon">
+            <i class="bi bi-clock-history"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ in_process_lands_count }}</h3>
+            <p>In Process</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="stat-card sold-card">
+          <div class="stat-icon">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ sold_lands_count }}</h3>
+            <p>Completed Sales</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="stat-card revenue-card">
+          <div class="stat-icon">
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ total_revenue|floatformat:0 }}</h3>
+            <p>Total Revenue (₹)</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="stat-card active-card">
+          <div class="stat-content">
+            <h3>{{ total_sold_lands }}</h3>
+            <p>Total Sold Lands</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-section">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3 col-sm-6 col-12">
+        <label class="form-label">Land ID</label>
+        <input type="text" class="form-control search-input" id="landIdSearch" placeholder="Search ID">
+      </div>
+      <div class="col-md-3 col-sm-6 col-12">
+        <label class="form-label">Buyer Name</label>
+        <input type="text" class="form-control search-input" id="buyerSearch" placeholder="Search Buyer">
+      </div>
+      <div class="col-md-3 col-sm-6 col-12">
+        <label class="form-label">Village</label>
+        <input type="text" class="form-control search-input" id="villageSearch" placeholder="Search Village">
+      </div>
+      <div class="col-md-3 col-sm-6 col-12">
+        <label class="form-label">Status</label>
+        <select class="form-control search-input" id="statusSearch">
+          <option value="">All Status</option>
+          <option value="in_process">In Process</option>
+          <option value="sold">Sold</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <div class="action-buttons-container">
+          <button class="action-btn refresh-btn" onclick="refreshData()" title="Refresh Data">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+          <button class="action-btn export-btn" onclick="exportData()" title="Export Data">
+            <i class="bi bi-download"></i>
+          </button>
+          <a href="{% url 'inventory_land' %}" class="action-btn add-inventory-btn" title="View Inventory">
+            <i class="bi bi-box-seam"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sold Lands Cards -->
+  <div class="inventory-cards">
+    <div class="row g-3" id="soldLandsCards">
+      {% for land in sold_lands %}
+      <div class="col-lg-4 col-md-6 col-sm-12">
+        <div class="land-card" data-land-id="{{ land.id }}">
+          <!-- Card Header -->
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="land-id-badge">
+                <span class="land-id">#{{ land.id }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-info info-btn-minimal" onclick="showLandInfo({{ land.id }})" title="View Info">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+                <div class="status-badge-container">
+                  {% if land.status == 'sold' %}
+                    <span class="status-badge sold-status">
+                      <i class="bi bi-check-circle me-1"></i>Sold
+                    </span>
+                  {% elif land.status == 'in_process' %}
+                    <span class="status-badge in-process-status">
+                      <i class="bi bi-clock-history me-1"></i>In Process
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Body -->
+          <div class="card-body">
+            <!-- Property Holder -->
+            <div class="property-section">
+              <h6 class="property-name">{{ land.name }}</h6>
+              <p class="broker-info">
+                <i class="bi bi-person me-1"></i>Broker: {{ land.broker_name }}
+              </p>
+            </div>
+
+            <!-- Location -->
+            <div class="location-section">
+              <div class="location-main">
+                <i class="bi bi-geo-alt me-1"></i>
+                <strong>{{ land.village.name }}</strong>
+              </div>
+              <div class="location-details">
+                {{ land.taluka.name }}, {{ land.district.name }}
+              </div>
+              <div class="serial-numbers">
+                <small>SR: {{ land.old_sr_no }} | {{ land.new_sr_no }}</small>
+              </div>
+            </div>
+
+            <!-- Sata Prakar -->
+            <div class="sata-prakar-section">
+              <span class="sata-prakar-badge">{{ land.sata_prakar }}</span>
+            </div>
+
+            <!-- Sale Info -->
+            {% if land.has_sale %}
+              <div class="sale-info">
+                <div class="sale-details">
+                  <i class="bi bi-person-check me-1"></i>
+                  <strong>Buyer:</strong> {{ land.sale_info.buyer_name }}
+                </div>
+                <div class="sale-date">
+                  <i class="bi bi-calendar me-1"></i>
+                  <strong>Date:</strong> {{ land.sale_info.sale_date|date:"d/m/Y" }}
+                </div>
+                {% if land.sale_info.marketing_employee_name %}
+                <div class="marketing-employee">
+                  <i class="bi bi-person-badge me-1"></i>
+                  <strong>Marketing:</strong> {{ land.sale_info.marketing_employee_name }}
+                </div>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Card Footer -->
+          <div class="card-footer">
+            <div class="action-buttons">
+              <a href="{% url 'land-tasks' land.id %}" class="btn btn-sm btn-outline-primary" title="View Tasks">
+                <i class="bi bi-list-task me-1"></i>Tasks
+              </a>
+              <button class="btn btn-sm btn-outline-info" onclick="viewLandDetails({{ land.id }})" title="View Details">
+                <i class="bi bi-eye me-1"></i>View
+              </button>
+              <button class="btn btn-sm btn-success" onclick="showSellLandModal({{ land.id }})" title="Manage Sale">
+                <i class="bi bi-cash-coin me-1"></i>Sold
+              </button>
+              <button class="btn btn-sm btn-warning" onclick="showInstallmentsModal({{ land.id }})" title="Manage Installments & Payments">
+                <i class="bi bi-credit-card me-1"></i>Installments
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="empty-state">
+          <i class="bi bi-currency-dollar text-muted" style="font-size: 64px;"></i>
+          <h4 class="text-muted mt-3">No Sold Lands Found</h4>
+          <p class="text-muted">There are currently no lands in sold or in-process status.</p>
+          <a href="{% url 'inventory_land' %}" class="btn btn-primary">
+            <i class="bi bi-box-seam me-2"></i>
+            View Inventory
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+  <div class="loading-spinner">Processing...</div>
+</div>
+
+<!-- Land Details Modal -->
+<div class="modal fade" id="landDetailsModal" tabindex="-1" aria-labelledby="landDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="landDetailsModalLabel">
+          <i class="bi bi-info-circle me-2"></i>Land Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="landDetailsContent">
+        <!-- Land details will be loaded here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Land Info Modal -->
+<div class="modal fade" id="landInfoModal" tabindex="-1" aria-labelledby="landInfoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="landInfoModalLabel">
+          <i class="bi bi-info-circle me-2"></i>Land Information
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="landInfoContent">
+        <!-- Land info will be loaded here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sell Land Modal -->
+<div class="modal fade" id="sellLandModal" tabindex="-1" aria-labelledby="sellLandModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="sellLandModalLabel">
+          <i class="bi bi-info-circle me-2"></i>Land Sale Details
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="sellLandForm">
+          <input type="hidden" id="sellLandId" name="land_id">
+          
+          <!-- Land Details Summary -->
+          <div class="land-summary mb-3 p-2 bg-light rounded">
+            <h6 class="text-primary border-bottom pb-1 mb-2">
+              <i class="bi bi-info-circle me-2"></i>Land Details
+            </h6>
+            <div class="row">
+              <div class="col-md-6">
+                <p class="mb-1"><strong>Land ID:</strong> <span id="sellLandIdDisplay">-</span></p>
+                <p class="mb-1"><strong>Property Name:</strong> <span id="sellLandName">-</span></p>
+                <p class="mb-1"><strong>Location:</strong> <span id="sellLandLocation">-</span></p>
+              </div>
+              <div class="col-md-6">
+                <p class="mb-1"><strong>Total Area:</strong> <span id="sellLandArea">-</span></p>
+                <p class="mb-1"><strong>Sata Prakar:</strong> <span id="sellLandSataPrakar">-</span></p>
+                <p class="mb-1"><strong>Broker:</strong> <span id="sellLandBroker">-</span></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sale Information -->
+          <div class="row g-2">
+            <div class="col-12">
+              <h6 class="text-primary border-bottom pb-1 mb-2">
+                <i class="bi bi-person-check me-2"></i>Sale Information
+              </h6>
+            </div>
+            
+            <!-- Client Selection -->
+            <div class="col-md-6">
+              <label for="sellClient" class="form-label">Client <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <select class="form-select" id="sellClient" name="client_id" required disabled>
+                  <option value="">Choose a client...</option>
+                  <!-- Clients will be loaded dynamically -->
+                </select>
+                <button class="btn btn-outline-primary" type="button" id="addClientBtn" onclick="showAddClientModalFromInventory()" title="Add New Client" style="display: none;">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+              <div class="form-text">Client who purchased this land</div>
+            </div>
+
+            <!-- Marketing Employee -->
+            <div class="col-md-6">
+              <label for="sellMarketingEmployee" class="form-label">Marketing Employee <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <select class="form-select" id="sellMarketingEmployee" name="marketing_employee_id" required onchange="updateTaskAssignmentInfo()" disabled>
+                  <option value="">Choose marketing employee...</option>
+                  <!-- Marketing employees will be loaded dynamically -->
+                </select>
+                {% if user.role == 'admin' %}
+                <button class="btn btn-outline-primary" type="button" id="addEmployeeBtn" onclick="window.open('{% url 'add_employee_page' %}', '_blank')" title="Add New Employee" style="display: none;">
+                  <i class="bi bi-plus"></i>
+                </button>
+                {% endif %}
+              </div>
+              <div class="form-text">Marketing employee handling this sale</div>
+            </div>
+
+            <!-- Admin Information -->
+            <div class="col-12">
+              <div class="alert alert-info">
+                <i class="bi bi-person-badge me-2"></i>
+                <strong>Admin:</strong> <span id="sellAdminName">{{ request.user.full_name }}</span>
+                <br>
+                <small class="text-muted">This sale will be recorded under your admin account</small>
+              </div>
+            </div>
+
+            <!-- Sale Date -->
+            <div class="col-md-6">
+              <label for="sellDate" class="form-label">Sale Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="sellDate" name="sale_date" required readonly>
+              <div class="form-text">Date when the sale agreement was made</div>
+            </div>
+
+            <!-- Notes -->
+            <div class="col-12">
+              <label for="sellNotes" class="form-label">Sale Notes</label>
+              <textarea class="form-control" id="sellNotes" name="notes" rows="3" 
+                        placeholder="Any additional notes about this sale..." readonly></textarea>
+            </div>
+          </div>
+
+          <!-- Task Assignment Section -->
+          <div class="row g-2 mt-3">
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center">
+                <h6 class="text-primary border-bottom pb-1 mb-0">
+                  <i class="bi bi-list-task me-2"></i>Task Assignments
+                </h6>
+                <button type="button" class="btn btn-primary btn-sm" id="addTaskAssignmentBtn" onclick="addTaskAssignmentRow()" style="display: none;">
+                  <i class="bi bi-plus"></i> Add Task
+                </button>
+              </div>
+            </div>
+            
+            <!-- Task Assignments Container -->
+            <div class="col-12">
+              <div id="taskAssignmentsContainer">
+                <!-- Task assignment rows will be added here dynamically -->
+              </div>
+              
+              <!-- Task Summary -->
+              <div class="mt-2 p-2 bg-info text-white rounded">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span>
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong>Tasks Added: <span id="taskCount">0</span></strong>
+                  </span>
+                  <span class="badge bg-light text-dark">Auto-assigned to Marketing Employee</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Installments Section -->
+          <div class="row g-2 mt-3">
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center">
+                <h6 class="text-primary border-bottom pb-1 mb-0">
+                  <i class="bi bi-credit-card me-2"></i>Installments
+                </h6>
+                <button type="button" class="btn btn-success btn-sm" id="addInstallmentBtn" onclick="addInstallmentRow()" style="display: none;">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Installments Container -->
+            <div class="col-12">
+              <div id="installmentsContainer">
+                <!-- Installment rows will be added here dynamically -->
+              </div>
+              
+              <!-- Total Summary -->
+              <div class="mt-2 p-2 bg-success text-white rounded">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span>
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong>Total: <span id="totalPercentage">0.00</span>%</strong>
+                  </span>
+                  <span id="totalStatus" class="badge bg-light text-dark">Incomplete</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-warning" id="editSaleBtn" onclick="enableEditMode()">
+          <i class="bi bi-pencil me-2"></i>Edit Sale
+        </button>
+        <button type="button" class="btn btn-success" id="saveSaleBtn" onclick="processSellLand()" style="display: none;">
+          <i class="bi bi-check me-2"></i>Save Changes
+        </button>
+        <button type="button" class="btn btn-secondary" id="cancelEditBtn" onclick="disableEditMode()" style="display: none;">
+          <i class="bi bi-x me-2"></i>Cancel Edit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include Installments Modal -->
+{% include 'installments_modal.html' %}
+
+<!-- Include Add Client Modal -->
+{% include 'add_client_modal.html' %}
+
+<!-- Manage Installments & Payments Modal -->
+<div class="modal fade" id="manageInstallmentsModal" tabindex="-1" aria-labelledby="manageInstallmentsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title" id="manageInstallmentsModalLabel">
+          <i class="bi bi-credit-card me-2"></i>Manage Installments & Payments
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="installmentsManagementContent">
+          <!-- Content will be loaded here -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Pass marketing employees data to JavaScript
+    window.marketingEmployees = [
+        {% for employee in marketing_employees %}
+        {
+            id: {{ employee.id }},
+            full_name: "{{ employee.full_name|default:employee.username }}",
+            username: "{{ employee.username }}",
+            employee_type: "{{ employee.employee_type }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // Pass available tasks data to JavaScript
+    window.availableTasks = [
+        {% for task in all_tasks %}
+        {
+            id: {{ task.id }},
+            name: "{{ task.name }}",
+            completion_days: {{ task.completion_days }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+</script>
+<script src="{% static 'js/admin_clients.js' %}"></script>
+<script src="{% static 'js/inventory.js' %}"></script>
+<script src="{% static 'js/installments.js' %}"></script>
+<script src="{% static 'js/sold_land.js' %}"></script>
+{% endblock %}

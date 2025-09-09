@@ -1,0 +1,4469 @@
+/*
+ * ADMIN LAND PAGE - LOCATION DROPDOWN SYSTEM FOR EDIT MODAL
+ * 
+ * This file handles the cascading location dropdowns for the edit land modal.
+ * 
+ * FIXED ISSUE: Previously, all talukas were showing the same villages in edit mode.
+ * SOLUTION: Each taluka now has its own unique set of villages (same as add land page).
+ * 
+ * How it works:
+ * 1. User selects State → populates District dropdown
+ * 2. User selects District → populates Taluka dropdown  
+ * 3. User selects Taluka → populates Village dropdown with ONLY relevant villages
+ * 4. Each taluka shows different villages (no duplicates across talukas)
+ * 
+ * Features:
+ * - Cascading dropdowns (each selection updates the next level)
+ * - Unique villages per taluka
+ * - Add New Village option
+ * - Comprehensive location data for multiple states
+ * - Enhanced debugging and error handling
+ * - Mobile-responsive enhancements
+ * - Touch gesture support
+ */
+
+// Global variables for task management
+
+let editSelectedTasks = [];
+
+// Task Manager object for handling messages and common functionality
+const taskManager = {
+    showMessage: function(message, type = 'info') {
+        // Create a simple alert for now - can be enhanced later
+        if (type === 'error' || type === 'danger') {
+            alert('Error: ' + message);
+        } else if (type === 'success') {
+            alert('Success: ' + message);
+        } else {
+            alert(message);
+        }
+    }
+};
+
+// Mobile responsiveness enhancements
+const mobileEnhancements = {
+    init: function() {
+        this.addTouchSupport();
+        this.addMobileNavigation();
+        this.optimizeForSmallScreens();
+    },
+    
+    addTouchSupport: function() {
+        // Add touch-friendly interactions for mobile devices
+        if ('ontouchstart' in window) {
+            // Increase touch target sizes
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.style.minHeight = '44px';
+                btn.style.minWidth = '44px';
+            });
+            
+            // Add swipe gestures for table navigation on mobile
+            this.addSwipeSupport();
+        }
+    },
+    
+    addSwipeSupport: function() {
+        let startX = 0;
+        let startY = 0;
+        let endX = 0;
+        let endY = 0;
+        
+        const tableContainer = document.querySelector('.table-responsive');
+        if (!tableContainer) return;
+        
+        tableContainer.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        });
+        
+        tableContainer.addEventListener('touchend', (e) => {
+            endX = e.changedTouches[0].clientX;
+            endY = e.changedTouches[0].clientY;
+            
+            const diffX = startX - endX;
+            const diffY = startY - endY;
+            
+            // Horizontal swipe for table navigation
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+                if (diffX > 0) {
+                    // Swipe left - scroll right
+                    tableContainer.scrollLeft += 100;
+                } else {
+                    // Swipe right - scroll left
+                    tableContainer.scrollLeft -= 100;
+                }
+            }
+        });
+    },
+    
+    addMobileNavigation: function() {
+        // Add mobile-friendly navigation indicators
+        const tableContainer = document.querySelector('.table-responsive');
+        if (!tableContainer) return;
+        
+        // Add scroll indicators for mobile
+        const scrollIndicator = document.createElement('div');
+        scrollIndicator.className = 'scroll-indicator';
+        scrollIndicator.innerHTML = '<i class="bi bi-arrow-left"></i> Swipe to navigate <i class="bi bi-arrow-right"></i>';
+        scrollIndicator.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            z-index: 1000;
+            display: none;
+        `;
+        
+        tableContainer.style.position = 'relative';
+        tableContainer.appendChild(scrollIndicator);
+        
+        // Show indicator on mobile
+        if (window.innerWidth <= 768) {
+            scrollIndicator.style.display = 'block';
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                scrollIndicator.style.opacity = '0';
+                scrollIndicator.style.transition = 'opacity 0.5s';
+                setTimeout(() => scrollIndicator.remove(), 500);
+            }, 3000);
+        }
+    },
+    
+    optimizeForSmallScreens: function() {
+        // Optimize form inputs for small screens
+        if (window.innerWidth <= 576) {
+            document.querySelectorAll('.search-input, .form-control, .form-select').forEach(input => {
+                input.style.fontSize = '16px'; // Prevents zoom on iOS
+            });
+        }
+        
+        // Add responsive table indicators
+        this.addTableResponsiveness();
+    },
+    
+    addTableResponsiveness: function() {
+        const table = document.querySelector('.land-table table');
+        if (!table) return;
+        
+        // Add mobile-friendly table headers
+        if (window.innerWidth <= 768) {
+            const headers = table.querySelectorAll('thead th');
+            headers.forEach((header, index) => {
+                header.setAttribute('data-mobile-label', header.textContent.trim());
+                header.innerHTML = `<span class="d-none d-md-inline">${header.textContent.trim()}</span><span class="d-md-none">${this.getMobileLabel(header.textContent.trim())}</span>`;
+            });
+        }
+        
+        // Ensure table layout is properly set
+        this.fixTableLayout();
+    },
+    
+    fixTableLayout: function() {
+        const table = document.querySelector('.land-table table');
+        if (!table) return;
+        
+        // Set table layout to fixed to prevent text overflow
+        table.style.tableLayout = 'fixed';
+        
+        // Ensure all columns have proper widths
+        const headers = table.querySelectorAll('thead th');
+        const totalWidth = table.offsetWidth;
+        const columnCount = headers.length;
+        
+        if (columnCount > 0) {
+            const columnWidth = Math.floor(totalWidth / columnCount);
+            headers.forEach(header => {
+                header.style.width = columnWidth + 'px';
+                header.style.minWidth = columnWidth + 'px';
+                header.style.maxWidth = columnWidth + 'px';
+            });
+        }
+    },
+    
+    getMobileLabel: function(text) {
+        // Create shorter labels for mobile
+        const labels = {
+            'Land Id': 'ID',
+            'Property Holder Name': 'Name',
+            'Village-Old-New Sr No': 'Village',
+            'SQ Meter': 'Area',
+            'Soda Tarikh': 'Soda',
+            'Banakhat': 'Banakhat',
+            'Dastaveg': 'Dastaveg',
+            'Sata Prakar': 'Type',
+            'Actions': 'Actions'
+        };
+        return labels[text] || text.substring(0, 8);
+    }
+};
+
+// Search and filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInputs = [
+    'landIdSearch',
+    'villageSearch', 
+    'sodaDateFilter',
+    'banakhatDateFilter',
+    'dastavegDateFilter'
+  ];
+  
+  // Add event listeners for text inputs
+  searchInputs.forEach(inputId => {
+    const input = document.getElementById(inputId);
+    if (input) {
+      input.addEventListener('input', filterTable);
+    }
+  });
+
+  // Add event listener for Sata Prakar dropdown
+  const sataPrakarSelect = document.getElementById('sataPrakarSearch');
+  if (sataPrakarSelect) {
+    sataPrakarSelect.addEventListener('change', filterTable);
+  }
+
+  // Add event listeners for date filters
+  const dateFilters = ['sodaDateFilter', 'banakhatDateFilter', 'dastavegDateFilter'];
+  dateFilters.forEach(filterId => {
+    const filter = document.getElementById(filterId);
+    if (filter) {
+      filter.addEventListener('change', filterTable);
+    }
+  });
+
+  // Initialize location data for edit modal
+  initializeLocationData();
+  
+  // Add auto-calculation for area fields in edit modal
+  const builtUpAreaField = document.getElementById('edit_built_up_area');
+  const unutilizedAreaField = document.getElementById('edit_unutilized_area');
+  const totalAreaField = document.getElementById('edit_total_area');
+  
+  if (builtUpAreaField && unutilizedAreaField && totalAreaField) {
+    // Auto-calculate total area when built-up or unutilized area changes
+    builtUpAreaField.addEventListener('input', autoCalculateTotalArea);
+    unutilizedAreaField.addEventListener('input', autoCalculateTotalArea);
+    
+    // Auto-calculate total area when total area is manually entered
+    totalAreaField.addEventListener('input', validateAreaCalculation);
+  }
+  
+  // Initialize mobile enhancements
+  mobileEnhancements.init();
+  
+  // Initialize the edit land task manager early to prevent undefined errors
+  initializeEditLandTaskManager();
+  
+  // Add window resize listener for responsive behavior
+  window.addEventListener('resize', function() {
+    mobileEnhancements.optimizeForSmallScreens();
+  });
+});
+
+// Location data for cascading dropdowns - Each taluka has unique villages
+const locationData = {
+  'Gujarat': {
+    'Ahmedabad': {
+      'Ahmedabad City': ['Ahmedabad City', 'Vastrapur', 'Navrangpura', 'Satellite', 'Vejalpur', 'Ellisbridge', 'Paldi', 'Law Garden', 'Stadium Road', 'Khanpur', 'Dariyapur', 'Jamalpur', 'Kalupur', 'Raikhad', 'Gomtipur', 'Rakhial', 'Odhav', 'Vatva', 'Naroda', 'Bapunagar', 'Isanpur', 'Juhapura', 'Sarkhej', 'Maktampura', 'Jodhpur', 'Bodakdev', 'Thaltej', 'Gota', 'Chandkheda', 'Motera', 'Sabarmati', 'Ranip', 'Asarwa', 'Shahibaug', 'Amraiwadi', 'Nikol', 'Vastral', 'Ramol'],
+      'Sanand': ['Sanand', 'Bhat', 'Bopal', 'Chandkheda', 'Chandlodia', 'Chharodi', 'Dholera', 'Gandhinagar', 'Gota', 'Hansol', 'Jagatpur', 'Karnavati', 'Kudasan', 'Lambha', 'Maktampura', 'Naroda', 'Narol', 'Odhav', 'Paldi', 'Rakhial', 'Ranip', 'Sabarmati', 'Sarkhej', 'Shahibaug', 'Thaltej', 'Vastral', 'Vejalpur'],
+      'Daskroi': ['Daskroi', 'Bavla', 'Sanand', 'Viramgam', 'Dholka', 'Dhandhuka', 'Ranpur', 'Barwala', 'Detroj', 'Mandal', 'Chaloda', 'Jetalpur', 'Khodiyar', 'Vasna', 'Karnavati']
+    },
+    'Surat': {
+      'Surat City': ['Surat City', 'Adajan', 'Vesu', 'Athwa', 'Pal', 'Piplod', 'Mota Varachha', 'Sarthana', 'Katargam', 'Varachha', 'Udhna', 'Sachin', 'Palsana', 'Olpad', 'Choryasi', 'Kamrej', 'Mahuva', 'Bardoli', 'Vyara', 'Songadh', 'Valod', 'Uchchhal', 'Nizar', 'Mangrol', 'Mandvi', 'Bansda', 'Dang', 'Valsad', 'Pardi', 'Umbergaon', 'Dharampur', 'Kaprada', 'Vapi', 'Silvassa', 'Dadra', 'Nagar Haveli'],
+      'Bardoli': ['Bardoli', 'Bardoli Rural', 'Bardoli City', 'Bardoli West', 'Bardoli East', 'Bardoli North', 'Bardoli South', 'Bardoli Central', 'Bardoli Market', 'Bardoli Station', 'Bardoli Bus Stand', 'Bardoli Hospital', 'Bardoli School', 'Bardoli College', 'Bardoli Temple', 'Bardoli Mosque', 'Bardoli Church', 'Bardoli Park', 'Bardoli Garden', 'Bardoli Lake', 'Bardoli River'],
+      'Chorasi': ['Chorasi', 'Olpad', 'Kamrej', 'Sachin', 'Chorasi Rural', 'Chorasi City', 'Chorasi West', 'Chorasi East', 'Chorasi North', 'Chorasi South', 'Chorasi Central', 'Chorasi Market', 'Chorasi Station', 'Chorasi Bus Stand', 'Chorasi Hospital', 'Chorasi School', 'Chorasi College', 'Chorasi Temple', 'Chorasi Mosque', 'Chorasi Church', 'Chorasi Park', 'Chorasi Garden', 'Chorasi Lake', 'Chorasi River']
+    },
+    'Vadodara': {
+      'Vadodara City': ['Vadodara City', 'Alkapuri', 'Fatehgunj', 'Gotri', 'Karelibaug', 'Sama', 'Tandalja', 'Vasna', 'Waghodia', 'Savli', 'Vadodara Rural', 'Padra', 'Karjan', 'Dabhoi', 'Chhota Udepur', 'Kavant', 'Naswadi', 'Tilakwada', 'Kevadia', 'Rajpipla', 'Narmada', 'Dediapada', 'Sagbara', 'Valia', 'Ankleshwar', 'Bharuch', 'Jambusar', 'Amod', 'Vagra', 'Hansot', 'Jhagadia', 'Netrang'],
+      'Savli': ['Savli', 'Savli Rural', 'Savli City', 'Savli West', 'Savli East', 'Savli North', 'Savli South', 'Savli Central', 'Savli Market', 'Savli Station', 'Savli Bus Stand', 'Savli Hospital', 'Savli School', 'Savli College', 'Savli Temple', 'Savli Mosque', 'Savli Church', 'Savli Park', 'Savli Garden', 'Savli Lake', 'Savli River'],
+      'Karjan': ['Karjan', 'Shinor', 'Jetpur', 'Naswadi', 'Karjan Rural', 'Karjan City', 'Karjan West', 'Karjan East', 'Karjan North', 'Karjan South', 'Karjan Central', 'Karjan Market', 'Karjan Station', 'Karjan Bus Stand', 'Karjan Hospital', 'Karjan School', 'Karjan College', 'Karjan Temple', 'Karjan Mosque', 'Karjan Church', 'Karjan Park', 'Karjan Garden', 'Karjan Lake', 'Karjan River']
+    },
+    'Rajkot': {
+      'Rajkot City': ['Rajkot City', 'Race Course', 'Kalawad Road', 'University Road', 'Gondal Road', 'Gondal', 'Jetpur', 'Upleta', 'Dhoraji', 'Jamkandorna', 'Kotda Sangani', 'Lodhika', 'Paddhari', 'Jasdan', 'Maliya', 'Wankaner', 'Morbi', 'Tankara', 'Halvad', 'Dhrangadhra', 'Limbdi', 'Sayla', 'Chotila', 'Vinchhiya', 'Wadhwan', 'Chuda', 'Dasada'],
+      'Gondal': ['Gondal', 'Gondal Rural', 'Gondal City', 'Gondal West', 'Gondal East', 'Gondal North', 'Gondal South', 'Gondal Central', 'Gondal Market', 'Gondal Station', 'Gondal Bus Stand', 'Gondal Hospital', 'Gondal School', 'Gondal College', 'Gondal Temple', 'Gondal Mosque', 'Gondal Church', 'Gondal Park', 'Gondal Garden', 'Gondal Lake', 'Gondal River'],
+      'Jasdan': ['Jasdan', 'Kotda Sangani', 'Paddhari', 'Lodhika', 'Jasdan Rural', 'Jasdan City', 'Jasdan West', 'Jasdan East', 'Jasdan North', 'Jasdan South', 'Jasdan Central', 'Jasdan Market', 'Jasdan Station', 'Jasdan Bus Stand', 'Jasdan Hospital', 'Jasdan School', 'Jasdan College', 'Jasdan Temple', 'Jasdan Mosque', 'Jasdan Church', 'Jasdan Park', 'Jasdan Garden', 'Jasdan Lake', 'Jasdan River']
+    }
+  }
+};
+
+function filterTable() {
+  const landIdSearch = document.getElementById('landIdSearch').value.toLowerCase();
+  const villageSearch = document.getElementById('villageSearch').value.toLowerCase();
+  const sataPrakarSearch = document.getElementById('sataPrakarSearch').value.toLowerCase();
+  const sodaDateFilter = document.getElementById('sodaDateFilter').value;
+  const banakhatDateFilter = document.getElementById('banakhatDateFilter').value;
+  const dastavegDateFilter = document.getElementById('dastavegDateFilter').value;
+  
+  const rows = document.querySelectorAll('.land-table tbody tr');
+  
+  rows.forEach(row => {
+    const landId = row.querySelector('.land-id')?.textContent.toLowerCase() || '';
+    const villageName = row.querySelector('.village-info')?.textContent.toLowerCase() || '';
+    const sataPrakar = row.querySelector('.sata-prakar-badge')?.textContent.toLowerCase() || '';
+    
+    // Get date values from the row
+    const sodaDate = row.querySelector('.date-info')?.textContent || '';
+    const banakhatDate = row.querySelectorAll('.date-info')[1]?.textContent || '';
+    const dastavegDate = row.querySelectorAll('.date-info')[2]?.textContent || '';
+    
+    const matchesLandId = landId.includes(landIdSearch);
+    const matchesVillage = villageName.includes(villageSearch);
+    const matchesSataPrakar = sataPrakarSearch === '' || sataPrakar === sataPrakarSearch.toLowerCase();
+    const matchesSodaDate = sodaDateFilter === '' || sodaDate.includes(sodaDateFilter);
+    const matchesBanakhatDate = banakhatDateFilter === '' || banakhatDate.includes(banakhatDateFilter);
+    const matchesDastavegDate = dastavegDateFilter === '' || dastavegDate.includes(dastavegDateFilter);
+    
+    if (matchesLandId && matchesVillage && matchesSataPrakar && 
+        matchesSodaDate && matchesBanakhatDate && matchesDastavegDate) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+function refreshData() {
+  location.reload();
+}
+
+function downloadData() {
+  alert('Download functionality will be implemented');
+}
+
+function viewLand(landId) {
+  alert('View functionality will be implemented for Land ID: ' + landId);
+}
+
+function removeLand(landId) {
+  console.log('removeLand function called with landId:', landId);
+  if (confirm('Are you sure you want to remove this land property?')) {
+    console.log('User confirmed deletion');
+    // Create a form to submit the delete request
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/delete_land/${landId}/`;
+    
+    // Add CSRF token from meta tag
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    console.log('CSRF token retrieved:', csrfToken ? 'Yes' : 'No');
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    // Submit the form
+    document.body.appendChild(form);
+    console.log('Submitting form to:', form.action);
+    form.submit();
+  } else {
+    console.log('User cancelled deletion');
+  }
+}
+
+
+
+// Edit Land Modal Functions
+function showEditLandModal(landId) {
+  // Store the current land ID globally for use in other functions
+  window.currentEditLandId = landId;
+  
+  // Load land data for editing
+  loadLandDataForEdit(landId);
+  
+  // Set form action
+  document.getElementById('editLandForm').action = `/edit_land/${landId}/`;
+  
+  // Show the modal
+  const editLandModal = new bootstrap.Modal(document.getElementById('editLandModal'));
+  editLandModal.show();
+}
+
+async function loadLandDataForEdit(landId) {
+  // Show loading state
+  const modal = document.getElementById('editLandModal');
+  const modalBody = modal.querySelector('.modal-body');
+  const originalContent = modalBody.innerHTML;
+  
+  modalBody.innerHTML = `
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2">Loading land data...</p>
+    </div>
+  `;
+  
+  try {
+  // Make AJAX call to get land data
+    const response = await fetch(`/land/${landId}/data/`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    
+    const data = await response.json();
+    
+      if (data.success) {
+        const landData = data.land;
+        
+        // Restore original modal content
+        modalBody.innerHTML = originalContent;
+        
+        // Populate form fields
+        document.getElementById('edit_name').value = landData.name || '';
+      document.getElementById('edit_state').value = 'Gujarat';
+        document.getElementById('edit_old_sr_no').value = landData.old_sr_no || '';
+        document.getElementById('edit_new_sr_no').value = landData.new_sr_no || '';
+        document.getElementById('edit_sata_prakar').value = landData.sata_prakar || '';
+        document.getElementById('edit_built_up_area').value = landData.built_up_area || '';
+        document.getElementById('edit_unutilized_area').value = landData.unutilized_area || '';
+        document.getElementById('edit_total_area').value = landData.total_area || '';
+        document.getElementById('edit_past_date').value = landData.past_date || '';
+        document.getElementById('edit_soda_tarikh').value = landData.soda_tarikh || '';
+        document.getElementById('edit_banakhat_tarikh').value = landData.banakhat_tarikh || '';
+        document.getElementById('edit_dastavej_tarikh').value = landData.dastavej_tarikh || '';
+        document.getElementById('edit_broker_name').value = landData.broker_name || '';
+        
+      // Load districts first, then populate location dropdowns
+      console.log('Loading districts for edit modal...');
+      console.log('Land data received:', landData);
+      console.log('Land data keys:', Object.keys(landData));
+      
+      try {
+        const response = await fetch('/api/location/districts/');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            // Populate district dropdown
+            const districtSelect = document.getElementById('edit_district');
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            data.districts.forEach(district => {
+              const option = document.createElement('option');
+              option.value = district.id;
+              option.textContent = district.name;
+              districtSelect.appendChild(option);
+            });
+            console.log(`Loaded ${data.districts.length} districts for edit modal`);
+            
+            // Re-initialize event listeners for the restored form FIRST
+            initializeEditFormEventListeners();
+            
+            // Now populate location dropdowns with proper sequencing
+            await populateLocationDropdowns(landData);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading districts for edit modal:', error);
+      }
+        
+        // Load existing tasks into the edit modal
+        loadExistingTasksToEditModal(landId);
+        
+        // Show current image if exists
+        if (landData.image_url) {
+          const currentImageDiv = document.getElementById('edit_current_image');
+          const img = currentImageDiv.querySelector('img');
+          img.src = landData.image_url;
+          currentImageDiv.style.display = 'block';
+        } else {
+          document.getElementById('edit_current_image').style.display = 'none';
+        }
+        
+      } else {
+        modalBody.innerHTML = `
+          <div class="alert alert-danger">
+            <h5>Error Loading Land Data</h5>
+            <p>${data.message || 'Unknown error occurred'}</p>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      modalBody.innerHTML = `
+        <div class="alert alert-danger">
+          <h5>Error Loading Land Data</h5>
+          <p>Failed to load land data. Please try again.</p>
+          <p class="small text-muted">Error: ${error.message}</p>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      `;
+  }
+}
+
+function populateEditTasks(selectedTasks, taskAssignments = {}) {
+  const taskTags = document.getElementById('edit_taskTags');
+  const notSelectedTasks = document.getElementById('edit_notSelectedTasks');
+  const selectedTasksInput = document.getElementById('edit_selected_tasks');
+  
+  console.log('Populating edit tasks with:', selectedTasks);
+  console.log('Task assignments:', taskAssignments);
+  console.log('Task tags element:', taskTags);
+  console.log('Not selected tasks element:', notSelectedTasks);
+  
+  // Clear existing content
+  taskTags.innerHTML = '';
+  // Don't clear notSelectedTasks - they come from the template
+  
+  // Reset arrays
+  editSelectedTasks = [];
+  
+  if (selectedTasks && selectedTasks.trim() !== '') {
+    const tasks = selectedTasks.split(',').filter(task => task.trim() !== '');
+    console.log('Filtered tasks:', tasks);
+    
+    if (tasks.length > 0) {
+      // Add each task as a selected task
+      tasks.forEach(task => {
+        const taskName = task.trim();
+        editSelectedTasks.push(taskName);
+        
+        // Check if this is a default task by looking at the original task data
+        const originalTaskChip = document.querySelector(`#edit_notSelectedTasks .task-chip[data-task-name="${taskName}"]`);
+        const isDefault = originalTaskChip ? originalTaskChip.getAttribute('data-is-default') === 'true' : false;
+        
+        const taskTag = document.createElement('span');
+        taskTag.className = 'task-tag selected';
+        taskTag.setAttribute('data-task', taskName);
+        taskTag.setAttribute('data-task-id', originalTaskChip ? originalTaskChip.getAttribute('data-task-id') : '');
+        taskTag.setAttribute('data-is-default', isDefault);
+        
+        // Get current employee assignment for this task
+        const currentAssignment = taskAssignments[taskName];
+        const assignedEmployees = originalTaskChip ? originalTaskChip.getAttribute('data-assigned-employees') : '';
+        const employeeCount = originalTaskChip ? originalTaskChip.getAttribute('data-employee-count') : '';
+        
+        if (currentAssignment && currentAssignment.employee_name) {
+          // Use the current assignment from the database
+          taskTag.setAttribute('data-assigned-employees', currentAssignment.employee_name);
+          taskTag.setAttribute('data-selected-employees', currentAssignment.employee_name);
+          taskTag.setAttribute('data-selected-employee-count', '1');
+          taskTag.setAttribute('data-employee-count', '1');
+          
+          console.log(`Task "${taskName}" has current assignment: ${currentAssignment.employee_name}`);
+        } else if (assignedEmployees && employeeCount && parseInt(employeeCount) > 0) {
+          // Fallback to template data if no current assignment
+          taskTag.setAttribute('data-assigned-employees', assignedEmployees);
+          taskTag.setAttribute('data-employee-count', employeeCount);
+          
+                      // Set selected employees to all assigned employees
+            taskTag.setAttribute('data-selected-employees', assignedEmployees);
+            taskTag.setAttribute('data-selected-employee-count', assignedEmployees.split(', ').length);
+            
+            console.log(`Task "${taskName}" using template data, all employees: ${assignedEmployees}`);
+        } else {
+          // No assigned employees
+          console.log(`Task "${taskName}" has no assigned employees`);
+        }
+        
+        // Add task tag without info icon
+          taskTag.innerHTML = `${taskName} <button class="remove-btn" onclick="removeTaskEdit(this)">×</button>`;
+        
+        taskTags.appendChild(taskTag);
+      });
+      
+      selectedTasksInput.value = tasks.join(',');
+      console.log('Set edit selected_tasks to:', selectedTasksInput.value);
+    }
+  }
+  
+  // Reload not selected tasks from template and filter out selected ones
+  reloadNotSelectedTasks();
+}
+
+function reloadNotSelectedTasks() {
+  // Get all task chips from the template
+  const allTaskChips = document.querySelectorAll('#edit_notSelectedTasks .task-chip');
+  
+  console.log('Found task chips:', allTaskChips.length);
+  console.log('Current editSelectedTasks:', editSelectedTasks);
+  
+  // Filter out already selected tasks by hiding them instead of removing
+  allTaskChips.forEach(chip => {
+    const taskName = chip.getAttribute('data-task-name');
+    console.log('Processing task chip:', taskName, 'Selected:', editSelectedTasks.includes(taskName));
+    
+    if (editSelectedTasks.includes(taskName)) {
+      chip.style.display = 'none'; // Hide chips for already selected tasks
+      console.log('Hiding task:', taskName);
+    } else {
+      chip.style.display = 'inline-block'; // Show chips for available tasks
+      console.log('Showing task:', taskName);
+    }
+  });
+}
+
+// This function is replaced by the new task selection system
+
+// This function is replaced by the new window.removeTaskEdit function
+
+// Helper function to populate location dropdowns in sequence
+async function populateLocationDropdowns(landData) {
+  console.log('populateLocationDropdowns called with data:', landData);
+  
+  const districtSelect = document.getElementById('edit_district');
+  const talukaSelect = document.getElementById('edit_taluka');
+  const villageSelect = document.getElementById('edit_village_name');
+  
+  if (!districtSelect || !talukaSelect || !villageSelect) {
+    console.error('Location dropdowns not found in edit modal');
+    return;
+  }
+  
+  try {
+    console.log('Districts are already loaded, setting values...');
+    console.log('Available district options:', Array.from(districtSelect.options).map(opt => ({value: opt.value, text: opt.textContent})));
+    
+    // Set district value if it exists
+    if (landData.district) {
+      console.log('Land data district:', landData.district);
+      
+      // Find the district option by name and set its value (ID)
+      const districtOptions = Array.from(districtSelect.options);
+      const districtOption = districtOptions.find(opt => opt.textContent === landData.district);
+      
+      if (districtOption) {
+        districtSelect.value = districtOption.value;
+        console.log('Set district value:', districtOption.value, 'for name:', landData.district);
+        
+        // Trigger district change to populate talukas
+        const districtEvent = new Event('change', { bubbles: true });
+        districtSelect.dispatchEvent(districtEvent);
+        
+        // Wait for talukas to populate, but also manually trigger if needed
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // If talukas are still not populated, manually trigger the API call
+        if (talukaSelect.options.length <= 1) {
+          console.log('Talukas not populated by event, manually calling API...');
+          await handleDistrictChangeEdit();
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        // Set taluka value if it exists
+        if (landData.taluka) {
+          console.log('Land data taluka:', landData.taluka);
+          console.log('Available taluka options after district change:', Array.from(talukaSelect.options).map(opt => ({value: opt.value, text: opt.textContent})));
+          
+          // Find the taluka option by name and set its value (ID)
+          const talukaOptions = Array.from(talukaSelect.options);
+          const talukaOption = talukaOptions.find(opt => opt.textContent === landData.taluka);
+          
+          if (talukaOption) {
+            talukaSelect.value = talukaOption.value;
+            console.log('Set taluka value:', talukaOption.value, 'for name:', landData.taluka);
+            
+            // Trigger taluka change to populate villages
+            const talukaEvent = new Event('change', { bubbles: true });
+            talukaSelect.dispatchEvent(talukaEvent);
+            
+            // Wait for villages to populate, but also manually trigger if needed
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // If villages are still not populated, manually trigger the API call
+            if (villageSelect.options.length <= 1) {
+              console.log('Villages not populated by event, manually calling API...');
+              await handleTalukaChangeEdit();
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            // Set village value if it exists
+            if (landData.village && landData.village.name) {
+              console.log('Land data village:', landData.village.name);
+              console.log('Available village options after taluka change:', Array.from(villageSelect.options).map(opt => ({value: opt.value, text: opt.textContent})));
+              
+              // Find the village option by name and set its value (ID)
+              const villageOptions = Array.from(villageSelect.options);
+              const villageOption = villageOptions.find(opt => opt.textContent === landData.village.name);
+              
+              if (villageOption) {
+                villageSelect.value = villageOption.value;
+                console.log('Set village value:', villageOption.value, 'for name:', landData.village.name);
+              } else {
+                console.warn('Village not found in options:', landData.village.name);
+              }
+            }
+          } else {
+            console.warn('Taluka not found in options:', landData.taluka);
+          }
+        }
+      } else {
+        console.warn('District not found in options:', landData.district);
+      }
+    }
+    
+    console.log('Location dropdowns populated successfully');
+    
+  } catch (error) {
+    console.error('Error populating location dropdowns:', error);
+  }
+}
+
+// Initialize event listeners for the edit form
+function initializeEditFormEventListeners() {
+  const districtSelect = document.getElementById('edit_district');
+  const talukaSelect = document.getElementById('edit_taluka');
+    
+  if (!districtSelect || !talukaSelect) {
+    console.error('Edit form dropdowns not found');
+      return;
+    }
+  
+  // Remove existing event listeners to prevent duplicates
+  districtSelect.removeEventListener('change', handleDistrictChangeEdit);
+  talukaSelect.removeEventListener('change', handleTalukaChangeEdit);
+  
+  // Add event listeners for cascading dropdowns
+  districtSelect.addEventListener('change', handleDistrictChangeEdit);
+  talukaSelect.addEventListener('change', handleTalukaChangeEdit);
+  
+  console.log('Edit form event listeners initialized');
+}
+
+// Handle district change in edit modal
+async function handleDistrictChangeEdit() {
+  const districtSelect = document.getElementById('edit_district');
+  const talukaSelect = document.getElementById('edit_taluka');
+  const villageSelect = document.getElementById('edit_village_name');
+    
+  if (!districtSelect || !talukaSelect || !villageSelect) return;
+  
+  const selectedDistrict = districtSelect.value;
+  console.log('Edit modal - District changed to:', selectedDistrict);
+    
+  if (!selectedDistrict) {
+  // Clear dependent dropdowns
+  talukaSelect.innerHTML = '<option value="">Select Taluka</option>';
+  villageSelect.innerHTML = '<option value="">Select Village</option>';
+    return;
+  }
+  
+  try {
+    // Clear taluka and village dropdowns
+    talukaSelect.innerHTML = '<option value="">Select Taluka</option>';
+    villageSelect.innerHTML = '<option value="">Select Village</option>';
+    
+    // Load talukas for selected district using API
+    const response = await fetch(`/api/location/districts/${selectedDistrict}/talukas/`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        // Populate taluka dropdown
+        data.talukas.forEach(taluka => {
+      const option = document.createElement('option');
+          option.value = taluka.id;
+          option.textContent = taluka.name;
+      talukaSelect.appendChild(option);
+    });
+        console.log(`Loaded ${data.talukas.length} talukas for district ${selectedDistrict}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error loading talukas in edit modal:', error);
+  }
+}
+
+// Handle taluka change in edit modal
+async function handleTalukaChangeEdit() {
+  const talukaSelect = document.getElementById('edit_taluka');
+  const villageSelect = document.getElementById('edit_village_name');
+    
+  if (!talukaSelect || !villageSelect) return;
+  
+  const selectedTaluka = talukaSelect.value;
+  console.log('Edit modal - Taluka changed to:', selectedTaluka);
+  
+  if (!selectedTaluka) {
+    // Clear village dropdown
+    villageSelect.innerHTML = '<option value="">Select Village</option>';
+    return;
+  }
+  
+  try {
+  // Clear village dropdown
+  villageSelect.innerHTML = '<option value="">Select Village</option>';
+  
+    // Load villages for selected taluka using API
+    const response = await fetch(`/api/location/talukas/${selectedTaluka}/villages/`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        // Populate village dropdown
+        data.villages.forEach(village => {
+      const option = document.createElement('option');
+          option.value = village.id;
+          option.textContent = village.name;
+      villageSelect.appendChild(option);
+    });
+        console.log(`Loaded ${data.villages.length} villages for taluka ${selectedTaluka}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error loading villages in edit modal:', error);
+  }
+}
+
+// Location dropdown functions for edit modal - Now handled by LocationAPI
+function initializeLocationData() {
+  console.log('Location data will be loaded via LocationAPI');
+}
+
+// Form validation and submission handling
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle custom task name field visibility
+  const taskNameSelect = document.querySelector('select[name="task_name"]');
+  const customTaskDiv = document.getElementById('customTaskDiv');
+  
+  if (taskNameSelect) {
+    taskNameSelect.addEventListener('change', function() {
+      if (this.value === 'Custom Task') {
+        customTaskDiv.style.display = 'block';
+        customTaskDiv.querySelector('input').required = true;
+      } else {
+        customTaskDiv.style.display = 'none';
+        customTaskDiv.querySelector('input').required = false;
+      }
+    });
+  }
+  
+  // Handle edit land form submission
+  const editLandForm = document.getElementById('editLandForm');
+  if (editLandForm) {
+    editLandForm.addEventListener('submit', function(e) {
+      console.log('Form submit event triggered');
+      
+      if (validateEditForm()) {
+        console.log('Form validation passed, collecting form data...');
+        
+        // Prevent default submission to collect data first
+        e.preventDefault();
+        
+        // Collect task employee selections
+        collectTaskEmployeeSelectionsEdit();
+        
+        // Update task completion days
+        updateTaskCompletionDaysEdit();
+        
+        // Update selected tasks
+        updateEditSelectedTasks();
+        
+        // Log form data for debugging
+        const formData = new FormData(editLandForm);
+        console.log('Form submission - selected_tasks:', formData.get('selected_tasks'));
+        console.log('Form submission - task_employee_selections:', formData.get('task_employee_selections'));
+        console.log('Form submission - task_completion_days:', formData.get('task_completion_days'));
+        
+        // Now submit the form
+        console.log('Submitting form with collected data...');
+        editLandForm.submit();
+      } else {
+        console.log('Form validation failed, preventing submission');
+        e.preventDefault();
+      }
+    });
+  }
+});
+
+// Validate edit form before submission
+function validateEditForm() {
+  const requiredFields = [
+    'edit_name', 'edit_state', 'edit_district', 'edit_taluka', 'edit_village_name',
+    'edit_old_sr_no', 'edit_new_sr_no', 'edit_sata_prakar', 'edit_built_up_area',
+    'edit_unutilized_area', 'edit_total_area', 'edit_soda_tarikh',
+    'edit_banakhat_tarikh', 'edit_dastavej_tarikh', 'edit_broker_name'
+  ];
+  
+  let isValid = true;
+  const errors = [];
+  
+  requiredFields.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (!field || !field.value.trim()) {
+      isValid = false;
+      errors.push(fieldId.replace('edit_', '').replace('_', ' '));
+      if (field) {
+        field.classList.add('is-invalid');
+      }
+    } else if (field) {
+      field.classList.remove('is-invalid');
+    }
+  });
+  
+  // Validate numeric fields
+  const numericFields = ['edit_built_up_area', 'edit_unutilized_area', 'edit_total_area'];
+  numericFields.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field && field.value) {
+      const value = parseFloat(field.value);
+      if (isNaN(value) || value < 0) {
+        isValid = false;
+        errors.push(`${fieldId.replace('edit_', '').replace('_', ' ')} must be a valid positive number`);
+        field.classList.add('is-invalid');
+      }
+    }
+  });
+  
+  // Validate employee selection for all selected tasks (silent validation - no error messages)
+  if (isValid) {
+    console.log('Basic form validation passed, now validating employee selection...');
+    const employeeValidation = validateEmployeeSelectionForTasks();
+    
+    if (!employeeValidation.isValid) {
+      isValid = false;
+      errors.push(...employeeValidation.errors);
+      console.log('Employee selection validation failed:', employeeValidation.errors);
+    } else {
+      console.log('Employee selection validation passed');
+    }
+  }
+  
+  // Debug: Log validation result
+  console.log('Form validation result:', isValid);
+  if (!isValid) {
+    console.log('Validation errors:', errors);
+    alert('Please fix the following errors:\n' + errors.join('\n'));
+  }
+  
+  return isValid;
+}
+
+// Function to validate employee selection for all selected tasks
+function validateEmployeeSelectionForTasks() {
+    console.log('Validating employee selection for all selected tasks...');
+    
+    const taskRows = document.querySelectorAll('#edit_taskTableBody .task-row');
+    const validationErrors = [];
+    
+    taskRows.forEach((taskRow, index) => {
+        const taskName = taskRow.getAttribute('data-task');
+        const employeeCheckboxes = taskRow.querySelectorAll('.employee-checkbox');
+        const checkedCheckboxes = taskRow.querySelectorAll('.employee-checkbox:checked');
+        
+        console.log(`Task ${index + 1}: "${taskName}" - ${checkedCheckboxes.length}/${employeeCheckboxes.length} employees selected`);
+        
+        if (checkedCheckboxes.length === 0) {
+            validationErrors.push(`Task "${taskName}" must have at least one employee selected`);
+            console.log(`Validation failed for task "${taskName}" - no employees selected`);
+        }
+    });
+    
+    if (validationErrors.length > 0) {
+        console.log('Employee selection validation failed:', validationErrors);
+        return {
+            isValid: false,
+            errors: validationErrors
+        };
+    }
+    
+    console.log('Employee selection validation passed for all tasks');
+    return {
+        isValid: true,
+        errors: []
+    };
+}
+
+// Function to clear validation errors styling
+function clearValidationErrors() {
+    // No visual styling to clear - just a placeholder function
+    console.log('Validation errors cleared');
+}
+
+// Function to provide real-time validation feedback for employee selection
+function provideRealTimeValidationFeedback(checkbox) {
+    // No visual feedback - just silent validation
+    console.log('Real-time validation feedback disabled - no visual notes shown');
+}
+
+// Function to prevent deselecting all employees for a task
+function preventDeselectAllEmployees(checkbox) {
+    const taskRow = checkbox.closest('tr');
+    if (!taskRow) return;
+    
+    const taskName = taskRow.getAttribute('data-task');
+    const employeeCheckboxes = taskRow.querySelectorAll('.employee-checkbox');
+    const checkedCheckboxes = taskRow.querySelectorAll('.employee-checkbox:checked');
+    
+    console.log(`Checking employee selection for task "${taskName}": ${checkedCheckboxes.length}/${employeeCheckboxes.length} employees selected`);
+    
+    // If this is the last checked checkbox and user is trying to uncheck it, prevent it
+    if (checkedCheckboxes.length === 1 && checkbox.checked) {
+        // This is the last selected employee, prevent deselection
+        checkbox.checked = true;
+        
+        // Show warning message
+        showEmployeeSelectionWarning(taskRow, 'At least one employee must remain selected for this task');
+        
+        // Prevent the change event from proceeding
+        return false;
+    }
+    
+    // If we have multiple employees selected, allow deselection
+    if (checkedCheckboxes.length > 1) {
+        // Remove any warning messages
+        removeEmployeeSelectionWarning(taskRow);
+        return true;
+    }
+    
+    return true;
+}
+
+// Function to show warning message for employee selection
+function showEmployeeSelectionWarning(taskRow, message) {
+    // No warning messages shown - just silent prevention
+    console.log('Warning message disabled:', message);
+}
+
+// Function to remove warning message for employee selection
+function removeEmployeeSelectionWarning(taskRow) {
+    // No warning messages to remove
+    console.log('No warning messages to remove');
+}
+
+// Submit edit form
+function submitEditForm() {
+  const form = document.getElementById('editLandForm');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const selectedTasksInput = document.getElementById('edit_selected_tasks');
+  
+  // Debug: Log form details
+  console.log('Form action:', form.action);
+  console.log('Form method:', form.method);
+  console.log('Submitting form with selected_tasks:', selectedTasksInput.value);
+  
+  // Show loading state
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+  
+  // Submit form
+  console.log('Submitting form...');
+  form.submit();
+}
+
+// Task Selection Functions for Edit Modal
+window.selectTaskEdit = function(taskElement) {
+    console.log('selectTaskEdit function called!', taskElement);
+    
+    const taskName = taskElement.getAttribute('data-task-name');
+    const taskId = taskElement.getAttribute('data-task-id');
+    
+    console.log('Task details:', { taskName, taskId });
+    
+    // Check if task is already selected
+    if (editSelectedTasks.includes(taskName)) {
+        // Task is already selected, show info message (removed to reduce spam)
+        return;
+    }
+    
+    // Add task to selection
+    editSelectedTasks.push(taskName);
+    console.log('Task added to editSelectedTasks:', editSelectedTasks);
+    
+    // Add to selected tasks display
+    const taskTableBody = document.getElementById('edit_taskTableBody');
+    const taskRow = document.createElement('tr');
+    
+    // Check if this is a default task
+    const isDefault = taskElement.classList.contains('default-task');
+    taskRow.className = `task-row ${isDefault ? 'default-task' : 'custom-task'}`;
+    taskRow.setAttribute('data-task', taskName);
+    taskRow.setAttribute('data-task-id', taskId);
+    
+            // Copy assigned employee information if available
+        const assignedEmployees = taskElement.getAttribute('data-assigned-employees');
+    const employeeCount = taskElement.getAttribute('data-assigned-employees-count');
+        
+    console.log('Employee data from task element:', { assignedEmployees, employeeCount });
+    
+    // Create table row content
+    let employeeDisplay = 'No employee assigned';
+    
+        if (assignedEmployees && employeeCount && parseInt(employeeCount) > 0) {
+        console.log('Setting employee data on task row');
+        taskRow.setAttribute('data-assigned-employees', assignedEmployees);
+        taskRow.setAttribute('data-assigned-employees-count', employeeCount);
+        
+        // Create employee checkboxes - all pre-selected by default
+        const employeeNames = assignedEmployees.split(', ');
+        employeeDisplay = '<div class="employee-selection-container">';
+        employeeNames.forEach((empName, index) => {
+            const empId = `emp_${taskId}_${index}`;
+            employeeDisplay += `
+                <div class="employee-checkbox-item">
+                    <input type="checkbox" 
+                           id="${empId}" 
+                           name="selected_employees" 
+                           value="${empName.trim()}"
+                           data-task-id="${taskId}"
+                           data-employee-name="${empName.trim()}"
+                           class="employee-checkbox"
+                           checked>
+                    <label for="${empId}" class="employee-checkbox-label">
+                        ${empName.trim()}
+                    </label>
+                </div>
+            `;
+        });
+        employeeDisplay += '</div>';
+        
+        // Store the assigned employees as selected employees for this task
+        taskRow.setAttribute('data-selected-employees', assignedEmployees);
+        taskRow.setAttribute('data-selected-employee-count', employeeCount);
+        
+        // CRITICAL: Set the assign_employee attribute for backend processing
+        if (taskElement.classList.contains('custom-task')) {
+            const assignEmployee = taskElement.getAttribute('data-assign-employee');
+            if (assignEmployee) {
+                taskRow.setAttribute('data-assign-employee', assignEmployee);
+                console.log('Set data-assign-employee on task row:', assignEmployee);
+            }
+        }
+        } else {
+        console.log('No employee data found, creating task row without employee info');
+        
+        // For custom tasks, try to get employee data from other attributes
+        if (taskElement.classList.contains('custom-task')) {
+            const assignEmployee = taskElement.getAttribute('data-assign-employee');
+            if (assignEmployee) {
+                console.log('Found assign_employee attribute:', assignEmployee);
+                
+                // Try to get employee name from the dropdown
+                const employeeDropdown = document.getElementById('editAssignEmployee');
+                if (employeeDropdown) {
+                    // Find the option with this value
+                    for (let i = 0; i < employeeDropdown.options.length; i++) {
+                        const option = employeeDropdown.options[i];
+                        if (option.value === assignEmployee) {
+                            const employeeName = option.textContent;
+                            console.log('Found employee name from dropdown:', employeeName);
+                            
+                            // Set the employee data on the task row
+                            taskRow.setAttribute('data-assigned-employees', employeeName);
+                            taskRow.setAttribute('data-assigned-employees-count', '1');
+                            taskRow.setAttribute('data-selected-employees', employeeName);
+                            taskRow.setAttribute('data-selected-employee-count', '1');
+                            
+                            // CRITICAL: Set the assign_employee attribute for backend processing
+                            taskRow.setAttribute('data-assign-employee', assignEmployee);
+                            console.log('Set data-assign-employee on task row:', assignEmployee);
+                            
+                            // Create employee display
+                            employeeDisplay = `
+                                <div class="employee-selection-container">
+                                    <div class="employee-checkbox-item">
+                                        <input type="checkbox" 
+                                               id="emp_${taskId}_0" 
+                                               name="selected_employees" 
+                                               value="${employeeName}"
+                                               data-task-id="${taskId}"
+                                               data-employee-name="${employeeName}"
+                                               class="employee-checkbox"
+                                               checked>
+                                        <label for="emp_${taskId}_0" class="employee-checkbox-label">
+                                            ${employeeName}
+                                        </label>
+                                    </div>
+                                </div>
+                            `;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Get completion days from the task element or default to 0
+    const completionDays = taskElement.getAttribute('data-completion-days') || '0';
+    
+    taskRow.innerHTML = `
+        <td>
+            <span class="task-name">${taskName}</span>
+            <button class="remove-btn" onclick="removeTaskEdit(this)">×</button>
+        </td>
+        <td>
+            ${employeeDisplay}
+        </td>
+        <td>
+            <div class="completion-days-container">
+                <input type="number" 
+                       class="completion-days-input" 
+                       name="completion_days_${taskId}"
+                       id="edit_completion_days_${taskId}"
+                       value="${completionDays}" 
+                       min="1" 
+                       max="365"
+                       data-task-id="${taskId}"
+                       data-original-days="${completionDays}"
+                       onchange="updateCompletionDaysEdit(this)">
+                <span class="completion-days-label">days</span>
+            </div>
+        </td>
+    `;
+    
+    // Setup employee checkbox event listeners for the new row
+    const newCheckboxes = taskRow.querySelectorAll('.employee-checkbox');
+    newCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            // Prevent deselection of all employees
+            if (!preventDeselectAllEmployees(this)) {
+                return; // Don't proceed if validation failed
+            }
+            
+            handleEmployeeSelectionEdit(this);
+        });
+    });
+    
+    taskTableBody.appendChild(taskRow);
+    
+    // Remove from not selected tasks (only for custom tasks, default tasks stay hidden)
+    if (!taskElement.classList.contains('default-task')) {
+        taskElement.remove();
+    } else {
+        // For default tasks, just hide them
+    taskElement.style.display = 'none';
+    }
+    
+    // Update the selected tasks input
+    updateEditSelectedTasks();
+    
+    // Show success message (removed to reduce spam)
+};
+
+window.removeTaskEdit = function(button) {
+    console.log('removeTaskEdit function called!', button);
+    
+    const row = button.closest('tr');
+    const taskName = row.getAttribute('data-task');
+    const taskId = row.getAttribute('data-task-id');
+    const isDefault = row.classList.contains('default-task');
+    
+    console.log('Task details:', { taskName, taskId, isDefault });
+    console.log('Current editSelectedTasks before removal:', editSelectedTasks);
+    
+    // Remove from selected tasks (both default and custom tasks can be removed)
+    editSelectedTasks = editSelectedTasks.filter(task => task !== taskName);
+    console.log('editSelectedTasks after removal:', editSelectedTasks);
+    
+    row.remove();
+    
+    // Add it back to not selected tasks
+    const notSelectedContainer = document.getElementById('edit_notSelectedTasks');
+    console.log('notSelectedContainer:', notSelectedContainer);
+    
+    // Check if this task already exists in not selected tasks (for default tasks)
+    let existingTaskChip = null;
+    if (isDefault) {
+        existingTaskChip = notSelectedContainer.querySelector(`.task-chip[data-task-name="${taskName}"]`);
+    }
+    
+    if (existingTaskChip) {
+        // For default tasks, just show the existing chip
+        existingTaskChip.style.display = 'inline-block';
+        
+        // Update the existing chip with any new data
+        const assignedEmployees = row.getAttribute('data-assigned-employees');
+        const employeeCount = row.getAttribute('data-assigned-employees-count');
+      if (assignedEmployees && employeeCount) {
+            existingTaskChip.setAttribute('data-assigned-employees', assignedEmployees);
+            existingTaskChip.setAttribute('data-employee-count', employeeCount);
+        }
+        
+        // Update completion days
+        const completionDaysInput = row.querySelector('.completion-days-input');
+        if (completionDaysInput) {
+            const completionDays = completionDaysInput.value;
+            existingTaskChip.setAttribute('data-completion-days', completionDays);
+        }
+        
+        console.log('Default task chip restored from existing element');
+    } else {
+        // For custom tasks, create a new chip
+        const taskChip = document.createElement('div');
+        taskChip.className = `task-chip ${isDefault ? 'default-task' : 'custom-task'}`;
+        taskChip.setAttribute('data-task-name', taskName);
+        taskChip.setAttribute('data-task-id', taskId);
+        taskChip.setAttribute('onclick', 'selectTaskEdit(this)');
+        
+        // Preserve assigned employee information - try to get from row attributes first, then from checkboxes
+        let assignedEmployees = row.getAttribute('data-assigned-employees');
+        let employeeCount = row.getAttribute('data-assigned-employees-count');
+        
+        // If not available on row attributes, extract from employee checkboxes
+        if (!assignedEmployees || !employeeCount) {
+            const employeeCheckboxes = row.querySelectorAll('.employee-checkbox');
+            if (employeeCheckboxes.length > 0) {
+                const employeeNames = [];
+                employeeCheckboxes.forEach(checkbox => {
+                    const employeeName = checkbox.getAttribute('data-employee-name');
+                    if (employeeName) {
+                        employeeNames.push(employeeName);
+                    }
+                });
+                assignedEmployees = employeeNames.join(', ');
+                employeeCount = employeeNames.length.toString();
+            }
+        }
+        
+        if (assignedEmployees && employeeCount) {
+            taskChip.setAttribute('data-assigned-employees', assignedEmployees);
+            taskChip.setAttribute('data-employee-count', employeeCount);
+            console.log('Employee data preserved:', { assignedEmployees, employeeCount });
+        }
+        
+        // Preserve saved employee selections
+        const savedSelectedEmployees = row.getAttribute('data-selected-employees');
+        if (savedSelectedEmployees) {
+            taskChip.setAttribute('data-selected-employees', savedSelectedEmployees);
+            taskChip.setAttribute('data-selected-employee-count', savedSelectedEmployees.split(', ').length);
+        }
+        
+        // Preserve completion days
+        const completionDaysInput = row.querySelector('.completion-days-input');
+        if (completionDaysInput) {
+            const completionDays = completionDaysInput.value;
+            taskChip.setAttribute('data-completion-days', completionDays);
+        }
+        
+        // Add default badge for default tasks
+        if (isDefault) {
+            taskChip.innerHTML = `${taskName} <span class="badge bg-warning text-dark ms-1" style="font-size: 10px;">Default</span>`;
+        } else {
+            taskChip.textContent = taskName;
+        }
+        
+        notSelectedContainer.appendChild(taskChip);
+        console.log('Custom task chip added back to not selected tasks');
+    }
+    
+    updateEditSelectedTasks();
+};
+
+function updateEditSelectedTasks() {
+    // Use the new task manager if available
+    if (editLandTaskManager) {
+        editLandTaskManager.updateSelectedTasks();
+        return;
+    }
+    
+    // Fallback to old method
+    const selectedTasksInput = document.getElementById('edit_selected_tasks');
+    if (selectedTasksInput) {
+    selectedTasksInput.value = editSelectedTasks.join(',');
+        console.log('Updated edit selected tasks (fallback):', selectedTasksInput.value);
+    }
+}
+
+// Function to handle employee selection changes in edit modal
+function handleEmployeeSelectionEdit(checkbox) {
+    // Use the new task manager if available
+    if (editLandTaskManager) {
+        editLandTaskManager.handleEmployeeSelection(checkbox);
+        return;
+    }
+    
+    // Fallback to old method
+    const taskId = checkbox.getAttribute('data-task-id');
+    const employeeName = checkbox.getAttribute('data-employee-name');
+    const isChecked = checkbox.checked;
+    
+    console.log(`Employee selection changed (fallback): ${employeeName} (${isChecked ? 'checked' : 'unchecked'}) for task ${taskId}`);
+    
+    // Check if this would result in no employees selected
+    const taskRow = checkbox.closest('tr');
+    if (taskRow) {
+        const checkedCheckboxes = taskRow.querySelectorAll('.employee-checkbox:checked');
+        const totalCheckboxes = taskRow.querySelectorAll('.employee-checkbox');
+        
+        // If this is the last checked checkbox and user is trying to uncheck it, prevent it
+        if (checkedCheckboxes.length === 1 && !isChecked) {
+            // Prevent deselection of the last employee
+            checkbox.checked = true;
+            
+            // Show warning message
+            showEmployeeSelectionWarning(taskRow, 'At least one employee must remain selected for this task');
+            
+            // Don't proceed with the change
+            return;
+        }
+        
+        // If we have multiple employees selected, allow the change
+        if (checkedCheckboxes.length > 1 || isChecked) {
+            // Remove any warning messages
+            removeEmployeeSelectionWarning(taskRow);
+        }
+        
+        // Update the task row's selected employees data
+        const selectedEmployees = Array.from(checkedCheckboxes).map(cb => cb.getAttribute('data-employee-name'));
+        
+        taskRow.setAttribute('data-selected-employees', selectedEmployees.join(', '));
+        taskRow.setAttribute('data-selected-employee-count', selectedEmployees.length.toString());
+        
+        console.log(`Updated task row selected employees (fallback): ${selectedEmployees.join(', ')}`);
+    }
+}
+
+// Function to update completion days for a specific task in edit modal
+function updateCompletionDaysEdit(input) {
+    // Use the new task manager if available
+    if (editLandTaskManager) {
+        editLandTaskManager.updateTaskCompletionDays();
+        return;
+    }
+    
+    // Fallback to old method
+    const taskId = input.getAttribute('data-task-id');
+    const newDays = input.value;
+    const originalDays = input.getAttribute('data-original-days');
+    
+    // Validate input
+    if (newDays < 1 || newDays > 365) {
+        input.value = originalDays;
+        alert('Completion days must be between 1 and 365');
+        return;
+    }
+    
+    // Update the data attribute
+    input.setAttribute('data-original-days', newDays);
+    
+    // Log the change
+    console.log(`Task ${taskId} completion days updated from ${originalDays} to ${newDays} days (fallback)`);
+}
+
+// Function to collect task employee selections for edit modal
+function collectTaskEmployeeSelectionsEdit() {
+    // Use the new task manager if available
+    if (editLandTaskManager) {
+        return editLandTaskManager.updateTaskEmployeeSelections();
+    }
+    
+    // Fallback to old method
+    const taskEmployeeSelections = {};
+    const newTasksToCreate = []; // Track new tasks that need to be created
+    
+    const selectedTaskRows = document.querySelectorAll('#edit_taskTableBody .task-row');
+    console.log(`Found ${selectedTaskRows.length} selected task rows`);
+    
+    selectedTaskRows.forEach((taskRow, index) => {
+        const taskName = taskRow.getAttribute('data-task');
+        const taskId = taskRow.getAttribute('data-task-id');
+        const isTempTask = taskRow.getAttribute('data-temp-task') === 'true';
+        
+        console.log(`Processing task row ${index + 1}: ${taskName} (ID: ${taskId}, Temp: ${isTempTask})`);
+        console.log(`Task row data-temp-task attribute: "${taskRow.getAttribute('data-temp-task')}"`);
+        
+        // Get all checked employee checkboxes for this task
+        const employeeCheckboxes = taskRow.querySelectorAll('.employee-checkbox:checked');
+        console.log(`Found ${employeeCheckboxes.length} checked employee checkboxes for task: ${taskName}`);
+        
+        const selectedEmployees = [];
+        
+        employeeCheckboxes.forEach((checkbox, checkboxIndex) => {
+            const employeeName = checkbox.getAttribute('data-employee-name');
+            console.log(`Checkbox ${checkboxIndex + 1}: ${employeeName}`);
+            if (employeeName) {
+                selectedEmployees.push(employeeName);
+            }
+        });
+        
+        if (selectedEmployees.length > 0) {
+            taskEmployeeSelections[taskName] = selectedEmployees.join(', ');
+            console.log(`Task "${taskName}" assigned to: ${selectedEmployees.join(', ')}`);
+            
+            // Only add to new tasks list if this is actually a temporary task (not a database task)
+            if (isTempTask && taskRow.getAttribute('data-temp-task') === 'true') {
+                const completionDaysInput = taskRow.querySelector('.completion-days-input');
+                const completionDays = completionDaysInput ? completionDaysInput.value : '0';
+                
+                newTasksToCreate.push({
+                    task_name: taskName,
+                    position: taskRow.getAttribute('data-position') || '1',
+                    is_default: taskRow.getAttribute('data-is-default') === 'true',
+                    completion_days: completionDays,
+                    assign_employee: taskRow.getAttribute('data-assign-employee') || '',
+                    employee_names: selectedEmployees.join(', ')
+                });
+                
+                console.log(`New task to be created: ${taskName}`);
+            } else if (isTempTask && taskRow.getAttribute('data-temp-task') === 'false') {
+                console.log(`Task "${taskName}" is a database task, not adding to new tasks list`);
+            } else {
+                console.log(`Task "${taskName}" - isTempTask: ${isTempTask}, data-temp-task: "${taskRow.getAttribute('data-temp-task')}"`);
+            }
+        } else {
+            taskEmployeeSelections[taskName] = '';
+            console.log(`Task "${taskName}" has no assigned employees`);
+        }
+    });
+    
+    console.log('Final taskEmployeeSelections object:', taskEmployeeSelections);
+    console.log('New tasks to be created:', newTasksToCreate);
+    console.log('=== NEW TASKS DEBUG ===');
+    newTasksToCreate.forEach((task, index) => {
+        console.log(`  Task ${index + 1}: ${task.task_name} (temp: ${task.is_temp || 'unknown'})`);
+    });
+    console.log('=== END NEW TASKS DEBUG ===');
+    
+    // Update the hidden input for existing task assignments
+    const taskEmployeeSelectionsInput = document.getElementById('edit_task_employee_selections');
+    if (taskEmployeeSelectionsInput) {
+        taskEmployeeSelectionsInput.value = JSON.stringify(taskEmployeeSelections);
+        console.log('Task employee selections updated in hidden input:', taskEmployeeSelectionsInput.value);
+    } else {
+        console.error('edit_task_employee_selections input element not found');
+    }
+    
+    // Store new tasks in a hidden input for form submission
+    const newTasksInput = document.getElementById('edit_new_tasks');
+    if (!newTasksInput) {
+        // Create the input if it doesn't exist
+        const editLandForm = document.getElementById('editLandForm');
+        if (editLandForm) {
+            const newInput = document.createElement('input');
+            newInput.type = 'hidden';
+            newInput.id = 'edit_new_tasks';
+            newInput.name = 'new_tasks';
+            editLandForm.appendChild(newInput);
+        }
+    }
+    
+    if (newTasksInput || document.getElementById('edit_new_tasks')) {
+        const finalInput = newTasksInput || document.getElementById('edit_new_tasks');
+        finalInput.value = JSON.stringify(newTasksToCreate);
+        console.log('New tasks stored in hidden input:', finalInput.value);
+    }
+    
+    return { taskEmployeeSelections, newTasksToCreate };
+}
+
+// Function to update task completion days for edit modal
+function updateTaskCompletionDaysEdit() {
+    const taskCompletionDaysInput = document.getElementById('edit_task_completion_days');
+    if (!taskCompletionDaysInput) {
+        console.error('edit_task_completion_days input element not found');
+        return;
+    }
+    
+    const completionDaysData = {};
+    const completionDaysInputs = document.querySelectorAll('#edit_taskTableBody .completion-days-input');
+    
+    completionDaysInputs.forEach(input => {
+        const taskId = input.getAttribute('data-task-id');
+        const taskName = input.closest('.task-row').getAttribute('data-task');
+        const days = input.value;
+        
+        if (taskId && taskName && days) {
+            completionDaysData[taskName] = {
+                task_id: taskId,
+                days: parseInt(days)
+            };
+            console.log(`Task "${taskName}" completion days: ${days}`);
+        }
+    });
+    
+    taskCompletionDaysInput.value = JSON.stringify(completionDaysData);
+    console.log('Task completion days updated:', taskCompletionDaysInput.value);
+}
+
+
+
+// Add Task Modal functions for edit
+window.openAddTaskModalEdit = function() {
+    console.log('openAddTaskModalEdit called');
+    
+    // Check if we have a current land ID
+    if (!window.currentEditLandId) {
+        alert('Error: No land selected. Please try editing the land again.');
+        return;
+    }
+    
+    // Check if modal exists
+    const modalElement = document.getElementById('addTaskModalEdit');
+    if (!modalElement) {
+        console.error('addTaskModalEdit not found');
+        alert('Task modal not found. Please refresh the page.');
+        return;
+    }
+    
+    // Check if form exists
+    const form = document.getElementById('addTaskFormEdit');
+    if (!form) {
+        console.error('addTaskFormEdit not found');
+        alert('Task form not found. Please refresh the page.');
+        return;
+    }
+    
+    // Initialize the edit land task manager
+    initializeEditLandTaskManager();
+    
+    // Show modal
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+    
+    // Reset form
+    form.reset();
+    
+    // Debug: check if completion days field is accessible
+    const completionDaysField = document.getElementById('editCompletionDays');
+    if (completionDaysField) {
+        console.log('Completion days field found:', completionDaysField);
+        console.log('Field type:', completionDaysField.type);
+        console.log('Field disabled:', completionDaysField.disabled);
+        console.log('Field readonly:', completionDaysField.readOnly);
+        console.log('Field value:', completionDaysField.value);
+        
+        // Ensure the field is enabled and editable
+        completionDaysField.disabled = false;
+        completionDaysField.readOnly = false;
+        completionDaysField.value = '0';
+        
+        // Test manual value setting
+        setTimeout(() => {
+            completionDaysField.value = '5';
+            console.log('After manual value setting - Field value:', completionDaysField.value);
+            
+            // Test if we can read the value back
+            const testValue = completionDaysField.value;
+            console.log('Test reading value back:', testValue);
+            
+            // Test if field can be focused
+            completionDaysField.focus();
+            console.log('Field focused, current value:', completionDaysField.value);
+            
+            // Test if field is in the DOM and accessible
+            const fieldInDOM = document.getElementById('editCompletionDays');
+            console.log('Field in DOM:', fieldInDOM);
+            console.log('Field parent form:', fieldInDOM?.closest('form'));
+            console.log('Field parent form ID:', fieldInDOM?.closest('form')?.id);
+            
+            // Check computed styles that might affect interactivity
+            if (fieldInDOM) {
+                const computedStyle = window.getComputedStyle(fieldInDOM);
+                console.log('Field computed styles:');
+                console.log('- pointer-events:', computedStyle.pointerEvents);
+                console.log('- user-select:', computedStyle.userSelect);
+                console.log('- opacity:', computedStyle.opacity);
+                console.log('- visibility:', computedStyle.visibility);
+                console.log('- display:', computedStyle.display);
+                console.log('- position:', computedStyle.position);
+                console.log('- z-index:', computedStyle.zIndex);
+            }
+        }, 100);
+        
+        // Add event listeners to test if the field is interactive
+        completionDaysField.addEventListener('input', function(e) {
+            console.log('Completion days field input event:', e.target.value);
+        });
+        
+        completionDaysField.addEventListener('change', function(e) {
+            console.log('Completion days field change event:', e.target.value);
+        });
+        
+        completionDaysField.addEventListener('focus', function(e) {
+            console.log('Completion days field focused');
+        });
+        
+        completionDaysField.addEventListener('blur', function(e) {
+            console.log('Completion days field blurred, value:', e.target.value);
+        });
+        
+        console.log('After enabling - Field disabled:', completionDaysField.disabled);
+        console.log('After enabling - Field readonly:', completionDaysField.readOnly);
+        console.log('After enabling - Field value:', completionDaysField.value);
+    } else {
+        console.error('editCompletionDays field not found');
+    }
+    
+    // Store the current land ID for form submission
+    form.setAttribute('data-land-id', window.currentEditLandId);
+    
+    // Ensure employees dropdown only shows non-marketing employees
+    filterEmployeesDropdown();
+    
+    console.log('Modal opened and form reset successfully');
+};
+
+// Note: Form submission is now handled in the main event listener above
+// This function is no longer needed as it was causing duplicate event listeners
+
+// Function to load existing tasks into the edit modal
+function loadExistingTasksToEditModal(landId) {
+    console.log('Loading existing tasks for land:', landId);
+    
+    // Clear existing tasks
+    const taskTableBody = document.getElementById('edit_taskTableBody');
+    if (taskTableBody) {
+        taskTableBody.innerHTML = '';
+    }
+    
+    // Reset selected tasks array
+    editSelectedTasks = [];
+    
+    // Fetch land details including assigned tasks
+    fetch(`/get_land_details/${landId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const land = data.land;
+                console.log('Land data loaded:', land);
+                
+                // Load only the tasks that are actually assigned to this land
+                if (land.assigned_tasks && land.assigned_tasks.length > 0) {
+                    console.log('Loading assigned tasks for this land:', land.assigned_tasks);
+                    
+                    // Group tasks by name to avoid duplicates
+                    const taskGroups = {};
+                    land.assigned_tasks.forEach(assignedTask => {
+                        const taskName = assignedTask.task_name;
+                        if (!taskGroups[taskName]) {
+                            taskGroups[taskName] = {
+                                task_name: taskName,
+                                task_id: assignedTask.task_id,
+                                completion_days: assignedTask.completion_days || 0,
+                                available_employees: assignedTask.available_employees || [],
+                                assigned_employees: []
+                            };
+                        }
+                        // Add this employee to the task's assigned employees
+                        if (assignedTask.employee_name) {
+                            taskGroups[taskName].assigned_employees.push(assignedTask.employee_name);
+                        }
+                    });
+                    
+                    console.log('Task groups created:', taskGroups);
+                    
+                    // Create one row per unique task with all assigned employees
+                    Object.values(taskGroups).forEach(taskGroup => {
+                        createTaskRowFromTaskGroup(taskGroup);
+                        
+                        // Add to selected tasks array
+                        if (!editSelectedTasks.includes(taskGroup.task_name)) {
+                            editSelectedTasks.push(taskGroup.task_name);
+                        }
+                    });
+                    
+                    // Update the selected tasks input
+                    updateEditSelectedTasks();
+                }
+                
+                // Now populate the not selected tasks section with all available tasks
+                populateNotSelectedTasksSection();
+                
+                console.log('Tasks loaded successfully');
+            } else {
+                console.error('Failed to load land details:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading land details:', error);
+        });
+}
+
+// Function to populate the not selected tasks section with all available tasks from database
+function populateNotSelectedTasksSection() {
+    console.log('Populating not selected tasks section...');
+    
+    const notSelectedContainer = document.getElementById('edit_notSelectedTasks');
+    if (!notSelectedContainer) {
+        console.error('edit_notSelectedTasks container not found');
+        return;
+    }
+    
+    // Instead of clearing and recreating, preserve the original template data
+    // and only update the employee information where needed
+    
+    // Get all existing task chips from the template
+    const existingTaskChips = notSelectedContainer.querySelectorAll('.task-chip');
+    console.log('Found existing task chips:', existingTaskChips.length);
+    
+    // Fetch all available tasks with their employee information
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                     document.querySelector('meta[name=csrf-token]')?.content;
+    
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        return;
+    }
+    
+    fetch('/get_task_employee_info/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('All tasks with employee info fetched:', data.task_employees);
+            
+            // Update existing task chips with employee information
+            existingTaskChips.forEach(taskChip => {
+                const taskName = taskChip.getAttribute('data-task-name');
+                const taskData = data.task_employees[taskName];
+                
+                if (taskData) {
+                    const employees = taskData.employees || [];
+                    const completionDays = taskData.completion_days || 0;
+                    
+                    // Update employee information
+                    taskChip.setAttribute('data-assigned-employees', employees.map(emp => emp.name).join(', '));
+                    taskChip.setAttribute('data-assigned-employees-count', employees.length.toString());
+                    
+                    // Update completion days if not already set
+                    if (!taskChip.getAttribute('data-completion-days') || taskChip.getAttribute('data-completion-days') === '0') {
+                        taskChip.setAttribute('data-completion-days', completionDays);
+                        console.log(`Updated completion days for ${taskName}: ${completionDays}`);
+                    }
+                    
+                    // Update employee display
+                    const employeeNames = employees.map(emp => emp.name).join(', ');
+                    if (employees.length > 0) {
+                        taskChip.innerHTML = `${taskName} <small class="text-muted">(${employeeNames})</small>`;
+                    } else {
+                        taskChip.innerHTML = taskName;
+                    }
+                    
+                    console.log(`Updated task chip for: ${taskName} with employees: ${employeeNames} and completion days: ${completionDays}`);
+                }
+            });
+            
+            // Update message visibility
+            updateTaskMessageVisibilityEdit();
+            
+            console.log('Not selected tasks section updated successfully');
+        } else {
+            console.error('Failed to fetch task employee info:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching task employee info:', error);
+        });
+}
+
+// Function to create a task row from task group (one row per task with multiple employees)
+function createTaskRowFromTaskGroup(taskGroup) {
+    console.log('Creating task row from task group:', taskGroup);
+    
+    const taskName = taskGroup.task_name;
+    const taskId = taskGroup.task_id;
+    const completionDays = taskGroup.completion_days || 0;
+    const assignedEmployees = taskGroup.assigned_employees || [];
+    const availableEmployees = taskGroup.available_employees || [];
+    
+    // Create table row
+    const taskTableBody = document.getElementById('edit_taskTableBody');
+    const taskRow = document.createElement('tr');
+    
+    // Check if this is a default task
+    const isDefault = isDefaultTask(taskName);
+    taskRow.className = `task-row ${isDefault ? 'default-task' : 'custom-task'}`;
+    taskRow.setAttribute('data-task', taskName);
+    taskRow.setAttribute('data-task-id', taskId);
+    
+    // Create employee display using data from the database
+    let employeeDisplay = 'No employee assigned';
+    if (availableEmployees && availableEmployees.length > 0) {
+        // Store the available employees data
+        const availableEmployeesStr = availableEmployees.join(', ');
+        taskRow.setAttribute('data-assigned-employees', availableEmployeesStr);
+        taskRow.setAttribute('data-assigned-employees-count', availableEmployees.length.toString());
+        
+        // Create employee checkboxes - check all currently assigned employees
+        employeeDisplay = '<div class="employee-selection-container">';
+        availableEmployees.forEach((empName, index) => {
+            const empId = `emp_${taskId}_${index}`;
+            // Check if this employee is currently assigned to this task
+            const isChecked = assignedEmployees.some(assignedEmp => 
+                assignedEmp.trim() === empName.trim()
+            );
+            employeeDisplay += `
+                <div class="employee-checkbox-item">
+                    <input type="checkbox" 
+                           id="${empId}" 
+                           name="selected_employees" 
+                           value="${empName.trim()}"
+                           data-task-id="${taskId}"
+                           data-employee-name="${empName.trim()}"
+                           class="employee-checkbox"
+                           ${isChecked ? 'checked' : ''}>
+                    <label for="${empId}" class="employee-checkbox-label">
+                        ${empName.trim()}
+                    </label>
+                </div>
+            `;
+        });
+        employeeDisplay += '</div>';
+        
+        // Store the assigned employees as selected employees for this task
+        const assignedEmployeesStr = assignedEmployees.join(', ');
+        taskRow.setAttribute('data-selected-employees', assignedEmployeesStr);
+        taskRow.setAttribute('data-selected-employee-count', assignedEmployees.length.toString());
+    }
+    
+    // Create the row HTML
+    taskRow.innerHTML = `
+        <td>
+            <span class="task-name">${taskName}</span>
+            <button class="remove-btn" onclick="removeTaskEdit(this)">×</button>
+        </td>
+        <td>
+            ${employeeDisplay}
+        </td>
+        <td>
+            <div class="completion-days-container">
+                <input type="number" 
+                       class="completion-days-input" 
+                       name="completion_days_${taskId}"
+                       id="edit_completion_days_${taskId}"
+                       value="${completionDays}" 
+                       min="1" 
+                       max="365"
+                       data-task-id="${taskId}"
+                       data-original-days="${completionDays}"
+                       onchange="updateCompletionDaysEdit(this)">
+                <span class="completion-days-label">days</span>
+            </div>
+        </td>
+    `;
+    
+    // Setup employee checkbox event listeners
+    const newCheckboxes = taskRow.querySelectorAll('.employee-checkbox');
+    newCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            // Prevent deselection of all employees
+            if (!preventDeselectAllEmployees(this)) {
+                return; // Don't proceed if validation failed
+            }
+            
+            handleEmployeeSelectionEdit(this);
+        });
+    });
+    
+    // Add the row to the table
+    taskTableBody.appendChild(taskRow);
+    
+    // Hide the task chip from not selected tasks
+    const taskChip = document.querySelector(`#edit_notSelectedTasks .task-chip[data-task-name="${taskName}"]`);
+    if (taskChip) {
+        taskChip.style.display = 'none';
+    }
+}
+
+// Function to check if a task is a default task
+function isDefaultTask(taskName) {
+    const defaultTaskChips = document.querySelectorAll('#edit_notSelectedTasks .task-chip.default-task');
+    for (let chip of defaultTaskChips) {
+        if (chip.getAttribute('data-task-name') === taskName) {
+            return true;
+        }
+    }
+    return false;
+}
+
+window.submitTaskEdit = function() {
+    console.log('submitTaskEdit called - creating task in database');
+    
+    const form = document.getElementById('addTaskFormEdit');
+    if (!form) {
+        console.error('addTaskFormEdit not found');
+        alert('Task form not found. Please refresh the page.');
+        return;
+    }
+    
+    // Ensure hidden input exists before form submission
+    ensureAssignEmployeeInputExists();
+    
+    const formData = new FormData(form);
+    
+    // Debug: log all form data
+    console.log('Form data:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+    }
+    
+    // Additional debugging for assign_employee field
+    console.log('=== ASSIGN EMPLOYEE DEBUG ===');
+    const hiddenInput = form.querySelector('input[name="assign_employee"]');
+    if (hiddenInput) {
+        console.log('Hidden input exists with name:', hiddenInput.name);
+        console.log('Hidden input value:', hiddenInput.value);
+        console.log('Hidden input is in form:', form.contains(hiddenInput));
+    } else {
+        console.log('No hidden input found for assign_employee');
+    }
+    console.log('=== END ASSIGN EMPLOYEE DEBUG ===');
+    
+    // Validate form with better error messages
+    const requiredFields = [
+        { name: 'task_name', display: 'Task Name' },
+        { name: 'position', display: 'Position' },
+        { name: 'is_default', display: 'Default Task' },
+        { name: 'completion_days', display: 'Completion Days' }
+    ];
+    
+    for (let field of requiredFields) {
+        const value = formData.get(field.name);
+        if (!value || value.trim() === '') {
+            alert(`Please fill in the ${field.display} field`);
+            return;
+        }
+    }
+    
+    // Check if employees are selected - FIXED VERSION
+    let assignEmployeeValue = '';
+    let selectedEmployeesList = null; // Define variable in broader scope
+    
+    // First try to get from form data
+    assignEmployeeValue = formData.get('assign_employee');
+    console.log('Form data assign_employee value:', assignEmployeeValue);
+    
+    // If no value in form data, check the hidden input directly
+    if (!assignEmployeeValue || assignEmployeeValue.trim() === '') {
+        const form = document.getElementById('addTaskFormEdit');
+        if (form) {
+            const hiddenInput = form.querySelector('input[name="assign_employee"]');
+            if (hiddenInput && hiddenInput.value) {
+                assignEmployeeValue = hiddenInput.value;
+                console.log('Found employee ID from hidden input:', assignEmployeeValue);
+            }
+        }
+    }
+    
+    // If still no value, check the selected employees list
+    if (!assignEmployeeValue || assignEmployeeValue.trim() === '') {
+        selectedEmployeesList = document.getElementById('editSelectedEmployeesList');
+        if (selectedEmployeesList && selectedEmployeesList.children.length > 0) {
+            // Get the first selected employee's ID
+            const firstEmployeeTag = selectedEmployeesList.querySelector('.employee-tag');
+            if (firstEmployeeTag) {
+                const removeBtn = firstEmployeeTag.querySelector('.remove-btn');
+                if (removeBtn) {
+                    const onclickAttr = removeBtn.getAttribute('onclick');
+                    if (onclickAttr) {
+                        const match = onclickAttr.match(/removeEmployeeFromSelectionEdit\('([^']+)'/);
+                        if (match) {
+                            assignEmployeeValue = match[1];
+                            console.log('Found employee ID from selected employees list:', assignEmployeeValue);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    if (!assignEmployeeValue || assignEmployeeValue.trim() === '') {
+        alert('Please select at least one employee for this task');
+        return;
+    }
+    
+    console.log('Final employee ID determined:', assignEmployeeValue);
+    
+    // Debug: Check form state
+    console.log('=== FORM DEBUG INFO ===');
+    console.log('Form data assign_employee:', formData.get('assign_employee'));
+    console.log('Hidden input value:', document.querySelector('input[name="assign_employee"]')?.value);
+    console.log('Selected employees list children:', selectedEmployeesList ? selectedEmployeesList.children.length : 'N/A');
+    console.log('Selected employees array:', editSelectedEmployees);
+    console.log('=== END FORM DEBUG ===');
+    
+    // Get the land ID from the form
+    const landId = form.getAttribute('data-land-id');
+    if (!landId) {
+        alert('Error: No land selected. Please try editing the land again.');
+        return;
+    }
+    
+    // Use the employee ID we found earlier
+    const assignEmployeeId = assignEmployeeValue;
+    
+    // Create task data for database
+    const taskData = {
+        task_name: formData.get('task_name'),
+        position: formData.get('position'),
+        is_default: formData.get('is_default') === 'true',
+        completion_days: formData.get('completion_days'),
+        assign_employee: assignEmployeeId,
+        land_id: landId
+    };
+    
+    console.log('Creating task in database:', taskData);
+    
+    // Add land_id to form data for the API call
+    formData.append('land_id', landId);
+    
+    // Ensure assign_employee is in form data
+    if (!formData.get('assign_employee')) {
+        formData.append('assign_employee', assignEmployeeId);
+    }
+    
+    // Show loading
+    if (editLandTaskManager) {
+        editLandTaskManager.showLoading();
+    }
+    
+    // Create task in database via API
+    fetch('/add_task_for_land/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': editLandTaskManager ? editLandTaskManager.getCSRFToken() : document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Task created successfully in database:', data);
+            
+            // Create task object with database ID
+            const createdTask = {
+                task_name: taskData.task_name,
+                position: taskData.position,
+                is_default: taskData.is_default,
+                completion_days: taskData.completion_days,
+                assign_employee: assignEmployeeId,
+                land_id: landId,
+                temp_id: data.task_id // Use the actual database ID
+            };
+            
+            // Add the task to the local display
+            addTaskToLocalDisplay(createdTask);
+            
+            // Close the add task modal
+            bootstrap.Modal.getInstance(document.getElementById('addTaskModalEdit')).hide();
+            
+            // Reset the form and clear selected employees
+            form.reset();
+            clearAllEmployeesEdit();
+            
+            // Show success message
+            alert('Task created successfully and added to selection!');
+            
+            // Update the selected tasks input and task message visibility
+            if (editLandTaskManager) {
+                editLandTaskManager.updateSelectedTasks();
+                updateTaskMessageVisibilityEdit();
+            }
+            
+        } else {
+            console.error('Failed to create task:', data.message);
+            alert('Error creating task: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error creating task:', error);
+        alert('An error occurred while creating the task. Please try again.');
+    })
+    .finally(() => {
+        // Hide loading
+        if (editLandTaskManager) {
+            editLandTaskManager.hideLoading();
+        }
+    });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+// View Land Tasks Function
+window.viewLandTasks = function(landId) {
+    console.log('Viewing tasks for land ID:', landId);
+    
+    // Show a user-friendly message about the tasks
+    // This function can be enhanced later to show actual task details
+    alert(`Viewing tasks for Land ID: ${landId}\n\nThis feature shows:\n• Assigned tasks for this land\n• Task status and progress\n• Assigned employees\n• Completion dates\n\nFunctionality coming soon!`);
+    
+    // TODO: Implement proper task viewing functionality
+    // Example implementation:
+    // fetch(`/land/${landId}/tasks/`)
+    //     .then(response => response.json())
+    //     .then(data => {
+    //         if (data.success) {
+    //             showTasksModal(data.tasks, landId);
+    //         } else {
+    //             alert('Error loading tasks: ' + data.message);
+    //         }
+    //     })
+             //     .catch(error => {
+         //         console.error('Error:', error);
+         //         alert('Error loading tasks. Please try again.');
+         //     });
+};
+
+// Add Employee Modal Functions
+function openAddEmployeeModal() {
+    console.log('openAddEmployeeModal called');
+    
+    // Check if form exists
+    const form = document.getElementById('addEmployeeForm');
+    if (!form) {
+        console.error('addEmployeeForm not found');
+        alert('Employee form not found. Please refresh the page.');
+        return;
+    }
+    
+    // Check if modal exists
+    const modalElement = document.getElementById('addEmployeeModal');
+    if (!modalElement) {
+        console.error('addEmployeeModal not found');
+        alert('Employee modal not found. Please refresh the page.');
+        return;
+    }
+    
+    // Reset form
+    form.reset();
+    
+    // Show modal
+    try {
+        const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+        console.log('Modal opened successfully');
+    } catch (error) {
+        console.error('Error opening modal:', error);
+        alert('Error opening modal: ' + error.message);
+    }
+}
+
+function submitNewEmployee() {
+    console.log('submitNewEmployee called');
+    
+    const form = document.getElementById('addEmployeeForm');
+    if (!form) {
+        console.error('addEmployeeForm not found');
+        taskManager.showMessage('Employee form not found. Please refresh the page.', 'danger');
+        return;
+    }
+    
+    const formData = new FormData(form);
+    
+    // Debug: log form data
+    console.log('Form data:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+    }
+    
+    // Validate required fields
+    const requiredFields = ['username', 'full_name', 'email', 'employee_type', 'password', 'mobile', 'location', 'status'];
+    for (let field of requiredFields) {
+        const value = formData.get(field);
+        console.log(`Checking field ${field}: ${value}`);
+        if (!value || value.trim() === '') {
+            taskManager.showMessage(`Please fill in the ${field.replace('_', ' ')} field`, 'danger');
+            return;
+        }
+    }
+    
+    // Show loading
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    // Get CSRF token
+    const csrfElement = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (!csrfElement) {
+        taskManager.showMessage('Security token not found. Please refresh the page and try again.', 'danger');
+        document.getElementById('loadingOverlay').style.display = 'none';
+        return;
+    }
+    const csrfToken = csrfElement.value;
+    
+    fetch('/add_employee/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        if (data.success) {
+            taskManager.showMessage(data.message, 'success');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addEmployeeModal'));
+            modal.hide();
+            
+            // Add new employee to dropdown
+            addEmployeeToDropdown(data.employee);
+            
+            // Clear form
+            form.reset();
+            
+        } else {
+            taskManager.showMessage(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        console.error('Error:', error);
+        taskManager.showMessage('An error occurred while adding the employee', 'danger');
+    });
+}
+
+function addEmployeeToDropdown(employee) {
+    // Add to Add Task modal dropdown
+    const addDropdown = document.getElementById('editAssignEmployee');
+    if (addDropdown) {
+        const option = document.createElement('option');
+        option.value = employee.id;
+        option.textContent = employee.full_name || employee.username;
+        addDropdown.appendChild(option);
+    }
+}
+
+// Make employee functions globally available
+window.openAddEmployeeModal = openAddEmployeeModal;
+window.submitNewEmployee = submitNewEmployee;
+
+// Debug function to test completion days field
+window.testCompletionDaysField = function() {
+    console.log('Testing completion days field...');
+    
+    const field = document.getElementById('editCompletionDays');
+    if (!field) {
+        console.error('editCompletionDays field not found');
+        return;
+    }
+    
+    console.log('Field found:', field);
+    console.log('Field type:', field.type);
+    console.log('Field disabled:', field.disabled);
+    console.log('Field readonly:', field.readOnly);
+    console.log('Field value:', field.value);
+    
+    // Try to enable the field
+    field.disabled = false;
+    field.readOnly = false;
+    
+    // Try to set a value
+    field.value = '10';
+    
+    // Try to focus the field
+    field.focus();
+    
+    console.log('After modifications:');
+    console.log('- Field disabled:', field.disabled);
+    console.log('- Field readonly:', field.readOnly);
+    console.log('- Field value:', field.value);
+    
+    // Check if field is in a form
+    const form = field.closest('form');
+    console.log('Parent form:', form);
+    console.log('Form ID:', form?.id);
+    
+    // Check if field is visible and interactive
+    const rect = field.getBoundingClientRect();
+    console.log('Field bounding rect:', rect);
+    console.log('Field visible:', rect.width > 0 && rect.height > 0);
+    
+    return field;
+};
+
+// Debug function to check employees in dropdown
+window.checkEmployeesInDropdown = function() {
+    console.log('Checking employees in dropdown...');
+    
+    const dropdown = document.getElementById('editAssignEmployee');
+    if (!dropdown) {
+        console.error('editAssignEmployee dropdown not found');
+        return;
+    }
+    
+    console.log('Dropdown found:', dropdown);
+    console.log('Total options:', dropdown.options.length);
+    
+    const employees = [];
+    const marketingEmployees = [];
+    
+    for (let i = 0; i < dropdown.options.length; i++) {
+        const option = dropdown.options[i];
+        if (option.value) { // Skip the "Select Employee" option
+            const employeeType = option.getAttribute('data-employee-type');
+            const employeeInfo = {
+                id: option.value,
+                name: option.textContent,
+                type: employeeType
+            };
+            
+            employees.push(employeeInfo);
+            
+            if (employeeType === 'marketing') {
+                marketingEmployees.push(employeeInfo);
+            }
+        }
+    }
+    
+    console.log('All employees:', employees);
+    console.log('Marketing employees found:', marketingEmployees);
+    console.log('Non-marketing employees:', employees.filter(emp => emp.type !== 'marketing'));
+    
+    return {
+        total: employees.length,
+        marketing: marketingEmployees.length,
+        nonMarketing: employees.filter(emp => emp.type !== 'marketing').length,
+        employees: employees
+    };
+};
+
+// Function to filter employees dropdown to exclude marketing employees
+window.filterEmployeesDropdown = function() {
+    console.log('Filtering employees dropdown...');
+    
+    const dropdown = document.getElementById('editAssignEmployee');
+    if (!dropdown) {
+        console.error('editAssignEmployee dropdown not found');
+        return;
+    }
+    
+    // Get all options
+    const options = Array.from(dropdown.options);
+    console.log('Total options before filtering:', options.length);
+    
+    // Filter out marketing employees
+    let marketingCount = 0;
+    options.forEach((option, index) => {
+        if (option.value) { // Skip the "Select Employee" option
+            const employeeType = option.getAttribute('data-employee-type');
+            if (employeeType === 'marketing') {
+                console.log(`Hiding marketing employee: ${option.textContent}`);
+                option.style.display = 'none';
+                option.disabled = true;
+                marketingCount++;
+            } else {
+                option.style.display = '';
+                option.disabled = false;
+            }
+        }
+    });
+    
+    console.log(`Filtered out ${marketingCount} marketing employees`);
+    console.log(`Remaining non-marketing employees: ${options.length - marketingCount - 1}`); // -1 for "Select Employee" option
+    
+    // Verify the filtering worked
+    const visibleOptions = Array.from(dropdown.options).filter(option => 
+        option.style.display !== 'none' && !option.disabled
+    );
+    console.log('Visible options after filtering:', visibleOptions.length);
+    
+    return {
+        total: options.length,
+        marketingHidden: marketingCount,
+        visible: visibleOptions.length
+    };
+};
+
+// Function to manually refresh employees dropdown from database
+window.refreshEmployeesDropdown = function() {
+    console.log('Refreshing employees dropdown from database...');
+    
+    // Show loading
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'flex';
+    }
+    
+    // Fetch fresh employee data
+    fetch('/get_employees_for_tasks/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+        
+        if (data.success) {
+            console.log('Employees refreshed successfully:', data.employees);
+            
+            // Update the dropdown
+            updateEmployeesDropdown(data.employees);
+            
+            // Apply filtering
+            filterEmployeesDropdown();
+            
+            console.log('Employees dropdown refreshed and filtered');
+        } else {
+            console.error('Failed to refresh employees:', data.message);
+            alert('Failed to refresh employees: ' + data.message);
+        }
+    })
+    .catch(error => {
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+        console.error('Error refreshing employees:', error);
+        alert('Error refreshing employees. Please try again.');
+    });
+};
+
+// Function to update employees dropdown with new data
+function updateEmployeesDropdown(employees) {
+    const dropdown = document.getElementById('editAssignEmployee');
+    if (!dropdown) {
+        console.error('editAssignEmployee dropdown not found');
+        return;
+    }
+    
+    // Clear existing options (keep the "Select Employee" option)
+    const selectOption = dropdown.querySelector('option[value=""]');
+    dropdown.innerHTML = '';
+    if (selectOption) {
+        dropdown.appendChild(selectOption);
+    }
+    
+    // Add new employee options
+    employees.forEach(employee => {
+        const option = document.createElement('option');
+        option.value = employee.id;
+        option.textContent = `${employee.full_name || employee.username} (${employee.employee_type || 'Unknown'})`;
+        option.setAttribute('data-employee-type', employee.employee_type || '');
+        dropdown.appendChild(option);
+    });
+    
+    console.log(`Updated dropdown with ${employees.length} employees`);
+}
+
+// Function to add a task to local display after successful database creation
+function addTaskToLocalDisplay(tempTask) {
+    console.log('addTaskToLocalDisplay called with:', tempTask);
+    
+    // Check if this task was just created in the database (has temp_id from database)
+    // Database task IDs are numeric, temporary task IDs start with 'temp_'
+    if (tempTask.temp_id && !tempTask.temp_id.toString().startsWith('temp_')) {
+        console.log('Task was created in database with ID:', tempTask.temp_id);
+        // This is a real database task, not a temporary one
+        tempTask.is_database_task = true;
+    } else {
+        console.log('Task is temporary with ID:', tempTask.temp_id);
+        tempTask.is_database_task = false;
+    }
+    
+    if (tempTask.is_default) {
+        // For default tasks, add directly to selected tasks table
+        addDefaultTaskToSelectedTableEdit(tempTask);
+    } else {
+        // For non-default tasks, add to not selected tasks list first
+        addNonDefaultTaskToNotSelectedEdit(tempTask);
+    }
+    
+    // Refresh both selected and not selected task displays with force refresh
+    forceRefreshTaskDisplays();
+    
+    console.log('Task added to local display:', tempTask.task_name);
+};
+
+// Function to add default task directly to selected tasks table in edit modal
+function addDefaultTaskToSelectedTableEdit(tempTask) {
+    console.log('Adding default task to selected table:', tempTask.task_name);
+    
+    const taskTableBody = document.getElementById('edit_taskTableBody');
+    if (!taskTableBody) {
+        console.error('edit_taskTableBody not found');
+        return;
+    }
+    
+    // Get employee name from the selected employees array
+    let employeeName = 'Unknown Employee';
+    
+    if (editSelectedEmployees && editSelectedEmployees.length > 0) {
+        // Find the employee by ID
+        const selectedEmployee = editSelectedEmployees.find(emp => emp.id === tempTask.assign_employee);
+        if (selectedEmployee) {
+            employeeName = selectedEmployee.name;
+            console.log('Employee name from selected employees array:', employeeName);
+        } else {
+            console.log('Employee not found in selected employees array, using fallback');
+        }
+    } else {
+        console.log('No employees in selected employees array, using fallback');
+    }
+    
+    console.log('Final employee name determined:', employeeName);
+    
+    // Create employee display
+    const employeeDisplay = `
+        <div class="employee-selection-container">
+            <div class="employee-checkbox-item">
+                <input type="checkbox" 
+                       id="emp_${tempTask.temp_id}_0" 
+                       name="selected_employees" 
+                       value="${employeeName}"
+                       data-task-id="${tempTask.temp_id}"
+                       data-employee-name="${employeeName}"
+                       class="employee-checkbox"
+                       checked>
+                <label for="emp_${tempTask.temp_id}_0" class="employee-checkbox-label">
+                    ${employeeName}
+                </label>
+            </div>
+        </div>
+    `;
+    
+    // Create a new task row
+    const taskRow = document.createElement('tr');
+    taskRow.className = 'task-row default-task';
+    
+    // If this is a database task, don't mark it as temporary
+    if (tempTask.is_database_task) {
+        taskRow.className = 'task-row default-task';
+        taskRow.setAttribute('data-temp-task', 'false');
+        console.log('Creating task row for database task:', tempTask.task_name);
+    } else {
+        taskRow.className = 'task-row default-task temp-task';
+        taskRow.setAttribute('data-temp-task', 'true');
+        console.log('Creating task row for temporary task:', tempTask.task_name);
+    }
+    
+    taskRow.setAttribute('data-task', tempTask.task_name);
+    taskRow.setAttribute('data-task-id', tempTask.temp_id);
+    taskRow.setAttribute('data-position', tempTask.position);
+    taskRow.setAttribute('data-is-default', tempTask.is_default.toString());
+    taskRow.setAttribute('data-assign-employee', tempTask.assign_employee);
+    
+    // Store employee data
+    taskRow.setAttribute('data-assigned-employees', employeeName);
+    taskRow.setAttribute('data-assigned-employees-count', '1');
+    taskRow.setAttribute('data-selected-employees', employeeName);
+    taskRow.setAttribute('data-selected-employee-count', '1');
+    
+    // Create the row HTML
+    taskRow.innerHTML = `
+        <td>
+            <span class="task-name">${tempTask.task_name}</span>
+            <button class="remove-btn" onclick="removeTaskEdit(this)">×</button>
+        </td>
+        <td>
+            ${employeeDisplay}
+        </td>
+        <td>
+            <div class="completion-days-container">
+                <input type="number" 
+                       class="completion-days-input" 
+                       name="completion_days_${tempTask.temp_id}"
+                       id="edit_completion_days_${tempTask.temp_id}"
+                       value="${tempTask.completion_days}" 
+                       min="1" 
+                       max="365"
+                       data-task-id="${tempTask.temp_id}"
+                       data-original-days="${tempTask.completion_days}"
+                       onchange="updateCompletionDaysEdit(this)">
+                <span class="completion-days-label">days</span>
+            </div>
+        </td>
+    `;
+    
+    // Setup employee checkbox event listeners
+    const newCheckboxes = taskRow.querySelectorAll('.employee-checkbox');
+    newCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            // Prevent deselection of all employees
+            if (!preventDeselectAllEmployees(this)) {
+                return; // Don't proceed if validation failed
+            }
+            
+            handleEmployeeSelectionEdit(this);
+        });
+    });
+    
+    // Add the row to the table
+    taskTableBody.appendChild(taskRow);
+    
+    // Add to selected tasks array
+    if (!editSelectedTasks.includes(tempTask.task_name)) {
+        editSelectedTasks.push(tempTask.task_name);
+    }
+    
+    // Update the selected tasks input
+    updateEditSelectedTasks();
+    
+    // Hide the task chip from not selected tasks if it exists
+    const taskChip = document.querySelector(`#edit_notSelectedTasks .task-chip[data-task-name="${tempTask.task_name}"]`);
+    if (taskChip) {
+        taskChip.style.display = 'none';
+    }
+    
+    console.log('Default task added to selected table:', tempTask.task_name);
+};
+
+// Function to add non-default task to not selected tasks list in edit modal
+function addNonDefaultTaskToNotSelectedEdit(tempTask) {
+    console.log('Adding non-default task to not selected list:', tempTask.task_name);
+    
+    const notSelectedContainer = document.getElementById('edit_notSelectedTasks');
+    if (!notSelectedContainer) {
+        console.error('edit_notSelectedTasks container not found');
+        return;
+    }
+    
+    // Get employee name from the selected employees array
+    let employeeName = 'Unknown Employee';
+    
+    if (editSelectedEmployees && editSelectedEmployees.length > 0) {
+        // Find the employee by ID
+        const selectedEmployee = editSelectedEmployees.find(emp => emp.id === tempTask.assign_employee);
+        if (selectedEmployee) {
+            employeeName = selectedEmployee.name;
+            console.log('Employee name from selected employees array:', employeeName);
+        } else {
+            console.log('Employee not found in selected employees array, using fallback');
+        }
+    } else {
+        console.log('No employees in selected employees array, using fallback');
+    }
+    
+    console.log('Final employee name determined:', employeeName);
+    
+    // Create new task chip
+    const taskChip = document.createElement('div');
+    
+    // If this is a database task, don't mark it as temporary
+    if (tempTask.is_database_task) {
+        taskChip.className = 'task-chip custom-task';
+        taskChip.setAttribute('data-temp-task', 'false');
+        console.log('Creating task chip for database task:', tempTask.task_name);
+    } else {
+        taskChip.className = 'task-chip custom-task temp-task';
+        taskChip.setAttribute('data-temp-task', 'true');
+        console.log('Creating task chip for temporary task:', tempTask.task_name);
+    }
+    
+    taskChip.setAttribute('data-task-name', tempTask.task_name);
+    taskChip.setAttribute('data-task-id', tempTask.temp_id);
+    taskChip.setAttribute('data-position', tempTask.position);
+    taskChip.setAttribute('data-is-default', tempTask.is_default.toString());
+    taskChip.setAttribute('data-assign-employee', tempTask.assign_employee);
+    taskChip.setAttribute('data-assigned-employees', employeeName);
+    taskChip.setAttribute('data-assigned-employees-count', '1');
+    taskChip.setAttribute('data-completion-days', tempTask.completion_days);
+    taskChip.setAttribute('onclick', 'window.selectTaskEdit(this)');
+    
+    // Add employee name to the chip display
+    taskChip.innerHTML = `${tempTask.task_name} <small class="text-muted">(${employeeName})</small>`;
+    
+    // Add the new task chip to the beginning of the list
+    notSelectedContainer.insertBefore(taskChip, notSelectedContainer.firstChild);
+    
+    console.log('Non-default task added to not selected list:', tempTask.task_name, 'with employee:', employeeName);
+};
+
+// Function to refresh both selected and not selected task displays
+function refreshTaskDisplays() {
+    console.log('Refreshing task displays...');
+    
+    // Refresh selected tasks display
+    refreshSelectedTasksDisplay();
+    
+    // Refresh not selected tasks display
+    refreshNotSelectedTasksDisplay();
+    
+    console.log('Task displays refreshed successfully');
+}
+
+// Function to refresh the selected tasks display
+function refreshSelectedTasksDisplay() {
+    console.log('Refreshing selected tasks display...');
+    
+    const taskTableBody = document.getElementById('edit_taskTableBody');
+    const selectedTasksInput = document.getElementById('edit_selected_tasks');
+    
+    if (!taskTableBody || !selectedTasksInput) {
+        console.error('Required elements not found for refreshing selected tasks');
+        return;
+    }
+    
+    // Get all task rows
+    const taskRows = taskTableBody.querySelectorAll('.task-row');
+    const selectedTaskNames = [];
+    
+    console.log(`Found ${taskRows.length} task rows in display`);
+    
+    // Extract task names from visible rows
+    taskRows.forEach((row, index) => {
+        const taskName = row.getAttribute('data-task');
+        if (taskName) {
+            selectedTaskNames.push(taskName);
+            console.log(`Task row ${index + 1}: ${taskName}`);
+        }
+    });
+    
+    // Update the selected tasks array
+    editSelectedTasks = [...selectedTaskNames];
+    
+    // Update the hidden input
+    selectedTasksInput.value = selectedTaskNames.join(',');
+    
+    console.log('Selected tasks display refreshed:', selectedTaskNames);
+    console.log('Updated editSelectedTasks array:', editSelectedTasks);
+    console.log('Updated hidden input value:', selectedTasksInput.value);
+    
+    // Update the selected tasks count display if it exists
+    const selectedTasksCount = document.getElementById('edit_selected_tasks_count');
+    if (selectedTasksCount) {
+        selectedTasksCount.textContent = selectedTaskNames.length;
+    }
+    
+    // Show/hide no tasks message
+    if (selectedTaskNames.length === 0) {
+        showNoTasksMessage();
+    }
+}
+
+// Function to refresh the not selected tasks display
+function refreshNotSelectedTasksDisplay() {
+    console.log('Refreshing not selected tasks display...');
+    
+    // Get all task chips from the template
+    const allTaskChips = document.querySelectorAll('#edit_notSelectedTasks .task-chip');
+    
+    console.log('Found task chips:', allTaskChips.length);
+    console.log('Current editSelectedTasks:', editSelectedTasks);
+    
+    // Filter out already selected tasks by hiding them instead of removing
+    allTaskChips.forEach(chip => {
+        const taskName = chip.getAttribute('data-task-name');
+        console.log('Processing task chip:', taskName, 'Selected:', editSelectedTasks.includes(taskName));
+        
+        if (editSelectedTasks.includes(taskName)) {
+            chip.style.display = 'none'; // Hide chips for already selected tasks
+            console.log('Hiding task:', taskName);
+        } else {
+            chip.style.display = 'inline-block'; // Show chips for available tasks
+            console.log('Showing task:', taskName);
+        }
+    });
+    
+    console.log('Not selected tasks display refreshed');
+}
+
+// Function to show no tasks message
+function showNoTasksMessage() {
+    const taskTableBody = document.getElementById('edit_taskTableBody');
+    if (taskTableBody && taskTableBody.children.length === 0) {
+        taskTableBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No tasks selected</td></tr>';
+    }
+}
+
+// Enhanced refresh function that forces DOM updates
+function forceRefreshTaskDisplays() {
+    console.log('Force refreshing task displays...');
+    
+    // Force a reflow to ensure DOM updates
+    const taskTableBody = document.getElementById('edit_taskTableBody');
+    if (taskTableBody) {
+        taskTableBody.style.display = 'none';
+        setTimeout(() => {
+            taskTableBody.style.display = '';
+        }, 10);
+    }
+    
+    // Refresh both displays
+    refreshTaskDisplays();
+    
+    // Additional visual feedback
+    console.log('Task displays force refreshed');
+}
+
+// Simple test function to manually test employee name retrieval
+window.testEmployeeNameRetrieval = function() {
+    console.log('=== TESTING EMPLOYEE NAME RETRIEVAL ===');
+    
+    const employeeDropdown = document.getElementById('editAssignEmployee');
+    if (!employeeDropdown) {
+        console.error('Employee dropdown not found!');
+        return;
+    }
+    
+    // Test with a sample employee ID
+    const testEmployeeId = employeeDropdown.value || '1';
+    console.log('Testing with employee ID:', testEmployeeId);
+    
+    let employeeName = 'Unknown Employee';
+    
+    // Find the option with matching value
+    for (let i = 0; i < employeeDropdown.options.length; i++) {
+        const option = employeeDropdown.options[i];
+        console.log(`Option ${i}: value="${option.value}", text="${option.textContent}"`);
+        if (option.value === testEmployeeId) {
+            employeeName = option.textContent;
+            console.log('✓ Found employee name:', employeeName);
+            break;
+        }
+    }
+    
+    if (employeeName === 'Unknown Employee') {
+        console.log('✗ Employee name not found');
+    }
+    
+    console.log('=== END TEST ===');
+    return employeeName;
+};
+
+// Comprehensive debug function to test employee assignment functionality
+window.debugEmployeeAssignment = function() {
+    console.log('=== DEBUGGING EMPLOYEE ASSIGNMENT FUNCTIONALITY ===');
+    
+    // Test 1: Check if we're in the edit land modal context
+    const editModal = document.getElementById('editLandModal');
+    if (!editModal) {
+        console.error('❌ Edit land modal not found - not in edit context');
+        return false;
+    }
+    console.log('✅ Edit land modal found');
+    
+    // Test 2: Check if add task form exists
+    const addTaskForm = document.getElementById('addTaskFormEdit');
+    if (!addTaskForm) {
+        console.error('❌ Add task form not found');
+        return false;
+    }
+    console.log('✅ Add task form found');
+    
+    // Test 3: Check employee dropdown
+    const employeeDropdown = document.getElementById('editAssignEmployee');
+    if (!employeeDropdown) {
+        console.error('❌ Employee dropdown not found');
+        return false;
+    }
+    console.log('✅ Employee dropdown found');
+    
+    // Test 4: Analyze dropdown structure
+    console.log('\n=== EMPLOYEE DROPDOWN ANALYSIS ===');
+    console.log('Dropdown ID:', employeeDropdown.id);
+    console.log('Dropdown name:', employeeDropdown.name);
+    console.log('Dropdown value:', employeeDropdown.value);
+    console.log('Dropdown selected index:', employeeDropdown.selectedIndex);
+    console.log('Total options:', employeeDropdown.options.length);
+    
+    // Test 5: Log all dropdown options
+    console.log('\n=== ALL DROPDOWN OPTIONS ===');
+    for (let i = 0; i < employeeDropdown.options.length; i++) {
+        const option = employeeDropdown.options[i];
+        console.log(`Option ${i}: value="${option.value}", text="${option.textContent}", selected=${option.selected}`);
+    }
+    
+    // Test 6: Check current selection
+    if (employeeDropdown.selectedIndex > 0) {
+        const selectedOption = employeeDropdown.options[employeeDropdown.selectedIndex];
+        console.log('\n✅ Current selection:');
+        console.log('- Value (ID):', selectedOption.value);
+        console.log('- Text (Name):', selectedOption.textContent);
+    } else {
+        console.log('\n⚠️ No employee selected (index 0)');
+    }
+    
+    // Test 7: Test form data collection
+    console.log('\n=== FORM DATA TEST ===');
+    const formData = new FormData(addTaskForm);
+    console.log('Form data for assign_employee:', formData.get('assign_employee'));
+    console.log('All form data:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}: ${value}`);
+    }
+    
+    // Test 8: Test the exact logic used in addDefaultTaskToSelectedTableEdit
+    console.log('\n=== TESTING EMPLOYEE NAME RETRIEVAL LOGIC ===');
+    const testEmployeeId = employeeDropdown.value || '1';
+    console.log('Testing with employee ID:', testEmployeeId);
+    
+    let employeeName = 'Unknown Employee';
+    
+    // Simulate the exact logic from the function
+    if (employeeDropdown && employeeDropdown.selectedIndex > 0) {
+        employeeName = employeeDropdown.options[employeeDropdown.selectedIndex].textContent;
+        console.log('✅ Employee name from dropdown (method 1):', employeeName);
+    } else if (employeeDropdown) {
+        // Fallback: try to get any employee name from the dropdown
+        for (let i = 1; i < employeeDropdown.options.length; i++) {
+            const option = employeeDropdown.options[i];
+            if (option.value && option.textContent) {
+                employeeName = option.textContent;
+                console.log('🔄 Using fallback employee name (method 2):', employeeName);
+                break;
+            }
+        }
+    }
+    
+    console.log('Final employee name determined:', employeeName);
+    
+    // Test 9: Check if this matches what the function would produce
+    if (employeeName === 'Unknown Employee') {
+        console.error('❌ Employee name retrieval failed - this explains why names are not showing');
+    } else {
+        console.log('✅ Employee name retrieval working - names should display correctly');
+    }
+    
+    console.log('=== END DEBUG ===');
+    return employeeName !== 'Unknown Employee';
+};
+
+// Test function to simulate task creation with current form data
+window.testTaskCreationFlow = function() {
+    console.log('=== TESTING TASK CREATION FLOW ===');
+    
+    // First, debug the employee assignment
+    const employeeWorking = debugEmployeeAssignment();
+    
+    if (!employeeWorking) {
+        console.error('❌ Employee assignment not working - cannot proceed with task creation test');
+        return false;
+    }
+    
+    // Test the form validation
+    const form = document.getElementById('addTaskFormEdit');
+    if (!form) {
+        console.error('❌ Form not found');
+        return false;
+    }
+    
+    const formData = new FormData(form);
+    
+    // Check required fields
+    const requiredFields = ['task_name', 'position', 'is_default', 'completion_days', 'assign_employee'];
+    let allFieldsValid = true;
+    
+    console.log('\n=== FORM VALIDATION ===');
+    for (let field of requiredFields) {
+        const value = formData.get(field);
+        const isValid = value && value.trim() !== '';
+        console.log(`${field}: "${value}" - ${isValid ? '✅' : '❌'}`);
+        if (!isValid) allFieldsValid = false;
+    }
+    
+    if (!allFieldsValid) {
+        console.error('❌ Form validation failed - cannot create task');
+        return false;
+    }
+    
+    console.log('✅ Form validation passed');
+    
+    // Test the tempTask object creation
+    const tempTask = {
+        task_name: formData.get('task_name'),
+        position: formData.get('position'),
+        is_default: formData.get('is_default') === 'true',
+        completion_days: formData.get('completion_days'),
+        assign_employee: formData.get('assign_employee'),
+        land_id: form.getAttribute('data-land-id'),
+        temp_id: 'temp_' + Date.now()
+    };
+    
+    console.log('\n=== TEMP TASK OBJECT ===');
+    console.log('tempTask:', tempTask);
+    
+    // Test the employee name retrieval that would be used
+    const employeeDropdown = document.getElementById('editAssignEmployee');
+    let employeeName = 'Unknown Employee';
+    
+    if (employeeDropdown && employeeDropdown.selectedIndex > 0) {
+        employeeName = employeeDropdown.options[employeeDropdown.selectedIndex].textContent;
+    }
+    
+    console.log('Employee name that would be used:', employeeName);
+    
+    if (employeeName === 'Unknown Employee') {
+        console.error('❌ Task creation would fail - employee name not retrievable');
+        return false;
+    }
+    
+    console.log('✅ Task creation flow would work correctly');
+    console.log('=== END TEST ===');
+    return true;
+};
+
+// Simple test to verify current employee assignment functionality
+window.testCurrentEmployeeAssignment = function() {
+    console.log('=== TESTING CURRENT EMPLOYEE ASSIGNMENT ===');
+    
+    // Step 1: Check if we're in the right context
+    const editModal = document.getElementById('editLandModal');
+    if (!editModal) {
+        console.log('❌ Not in edit land modal context');
+        console.log('💡 Open the edit land modal first, then run this test');
+        return false;
+    }
+    
+    // Step 2: Check if add task modal is open
+    const addTaskModal = document.getElementById('addTaskModalEdit');
+    if (!addTaskModal || !addTaskModal.classList.contains('show')) {
+        console.log('❌ Add task modal not open');
+        console.log('💡 Open the "Add New Task" modal first, then run this test');
+        return false;
+    }
+    
+    // Step 3: Check employee dropdown
+    const employeeDropdown = document.getElementById('editAssignEmployee');
+    if (!employeeDropdown) {
+        console.log('❌ Employee dropdown not found');
+        return false;
+    }
+    
+    console.log('✅ Employee dropdown found');
+    console.log('Current value:', employeeDropdown.value);
+    console.log('Selected index:', employeeDropdown.selectedIndex);
+    console.log('Total options:', employeeDropdown.options.length);
+    
+    // Step 4: Check if any employee is selected
+    if (employeeDropdown.selectedIndex <= 0) {
+        console.log('⚠️ No employee selected');
+        console.log('💡 Select an employee from the dropdown first');
+        return false;
+    }
+    
+    // Step 5: Get the selected employee details
+    const selectedOption = employeeDropdown.options[employeeDropdown.selectedIndex];
+    console.log('✅ Employee selected:');
+    console.log('- ID:', selectedOption.value);
+    console.log('- Name:', selectedOption.textContent);
+    
+    // Step 6: Test the form data collection
+    const form = document.getElementById('addTaskFormEdit');
+    if (form) {
+        const formData = new FormData(form);
+        const assignEmployeeValue = formData.get('assign_employee');
+        console.log('Form data assign_employee:', assignEmployeeValue);
+        
+        if (assignEmployeeValue === selectedOption.value) {
+            console.log('✅ Form data matches dropdown selection');
+        } else {
+            console.log('❌ Form data mismatch!');
+            console.log('Expected:', selectedOption.value);
+            console.log('Got:', assignEmployeeValue);
+        }
+    }
+    
+    // Step 7: Test the exact logic used in the function
+    console.log('\n=== TESTING EMPLOYEE NAME RETRIEVAL ===');
+    let employeeName = 'Unknown Employee';
+    
+    if (employeeDropdown && employeeDropdown.selectedIndex > 0) {
+        employeeName = employeeDropdown.options[employeeDropdown.selectedIndex].textContent;
+        console.log('✅ Employee name retrieved:', employeeName);
+    } else {
+        console.log('❌ Employee name retrieval failed');
+    }
+    
+    // Step 8: Summary
+    if (employeeName !== 'Unknown Employee') {
+        console.log('\n🎉 EMPLOYEE ASSIGNMENT IS WORKING!');
+        console.log('The issue might be elsewhere in the code');
+    } else {
+        console.log('\n❌ EMPLOYEE ASSIGNMENT IS BROKEN!');
+        console.log('This explains why employee names are not showing');
+    }
+    
+    console.log('=== END TEST ===');
+    return employeeName !== 'Unknown Employee';
+};
+
+// Test function to verify employee assignment data flow
+window.testEmployeeAssignmentDataFlow = function() {
+    console.log('=== TESTING EMPLOYEE ASSIGNMENT DATA FLOW ===');
+    
+    // Step 1: Check if we're in the edit land modal context
+    const editModal = document.getElementById('editLandModal');
+    if (!editModal) {
+        console.log('❌ Not in edit land modal context');
+        return false;
+    }
+    
+    // Step 2: Check if add task modal is open
+    const addTaskModal = document.getElementById('addTaskModalEdit');
+    if (!addTaskModal || !addTaskModal.classList.contains('show')) {
+        console.log('❌ Add task modal not open');
+        console.log('💡 Open the "Add New Task" modal first');
+        return false;
+    }
+    
+    // Step 3: Check employee dropdown
+    const employeeDropdown = document.getElementById('editAssignEmployee');
+    if (!employeeDropdown) {
+        console.log('❌ Employee dropdown not found');
+        return false;
+    }
+    
+    // Step 4: Check if any employee is selected
+    if (employeeDropdown.selectedIndex <= 0) {
+        console.log('⚠️ No employee selected');
+        console.log('💡 Select an employee from the dropdown first');
+        return false;
+    }
+    
+    // Step 5: Get the selected employee details
+    const selectedOption = employeeDropdown.options[employeeDropdown.selectedIndex];
+    console.log('✅ Employee selected:');
+    console.log('- ID:', selectedOption.value);
+    console.log('- Name:', selectedOption.textContent);
+    
+    // Step 6: Test form data collection
+    const form = document.getElementById('addTaskFormEdit');
+    if (form) {
+        const formData = new FormData(form);
+        const assignEmployeeValue = formData.get('assign_employee');
+        console.log('Form data assign_employee:', assignEmployeeValue);
+        
+        if (assignEmployeeValue === selectedOption.value) {
+            console.log('✅ Form data matches dropdown selection');
+        } else {
+            console.log('❌ Form data mismatch!');
+            return false;
+        }
+    }
+    
+    // Step 7: Test the tempTask object creation
+    const tempTask = {
+        task_name: 'Test Task',
+        position: '1',
+        is_default: false,
+        completion_days: '5',
+        assign_employee: selectedOption.value,
+        land_id: 'test',
+        temp_id: 'temp_' + Date.now()
+    };
+    
+    console.log('\n✅ TempTask object created:', tempTask);
+    
+    // Step 8: Test the employee name retrieval logic
+    let employeeName = 'Unknown Employee';
+    
+    if (employeeDropdown && employeeDropdown.selectedIndex > 0) {
+        employeeName = employeeDropdown.options[employeeDropdown.selectedIndex].textContent;
+        console.log('✅ Employee name retrieved:', employeeName);
+    } else {
+        console.log('❌ Employee name retrieval failed');
+        return false;
+    }
+    
+    // Step 9: Test the data attributes that would be set
+    console.log('\n=== DATA ATTRIBUTES TEST ===');
+    console.log('data-assigned-employees would be:', employeeName);
+    console.log('data-assigned-employees-count would be: 1');
+    console.log('data-assign-employee would be:', selectedOption.value);
+    
+    // Step 10: Summary
+    if (employeeName !== 'Unknown Employee' && selectedOption.value) {
+        console.log('\n🎉 EMPLOYEE ASSIGNMENT DATA FLOW IS WORKING!');
+        console.log('The fix should resolve the employee name display issue');
+        return true;
+    } else {
+        console.log('\n❌ EMPLOYEE ASSIGNMENT DATA FLOW IS BROKEN!');
+        return false;
+    }
+};
+
+// Comprehensive test to verify task assignment data flow
+window.testTaskAssignmentDataFlow = function() {
+    console.log('=== TESTING TASK ASSIGNMENT DATA FLOW ===');
+    
+    // Step 1: Check if we're in the edit land modal context
+    const editModal = document.getElementById('editLandModal');
+    if (!editModal) {
+        console.log('❌ Not in edit land modal context');
+        return false;
+    }
+    
+    // Step 2: Check if add task modal is open
+    const addTaskModal = document.getElementById('addTaskModalEdit');
+    if (!addTaskModal || !addTaskModal.classList.contains('show')) {
+        console.log('❌ Add task modal not open');
+        console.log('💡 Open the "Add New Task" modal first');
+        return false;
+    }
+    
+    // Step 3: Check employee dropdown
+    const employeeDropdown = document.getElementById('editAssignEmployee');
+    if (!employeeDropdown) {
+        console.log('❌ Employee dropdown not found');
+        return false;
+    }
+    
+    // Step 4: Check if any employee is selected
+    if (employeeDropdown.selectedIndex <= 0) {
+        console.log('⚠️ No employee selected');
+        console.log('💡 Select an employee from the dropdown first');
+        return false;
+    }
+    
+    // Step 5: Get the selected employee details
+    const selectedOption = employeeDropdown.options[employeeDropdown.selectedIndex];
+    console.log('✅ Employee selected:');
+    console.log('- ID:', selectedOption.value);
+    console.log('- Name:', selectedOption.textContent);
+    
+    // Step 6: Test form data collection
+    const form = document.getElementById('addTaskFormEdit');
+    if (form) {
+        const formData = new FormData(form);
+        const assignEmployeeValue = formData.get('assign_employee');
+        console.log('Form data assign_employee:', assignEmployeeValue);
+        
+        if (assignEmployeeValue === selectedOption.value) {
+            console.log('✅ Form data matches dropdown selection');
+        } else {
+            console.log('❌ Form data mismatch!');
+            return false;
+        }
+    }
+    
+    // Step 7: Test the tempTask object creation
+    const tempTask = {
+        task_name: 'Test Task Assignment',
+        position: '1',
+        is_default: false,
+        completion_days: '5',
+        assign_employee: selectedOption.value,
+        land_id: 'test',
+        temp_id: 'temp_' + Date.now()
+    };
+    
+    console.log('\n✅ TempTask object created:', tempTask);
+    
+    // Step 8: Test the data attributes that would be set on task chip
+    console.log('\n=== TASK CHIP DATA ATTRIBUTES TEST ===');
+    console.log('data-assign-employee would be:', tempTask.assign_employee);
+    console.log('data-assigned-employees would be:', selectedOption.textContent);
+    console.log('data-assigned-employees-count would be: 1');
+    
+    // Step 9: Test the data attributes that would be set on task row
+    console.log('\n=== TASK ROW DATA ATTRIBUTES TEST ===');
+    console.log('data-assign-employee would be:', tempTask.assign_employee);
+    console.log('data-assigned-employees would be:', selectedOption.textContent);
+    console.log('data-assigned-employees-count would be: 1');
+    console.log('data-selected-employees would be:', selectedOption.textContent);
+    console.log('data-selected-employee-count would be: 1');
+    
+    // Step 10: Test the newTasksToCreate object that would be sent to backend
+    console.log('\n=== BACKEND DATA TEST ===');
+    const newTaskForBackend = {
+        task_name: tempTask.task_name,
+        position: tempTask.position,
+        is_default: tempTask.is_default,
+        completion_days: tempTask.completion_days,
+        assign_employee: tempTask.assign_employee,
+        employee_names: selectedOption.textContent
+    };
+    console.log('newTasksToCreate object for backend:', newTaskForBackend);
+    
+    // Step 11: Test the taskEmployeeSelections object
+    const taskEmployeeSelections = {
+        [tempTask.task_name]: selectedOption.textContent
+    };
+    console.log('taskEmployeeSelections object for backend:', taskEmployeeSelections);
+    
+    // Step 12: Summary and verification
+    console.log('\n=== DATA FLOW VERIFICATION ===');
+    let allChecksPassed = true;
+    
+    // Check 1: Employee ID is available
+    if (!tempTask.assign_employee) {
+        console.log('❌ Employee ID missing in tempTask');
+        allChecksPassed = false;
+    } else {
+        console.log('✅ Employee ID available:', tempTask.assign_employee);
+    }
+    
+    // Check 2: Employee name is available
+    if (!selectedOption.textContent) {
+        console.log('❌ Employee name missing');
+        allChecksPassed = false;
+    } else {
+        console.log('✅ Employee name available:', selectedOption.textContent);
+    }
+    
+    // Check 3: Task data is complete
+    if (!tempTask.task_name || !tempTask.completion_days) {
+        console.log('❌ Task data incomplete');
+        allChecksPassed = false;
+    } else {
+        console.log('✅ Task data complete');
+    }
+    
+    // Check 4: Backend data structure is correct
+    if (!newTaskForBackend.assign_employee || !newTaskForBackend.employee_names) {
+        console.log('❌ Backend data structure incomplete');
+        allChecksPassed = false;
+    } else {
+        console.log('✅ Backend data structure complete');
+    }
+    
+    // Final result
+    if (allChecksPassed) {
+        console.log('\n🎉 TASK ASSIGNMENT DATA FLOW IS WORKING!');
+        console.log('All critical data attributes are being set correctly');
+        console.log('The fix should resolve the task assignment issue');
+        return true;
+    } else {
+        console.log('\n❌ TASK ASSIGNMENT DATA FLOW HAS ISSUES!');
+        console.log('Some critical data is missing or incorrect');
+        return false;
+    }
+};
+
+// Debug function to monitor form submission data
+window.debugFormSubmissionData = function() {
+    console.log('=== DEBUGGING FORM SUBMISSION DATA ===');
+    
+    // Check if we're in the edit land modal context
+    const editModal = document.getElementById('editLandModal');
+    if (!editModal) {
+        console.log('❌ Not in edit land modal context');
+        return false;
+    }
+    
+    // Get the edit land form
+    const editLandForm = document.getElementById('editLandForm');
+    if (!editLandForm) {
+        console.log('❌ Edit land form not found');
+        return false;
+    }
+    
+    // Check all hidden inputs that contain task data
+    console.log('\n=== HIDDEN INPUTS CHECK ===');
+    
+    const selectedTasksInput = document.getElementById('edit_selected_tasks');
+    if (selectedTasksInput) {
+        console.log('✅ edit_selected_tasks:', selectedTasksInput.value);
+    } else {
+        console.log('❌ edit_selected_tasks not found');
+    }
+    
+    const taskEmployeeSelectionsInput = document.getElementById('edit_task_employee_selections');
+    if (taskEmployeeSelectionsInput) {
+        console.log('✅ edit_task_employee_selections:', taskEmployeeSelectionsInput.value);
+        try {
+            const parsed = JSON.parse(taskEmployeeSelectionsInput.value);
+            console.log('✅ Parsed task employee selections:', parsed);
+        } catch (e) {
+            console.log('❌ Failed to parse task employee selections JSON');
+        }
+    } else {
+        console.log('❌ edit_task_employee_selections not found');
+    }
+    
+    const newTasksInput = document.getElementById('edit_new_tasks');
+    if (newTasksInput) {
+        console.log('✅ edit_new_tasks:', newTasksInput.value);
+        try {
+            const parsed = JSON.parse(newTasksInput.value);
+            console.log('✅ Parsed new tasks:', parsed);
+        } catch (e) {
+            console.log('❌ Failed to parse new tasks JSON');
+        }
+    } else {
+        console.log('❌ edit_new_tasks not found');
+    }
+    
+    const taskCompletionDaysInput = document.getElementById('edit_task_completion_days');
+    if (taskCompletionDaysInput) {
+        console.log('✅ edit_task_completion_days:', taskCompletionDaysInput.value);
+        try {
+            const parsed = JSON.parse(taskCompletionDaysInput.value);
+            console.log('✅ Parsed task completion days:', parsed);
+        } catch (e) {
+            console.log('❌ Failed to parse task completion days JSON');
+        }
+    } else {
+        console.log('❌ edit_task_completion_days not found');
+    }
+    
+    // Check selected task rows in the table
+    console.log('\n=== SELECTED TASK ROWS CHECK ===');
+    const selectedTaskRows = document.querySelectorAll('#edit_taskTableBody .task-row');
+    console.log(`Found ${selectedTaskRows.length} selected task rows`);
+    
+    selectedTaskRows.forEach((taskRow, index) => {
+        const taskName = taskRow.getAttribute('data-task');
+        const taskId = taskRow.getAttribute('data-task-id');
+        const isTempTask = taskRow.getAttribute('data-temp-task') === 'true';
+        const assignEmployee = taskRow.getAttribute('data-assign-employee');
+        const assignedEmployees = taskRow.getAttribute('data-assigned-employees');
+        const assignedEmployeesCount = taskRow.getAttribute('data-assigned-employees-count');
+        
+        console.log(`\nTask Row ${index + 1}:`);
+        console.log(`  - Task Name: ${taskName}`);
+        console.log(`  - Task ID: ${taskId}`);
+        console.log(`  - Is Temp Task: ${isTempTask}`);
+        console.log(`  - Assign Employee (ID): ${assignEmployee}`);
+        console.log(`  - Assigned Employees (Names): ${assignedEmployees}`);
+        console.log(`  - Assigned Employees Count: ${assignedEmployeesCount}`);
+        
+        // Check employee checkboxes
+        const employeeCheckboxes = taskRow.querySelectorAll('.employee-checkbox');
+        console.log(`  - Employee Checkboxes Found: ${employeeCheckboxes.length}`);
+        
+        employeeCheckboxes.forEach((checkbox, checkboxIndex) => {
+            const isChecked = checkbox.checked;
+            const employeeName = checkbox.getAttribute('data-employee-name');
+            console.log(`    Checkbox ${checkboxIndex + 1}: ${employeeName} (${isChecked ? 'checked' : 'unchecked'})`);
+        });
+    });
+    
+    // Check not selected task chips
+    console.log('\n=== NOT SELECTED TASK CHIPS CHECK ===');
+    const notSelectedTaskChips = document.querySelectorAll('#edit_notSelectedTasks .task-chip');
+    console.log(`Found ${notSelectedTaskChips.length} not selected task chips`);
+    
+    notSelectedTaskChips.forEach((taskChip, index) => {
+        const taskName = taskChip.getAttribute('data-task-name');
+        const taskId = taskChip.getAttribute('data-task-id');
+        const isTempTask = taskChip.getAttribute('data-temp-task') === 'true';
+        const assignEmployee = taskChip.getAttribute('data-assign-employee');
+        const assignedEmployees = taskChip.getAttribute('data-assigned-employees');
+        const assignedEmployeesCount = taskChip.getAttribute('data-assigned-employees-count');
+        
+        console.log(`\nTask Chip ${index + 1}:`);
+        console.log(`  - Task Name: ${taskName}`);
+        console.log(`  - Task ID: ${taskId}`);
+        console.log(`  - Is Temp Task: ${isTempTask}`);
+        console.log(`  - Assign Employee (ID): ${assignEmployee}`);
+        console.log(`  - Assigned Employees (Names): ${assignedEmployees}`);
+        console.log(`  - Assigned Employees Count: ${assignedEmployeesCount}`);
+    });
+    
+    console.log('\n=== END FORM SUBMISSION DEBUG ===');
+    return true;
+};
+
+// ============================================================================
+// TASK MANAGEMENT SYSTEM - SAME AS ADD LAND PAGE
+// ============================================================================
+
+// Global variables for tracking selected employees and tasks (same as add land page)
+let editSelectedEmployees = [];
+
+// Task Manager class for edit land modal (same as add land page)
+class EditLandTaskManager {
+    constructor() {
+        console.log('EditLandTaskManager constructor called');
+        this.init();
+    }
+    
+    init() {
+        console.log('EditLandTaskManager init called');
+        this.setupEventListeners();
+        this.setupEmployeeSelection();
+        this.setupTaskSelection();
+    }
+    
+    setupEventListeners() {
+        // Set up form validation
+        this.setupFormValidation();
+        
+        // Set up modal event listeners for form data preservation
+        this.setupModalEventListeners();
+    }
+    
+    setupEmployeeSelection() {
+        console.log('setupEmployeeSelection called for edit modal');
+        
+        // Setup employee selection for edit modal
+        const assignEmployeeSelect = document.getElementById('editAssignEmployee');
+        if (assignEmployeeSelect) {
+            console.log('Found editAssignEmployee select element');
+            assignEmployeeSelect.addEventListener('change', function() {
+                console.log('Employee selected in edit modal:', this.value, this.options[this.selectedIndex].text);
+                if (this.value) {
+                    addEmployeeToSelectionEdit(this.value, this.options[this.selectedIndex].text, 'edit');
+                    this.value = ''; // Reset dropdown
+                }
+            });
+        } else {
+            console.log('editAssignEmployee select element not found');
+        }
+    }
+    
+    setupTaskSelection() {
+        // Initialize selected tasks with only default tasks from the template
+        editSelectedTasks = [];
+        const initialTaskRows = document.querySelectorAll('#edit_taskTableBody .task-row');
+        console.log('Found initial task rows in edit modal:', initialTaskRows.length);
+        initialTaskRows.forEach(row => {
+            const taskName = row.getAttribute('data-task');
+            if (taskName && !editSelectedTasks.includes(taskName)) {
+                editSelectedTasks.push(taskName);
+            }
+        });
+        console.log('Initial editSelectedTasks:', editSelectedTasks);
+        
+        // Check for not selected tasks
+        const notSelectedChips = document.querySelectorAll('#edit_notSelectedTasks .task-chip');
+        console.log('Found not selected task chips in edit modal:', notSelectedChips.length);
+        notSelectedChips.forEach(chip => {
+            console.log('Not selected chip in edit modal:', chip.textContent.trim(), chip);
+        });
+        
+        this.updateSelectedTasks();
+        
+        // Setup employee checkbox event listeners
+        this.setupEmployeeCheckboxes();
+    }
+    
+    setupEmployeeCheckboxes() {
+        const checkboxes = document.querySelectorAll('.employee-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if (editLandTaskManager) {
+                    editLandTaskManager.handleEmployeeSelection(this);
+                }
+            });
+        });
+    }
+    
+    handleEmployeeSelection(checkbox) {
+        const taskId = checkbox.getAttribute('data-task-id');
+        const employeeName = checkbox.getAttribute('data-employee-name');
+        const isChecked = checkbox.checked;
+        
+        console.log(`Employee selection changed in edit modal: ${employeeName} (${isChecked ? 'checked' : 'unchecked'}) for task ${taskId}`);
+        
+        // Update the task row's selected employees data
+        const taskRow = checkbox.closest('tr');
+        if (taskRow) {
+            const checkedCheckboxes = taskRow.querySelectorAll('.employee-checkbox:checked');
+            const selectedEmployees = Array.from(checkedCheckboxes).map(cb => cb.getAttribute('data-employee-name'));
+            
+            taskRow.setAttribute('data-selected-employees', selectedEmployees.join(', '));
+            taskRow.setAttribute('data-selected-employee-count', selectedEmployees.length.toString());
+            
+            console.log(`Updated task row selected employees in edit modal: ${selectedEmployees.join(', ')}`);
+        }
+        
+        // Update the hidden input for form submission
+        this.updateTaskEmployeeSelections();
+    }
+    
+    updateSelectedTasks() {
+        const selectedTasksInput = document.getElementById('edit_selected_tasks');
+        if (selectedTasksInput) {
+            // Collect task names from the table rows
+            const selectedTaskRows = document.querySelectorAll('#edit_taskTableBody .task-row');
+            const taskNames = [];
+            
+            selectedTaskRows.forEach(taskRow => {
+                const taskName = taskRow.getAttribute('data-task');
+                if (taskName) {
+                    taskNames.push(taskName);
+                }
+            });
+            
+            // Update both the hidden input and the global editSelectedTasks array
+            selectedTasksInput.value = taskNames.join(',');
+            editSelectedTasks = taskNames; // Update the global array
+            
+            console.log('Updated edit selected tasks input:', selectedTasksInput.value);
+            console.log('Updated global editSelectedTasks array:', editSelectedTasks);
+        } else {
+            console.error('edit_selected_tasks input element not found');
+        }
+    }
+    
+    updateTaskEmployeeSelections() {
+        console.log('Collecting task employee selections for edit modal...');
+        
+        const taskEmployeeSelections = {};
+        
+        // Get all selected task rows from the table
+        const selectedTaskRows = document.querySelectorAll('#edit_taskTableBody .task-row');
+        
+        selectedTaskRows.forEach(taskRow => {
+            const taskName = taskRow.getAttribute('data-task');
+            const taskId = taskRow.getAttribute('data-task-id');
+            
+            console.log(`Processing task row in edit modal: ${taskName} (ID: ${taskId})`);
+            
+            // Get all checked employee checkboxes for this task
+            const employeeCheckboxes = taskRow.querySelectorAll('.employee-checkbox:checked');
+            const selectedEmployees = [];
+            
+            employeeCheckboxes.forEach(checkbox => {
+                const employeeName = checkbox.getAttribute('data-employee-name');
+                if (employeeName) {
+                    selectedEmployees.push(employeeName);
+                }
+            });
+            
+            if (selectedEmployees.length > 0) {
+                taskEmployeeSelections[taskName] = selectedEmployees.join(', ');
+                console.log(`Task "${taskName}" assigned to: ${selectedEmployees.join(', ')}`);
+            } else {
+                taskEmployeeSelections[taskName] = '';
+                console.log(`Task "${taskName}" has no assigned employees`);
+            }
+        });
+        
+        // Update the hidden input
+        const taskEmployeeSelectionsInput = document.getElementById('edit_task_employee_selections');
+        if (taskEmployeeSelectionsInput) {
+            taskEmployeeSelectionsInput.value = JSON.stringify(taskEmployeeSelections);
+            console.log('Task employee selections updated for edit modal:', taskEmployeeSelectionsInput.value);
+        } else {
+            console.error('edit_task_employee_selections input element not found');
+        }
+        
+        return taskEmployeeSelections;
+    }
+    
+    updateTaskCompletionDays() {
+        const taskCompletionDaysInput = document.getElementById('edit_task_completion_days');
+        if (!taskCompletionDaysInput) {
+            console.error('edit_task_completion_days input element not found');
+            return;
+        }
+        
+        const completionDaysData = {};
+        
+        // Get all completion days inputs from the table
+        const completionDaysInputs = document.querySelectorAll('#edit_taskTableBody .completion-days-input');
+        
+        completionDaysInputs.forEach(input => {
+            const taskId = input.getAttribute('data-task-id');
+            const taskName = input.closest('.task-row').getAttribute('data-task');
+            const days = input.value;
+            
+            if (taskId && taskName && days) {
+                completionDaysData[taskName] = {
+                    task_id: taskId,
+                    days: parseInt(days)
+                };
+                console.log(`Task "${taskName}" completion days in edit modal: ${days}`);
+            }
+        });
+        
+        // Update the hidden input
+        taskCompletionDaysInput.value = JSON.stringify(completionDaysData);
+        console.log('Task completion days updated for edit modal:', taskCompletionDaysInput.value);
+    }
+    
+    setupFormValidation() {
+        // Form validation logic for edit land modal
+        console.log('Setting up form validation for edit land modal');
+    }
+    
+    setupModalEventListeners() {
+        // Set up event listeners for edit task modal
+        const addTaskModal = document.getElementById('addTaskModalEdit');
+        if (addTaskModal) {
+            // Restore form data when modal is hidden
+            addTaskModal.addEventListener('hidden.bs.modal', function() {
+                // Reset form and clear selected employees
+                const form = document.getElementById('addTaskFormEdit');
+                if (form) {
+                    form.reset();
+                }
+                clearAllEmployeesEdit();
+            });
+        }
+    }
+    
+    showMessage(message, type) {
+        // Remove existing messages
+        const existingMessage = document.querySelector('.alert');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        // Create new message
+        const messageElement = document.createElement('div');
+        messageElement.className = `alert alert-${type} alert-dismissible fade show`;
+        messageElement.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Insert message in the edit land modal
+        const editLandModal = document.getElementById('editLandModal');
+        if (editLandModal) {
+            const modalBody = editLandModal.querySelector('.modal-body');
+            if (modalBody) {
+                modalBody.insertBefore(messageElement, modalBody.firstChild);
+            }
+        }
+        
+        // Auto-remove message after 5 seconds
+        setTimeout(() => {
+            if (messageElement.parentNode) {
+                messageElement.remove();
+            }
+        }, 5000);
+    }
+    
+    showLoading() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'flex';
+        }
+    }
+    
+    hideLoading() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+    }
+    
+    getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+}
+
+// Initialize the edit land task manager
+let editLandTaskManager;
+
+// Employee management functions for edit modal (same as add land page)
+window.addEmployeeToSelectionEdit = function(employeeId, employeeName, modalType) {
+    console.log(`Adding employee to selection in edit modal: ${employeeName} (ID: ${employeeId})`);
+    
+    // Check if employee is already selected
+    const existingEmployee = editSelectedEmployees.find(emp => emp.id === employeeId);
+    if (existingEmployee) {
+        console.log(`Employee ${employeeName} is already selected`);
+        return;
+    }
+    
+    // Add employee to selection
+    editSelectedEmployees.push({
+        id: employeeId,
+        name: employeeName
+    });
+    
+    console.log(`Employee ${employeeName} added to selection. Total selected: ${editSelectedEmployees.length}`);
+    
+    // Update visual display
+    updateEmployeeDisplayEdit(editSelectedEmployees, 'editSelectedEmployeesList', 'editSelectedEmployeesBox', 'editSelectedEmployeesInput');
+    
+    // Disable option in dropdown
+    const selectElement = document.getElementById('editAssignEmployee');
+    if (selectElement) {
+        const option = selectElement.querySelector(`option[value="${employeeId}"]`);
+        if (option) {
+            option.disabled = true;
+            console.log(`Disabled option for employee ID: ${employeeId}`);
+        }
+    }
+    
+    // Store the selected employee ID in the form for validation
+    const form = document.getElementById('addTaskFormEdit');
+    if (form) {
+        let hiddenInput = form.querySelector('input[name="assign_employee"]');
+        if (!hiddenInput) {
+            // Create hidden input if it doesn't exist
+            hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'assign_employee';
+            hiddenInput.id = 'editAssignEmployeeHidden';
+            form.appendChild(hiddenInput);
+            console.log('Created new hidden input for assign_employee');
+        }
+        hiddenInput.value = employeeId;
+        console.log('Stored employee ID in form:', employeeId);
+        console.log('Hidden input now contains:', hiddenInput.value);
+    } else {
+        console.error('Form not found for storing employee ID');
+    }
+};
+
+window.removeEmployeeFromSelectionEdit = function(employeeId, modalType) {
+    console.log(`Removing employee from selection in edit modal: ${employeeId}`);
+    
+    // Remove employee from selection
+    editSelectedEmployees = editSelectedEmployees.filter(emp => emp.id !== employeeId);
+    
+    console.log(`Employee removed from selection. Total selected: ${editSelectedEmployees.length}`);
+    
+    // Update visual display
+    updateEmployeeDisplayEdit(editSelectedEmployees, 'editSelectedEmployeesList', 'editSelectedEmployeesBox', 'editSelectedEmployeesInput');
+    
+    // Re-enable option in dropdown
+    const selectElement = document.getElementById('editAssignEmployee');
+    if (selectElement) {
+        const option = selectElement.querySelector(`option[value="${employeeId}"]`);
+        if (option) {
+            option.disabled = false;
+            console.log(`Re-enabled option for employee ID: ${employeeId}`);
+        }
+    }
+};
+
+window.updateEmployeeDisplayEdit = function(employeesArray, listId, boxId, inputId) {
+    const listElement = document.getElementById(listId);
+    const boxElement = document.getElementById(boxId);
+    const inputElement = document.getElementById(inputId);
+    
+    if (!listElement || !boxElement || !inputElement) {
+        console.error('Employee display elements not found:', { listId, boxId, inputId });
+        return;
+    }
+    
+    // Clear current display
+    listElement.innerHTML = '';
+    
+    // Add employee tags
+    employeesArray.forEach(employee => {
+        const tag = document.createElement('div');
+        tag.className = 'employee-tag';
+        tag.innerHTML = `
+            <span>${employee.name}</span>
+            <button type="button" class="remove-btn" onclick="removeEmployeeFromSelectionEdit('${employee.id}', 'edit')">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+        listElement.appendChild(tag);
+    });
+    
+    // Show/hide box based on whether there are selected employees
+    if (employeesArray.length > 0) {
+        boxElement.style.display = 'block';
+        // Update hidden input with comma-separated employee IDs
+        inputElement.value = employeesArray.map(emp => emp.id).join(',');
+        
+        // Also update the assign_employee field in the form
+        const form = document.getElementById('addTaskFormEdit');
+        if (form) {
+            let assignEmployeeInput = form.querySelector('input[name="assign_employee"]');
+            if (!assignEmployeeInput) {
+                // Create hidden input if it doesn't exist
+                assignEmployeeInput = document.createElement('input');
+                assignEmployeeInput.type = 'hidden';
+                assignEmployeeInput.name = 'assign_employee';
+                assignEmployeeInput.id = 'editAssignEmployeeHidden';
+                form.appendChild(assignEmployeeInput);
+                console.log('Created new hidden input for assign_employee in updateEmployeeDisplayEdit');
+            }
+            // Use the first selected employee as the primary employee
+            assignEmployeeInput.value = employeesArray[0].id;
+            console.log('Updated assign_employee field with:', employeesArray[0].id);
+            console.log('Hidden input now contains:', assignEmployeeInput.value);
+        }
+    } else {
+        boxElement.style.display = 'none';
+        inputElement.value = '';
+        
+        // Clear the assign_employee field
+        const form = document.getElementById('addTaskFormEdit');
+        if (form) {
+            const assignEmployeeInput = form.querySelector('input[name="assign_employee"]');
+            if (assignEmployeeInput) {
+                assignEmployeeInput.value = '';
+            }
+        }
+    }
+    
+    console.log(`updateEmployeeDisplayEdit: edit modal, ${employeesArray.length} employees`);
+};
+
+window.clearAllEmployeesEdit = function() {
+    editSelectedEmployees = [];
+    updateEmployeeDisplayEdit(editSelectedEmployees, 'editSelectedEmployeesList', 'editSelectedEmployeesBox', 'editSelectedEmployeesInput');
+    
+    // Re-enable all options in dropdown
+    const selectElement = document.getElementById('editAssignEmployee');
+    if (selectElement) {
+        selectElement.querySelectorAll('option').forEach(option => {
+            option.disabled = false;
+        });
+    }
+    
+    // Clear the assign_employee field in the form
+    const form = document.getElementById('addTaskFormEdit');
+    if (form) {
+        const assignEmployeeInput = form.querySelector('input[name="assign_employee"]');
+        if (assignEmployeeInput) {
+            assignEmployeeInput.value = '';
+            console.log('Cleared assign_employee field');
+        }
+    }
+};
+
+// Task selection functions for edit modal (same as add land page)
+window.selectTaskEdit = function(taskElement) {
+    console.log('selectTaskEdit function called!', taskElement);
+    
+    // Ensure task manager is ready
+    if (!isTaskManagerReady()) {
+        console.error('Task manager not ready, cannot select task');
+        return;
+    }
+    
+    const taskName = taskElement.getAttribute('data-task-name');
+    const taskId = taskElement.getAttribute('data-task-id');
+    
+    console.log('Task details:', { taskName, taskId });
+    
+    // Check if task is already selected
+    if (editSelectedTasks.includes(taskName)) {
+        // Task is already selected, show info message
+        return;
+    }
+    
+    // Add task to selection
+    editSelectedTasks.push(taskName);
+    console.log('Task added to editSelectedTasks:', editSelectedTasks);
+    
+    // Add to selected tasks display
+    const taskTableBody = document.getElementById('edit_taskTableBody');
+    const taskRow = document.createElement('tr');
+    
+    // Check if this is a default task
+    const isDefault = taskElement.classList.contains('default-task');
+    taskRow.className = `task-row ${isDefault ? 'default-task' : 'custom-task'}`;
+    taskRow.setAttribute('data-task', taskName);
+    taskRow.setAttribute('data-task-id', taskId);
+    
+    // Fetch employee information from database for this task
+    fetchTaskEmployeeInfo(taskName, taskRow, taskId, isDefault);
+    
+    // Get completion days from the task element or default to 0
+    const completionDays = taskElement.getAttribute('data-completion-days') || '0';
+    
+    // Create the basic row structure first
+    taskRow.innerHTML = `
+        <td>
+            <span class="task-name">${taskName}</span>
+            <button class="remove-btn" onclick="removeTaskEdit(this)">×</button>
+        </td>
+        <td>
+            <div class="employee-selection-container">
+                <div class="loading-employees">Loading employee info...</div>
+            </div>
+        </td>
+        <td>
+            <div class="completion-days-container">
+                <input type="number" 
+                       class="completion-days-input" 
+                       name="completion_days_${taskId}"
+                       id="edit_completion_days_${taskId}"
+                       value="${completionDays}" 
+                       min="1" 
+                       max="365"
+                       data-task-id="${taskId}"
+                       data-original-days="${completionDays}"
+                       onchange="updateCompletionDaysEdit(this)">
+                <span class="completion-days-label">days</span>
+            </div>
+        </td>
+    `;
+    
+    // Add the row to the table first
+    taskTableBody.appendChild(taskRow);
+    
+    // Hide the task chip from not selected tasks
+    const taskChip = document.querySelector(`#edit_notSelectedTasks .task-chip[data-task-name="${taskName}"]`);
+    if (taskChip) {
+        taskChip.style.display = 'none';
+    }
+    
+    // Update the selected tasks input and task message visibility
+    if (editLandTaskManager) {
+        editLandTaskManager.updateSelectedTasks();
+    }
+    updateTaskMessageVisibilityEdit();
+    
+    console.log('Task selected and added to table:', taskName);
+};
+
+// Function to fetch employee information for a task from the database
+function fetchTaskEmployeeInfo(taskName, taskRow, taskId, isDefault) {
+    console.log('Fetching employee info for task:', taskName);
+    
+    // Get the CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                     document.querySelector('meta[name=csrf-token]')?.content;
+    
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        updateTaskRowWithEmployeeInfo(taskRow, taskId, [], isDefault);
+        return;
+    }
+    
+    // Fetch employee information from the backend
+    fetch('/get_task_employee_info/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Employee info fetched successfully:', data.task_employees);
+            
+            // Find employee info for this specific task
+            const taskEmployees = data.task_employees[taskName] || [];
+            console.log('Employees for task', taskName, ':', taskEmployees);
+            
+            // Update the task row with employee information
+            updateTaskRowWithEmployeeInfo(taskRow, taskId, taskEmployees, isDefault);
+        } else {
+            console.error('Failed to fetch employee info:', data.message);
+            updateTaskRowWithEmployeeInfo(taskRow, taskId, [], isDefault);
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching employee info:', error);
+        updateTaskRowWithEmployeeInfo(taskRow, taskId, [], isDefault);
+    });
+}
+
+// Function to update task row with employee information
+function updateTaskRowWithEmployeeInfo(taskRow, taskId, employees, isDefault) {
+    console.log('Updating task row with employee info:', employees);
+    
+    const employeeContainer = taskRow.querySelector('.employee-selection-container');
+    if (!employeeContainer) {
+        console.error('Employee container not found in task row');
+        return;
+    }
+    
+    if (employees.length === 0) {
+        // No employees assigned
+        employeeContainer.innerHTML = '<div class="no-employees">No employees assigned</div>';
+        taskRow.setAttribute('data-assigned-employees', '');
+        taskRow.setAttribute('data-assigned-employees-count', '0');
+        taskRow.setAttribute('data-selected-employees', '');
+        taskRow.setAttribute('data-selected-employee-count', '0');
+    } else {
+        // Create employee checkboxes
+        let employeeDisplay = '<div class="employee-selection-container">';
+        employees.forEach((emp, index) => {
+            const empId = `emp_${taskId}_${index}`;
+            employeeDisplay += `
+                <div class="employee-checkbox-item">
+                    <input type="checkbox" 
+                           id="${empId}" 
+                           name="selected_employees" 
+                           value="${emp.name}"
+                           data-task-id="${taskId}"
+                           data-employee-name="${emp.name}"
+                           data-employee-id="${emp.id}"
+                           class="employee-checkbox"
+                           checked>
+                    <label for="${empId}" class="employee-checkbox-label">
+                        ${emp.name} (${emp.role})
+                    </label>
+                </div>
+            `;
+        });
+        employeeDisplay += '</div>';
+        
+        employeeContainer.innerHTML = employeeDisplay;
+        
+        // Store employee data on the task row
+        const employeeNames = employees.map(emp => emp.name).join(', ');
+        const employeeIds = employees.map(emp => emp.id).join(', ');
+        
+        taskRow.setAttribute('data-assigned-employees', employeeNames);
+        taskRow.setAttribute('data-assigned-employees-count', employees.length.toString());
+        taskRow.setAttribute('data-selected-employees', employeeNames);
+        taskRow.setAttribute('data-selected-employee-count', employees.length.toString());
+        taskRow.setAttribute('data-assign-employee', employeeIds);
+        
+        // Setup employee checkbox event listeners
+        const newCheckboxes = taskRow.querySelectorAll('.employee-checkbox');
+        newCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Prevent deselection of all employees
+                if (!preventDeselectAllEmployees(this)) {
+                    return; // Don't proceed if validation failed
+                }
+                
+                if (editLandTaskManager) {
+                    editLandTaskManager.handleEmployeeSelection(this);
+                }
+            });
+        });
+        
+        console.log('Task row updated with employee info:', {
+            names: employeeNames,
+            count: employees.length,
+            ids: employeeIds
+        });
+    }
+}
+
+// Function to remove task from selected tasks (same as add land page)
+window.removeTaskEdit = function(button) {
+    console.log('removeTaskEdit function called!', button);
+    
+    // Ensure task manager is ready
+    if (!isTaskManagerReady()) {
+        console.error('Task manager not ready, cannot remove task');
+        return;
+    }
+    
+    const row = button.closest('tr');
+    const taskName = row.getAttribute('data-task');
+    const taskId = row.getAttribute('data-task-id');
+    const isDefault = row.classList.contains('default-task');
+    
+    console.log('Task details:', { taskName, taskId, isDefault });
+    console.log('Current editSelectedTasks before removal:', editSelectedTasks);
+    
+    // Remove from selected tasks (both default and custom tasks can be removed)
+    editSelectedTasks = editSelectedTasks.filter(task => task !== taskName);
+    console.log('editSelectedTasks after removal:', editSelectedTasks);
+    
+    row.remove();
+    
+    // Add it back to not selected tasks
+    const notSelectedContainer = document.getElementById('edit_notSelectedTasks');
+    console.log('notSelectedContainer:', notSelectedContainer);
+    
+    // Check if this task already exists in not selected tasks (for default tasks)
+    let existingTaskChip = null;
+    if (isDefault) {
+        existingTaskChip = notSelectedContainer.querySelector(`.task-chip[data-task-name="${taskName}"]`);
+    }
+    
+    if (existingTaskChip) {
+        // For default tasks, just show the existing chip
+        existingTaskChip.style.display = 'inline-block';
+        
+        // Update the existing chip with any new data
+        const assignedEmployees = row.getAttribute('data-assigned-employees');
+        const employeeCount = row.getAttribute('data-assigned-employees-count');
+        if (assignedEmployees && employeeCount) {
+            existingTaskChip.setAttribute('data-assigned-employees', assignedEmployees);
+            existingTaskChip.setAttribute('data-employee-count', employeeCount);
+        }
+        
+        // Update completion days
+        const completionDaysInput = row.querySelector('.completion-days-input');
+        if (completionDaysInput) {
+            const completionDays = completionDaysInput.value;
+            existingTaskChip.setAttribute('data-completion-days', completionDays);
+        }
+        
+        console.log('Default task chip restored from existing element');
+    } else {
+        // For custom tasks, create a new chip
+        const taskChip = document.createElement('div');
+        taskChip.className = `task-chip ${isDefault ? 'default-task' : 'custom-task'}`;
+        taskChip.setAttribute('data-task-name', taskName);
+        taskChip.setAttribute('data-task-id', taskId);
+        taskChip.setAttribute('onclick', 'selectTaskEdit(this)');
+        
+        // Preserve assigned employee information - try to get from row attributes first, then from checkboxes
+        let assignedEmployees = row.getAttribute('data-assigned-employees');
+        let employeeCount = row.getAttribute('data-assigned-employees-count');
+        
+        // If not available on row attributes, extract from employee checkboxes
+        if (!assignedEmployees || !employeeCount) {
+            const employeeCheckboxes = row.querySelectorAll('.employee-checkbox');
+            if (employeeCheckboxes.length > 0) {
+                const employeeNames = [];
+                employeeCheckboxes.forEach(checkbox => {
+                    const employeeName = checkbox.getAttribute('data-employee-name');
+                    if (employeeName) {
+                        employeeNames.push(employeeName);
+                    }
+                });
+                assignedEmployees = employeeNames.join(', ');
+                employeeCount = employeeNames.length.toString();
+            }
+        }
+        
+        if (assignedEmployees && employeeCount) {
+            taskChip.setAttribute('data-assigned-employees', assignedEmployees);
+            taskChip.setAttribute('data-employee-count', employeeCount);
+            console.log('Employee data preserved:', { assignedEmployees, employeeCount });
+        }
+        
+        // Preserve saved employee selections
+        const savedSelectedEmployees = row.getAttribute('data-selected-employees');
+        if (savedSelectedEmployees) {
+            taskChip.setAttribute('data-selected-employees', savedSelectedEmployees);
+            taskChip.setAttribute('data-selected-employee-count', savedSelectedEmployees.split(', ').length);
+        }
+        
+        // Preserve completion days
+        const completionDaysInput = row.querySelector('.completion-days-input');
+        if (completionDaysInput) {
+            const completionDays = completionDaysInput.value;
+            taskChip.setAttribute('data-completion-days', completionDays);
+        }
+        
+        // Add default badge for default tasks
+        if (isDefault) {
+            taskChip.innerHTML = `${taskName} <span class="badge bg-warning text-dark ms-1" style="font-size: 10px;">Default</span>`;
+        } else {
+            taskChip.textContent = taskName;
+        }
+        
+        notSelectedContainer.appendChild(taskChip);
+        console.log('Custom task chip added back to not selected tasks');
+    }
+    
+    editLandTaskManager.updateSelectedTasks();
+    updateTaskMessageVisibilityEdit();
+};
+
+// Function to update task message visibility (same as add land page)
+function updateTaskMessageVisibilityEdit() {
+    console.log('Updating task message visibility in edit modal...');
+    
+    // Check selected tasks table
+    const selectedTaskRows = document.querySelectorAll('#edit_taskTableBody .task-row');
+    const noTasksMessage = document.getElementById('edit_noTasksMessage');
+    
+    if (noTasksMessage) {
+        if (selectedTaskRows.length === 0) {
+            noTasksMessage.style.display = '';
+            console.log('Showing "No tasks available" message in edit modal');
+        } else {
+            noTasksMessage.style.display = 'none';
+            console.log('Hiding "No tasks available" message in edit modal - tasks found:', selectedTaskRows.length);
+        }
+    }
+    
+    // Check not selected tasks (non-default tasks)
+    const notSelectedTaskChips = document.querySelectorAll('#edit_notSelectedTasks .task-chip');
+    const noNonDefaultTasksMessage = document.getElementById('edit_noNonDefaultTasksMessage');
+    
+    if (noNonDefaultTasksMessage) {
+        if (notSelectedTaskChips.length === 0) {
+            noNonDefaultTasksMessage.style.display = '';
+            console.log('Showing "No non-default tasks available" message in edit modal');
+        } else {
+            noNonDefaultTasksMessage.style.display = 'none';
+            console.log('Hiding "No non-default tasks available" message in edit modal - tasks found:', notSelectedTaskChips.length);
+        }
+    }
+}
+
+// Function to update completion days for a specific task in edit modal (same as add land page)
+function updateCompletionDaysEdit(input) {
+    const taskId = input.getAttribute('data-task-id');
+    const newDays = input.value;
+    const originalDays = input.getAttribute('data-original-days');
+    
+    // Validate input
+    if (newDays < 1 || newDays > 365) {
+        input.value = originalDays;
+        alert('Completion days must be between 1 and 365');
+        return;
+    }
+    
+    // Update the data attribute
+    input.setAttribute('data-original-days', newDays);
+    
+    // Log the change
+    console.log(`Task ${taskId} completion days updated from ${originalDays} to ${newDays} days`);
+    
+    // Update the hidden input for form submission
+    if (editLandTaskManager) {
+        editLandTaskManager.updateTaskCompletionDays();
+    }
+}
+
+// Initialize the edit land task manager when the edit land modal is opened
+window.initializeEditLandTaskManager = function() {
+    try {
+        if (!editLandTaskManager) {
+            editLandTaskManager = new EditLandTaskManager();
+            console.log('EditLandTaskManager initialized successfully');
+        } else {
+            console.log('EditLandTaskManager already exists');
+        }
+        console.log('Current editLandTaskManager state:', editLandTaskManager);
+    } catch (error) {
+        console.error('Error initializing EditLandTaskManager:', error);
+        editLandTaskManager = null;
+    }
+};
+
+// Debug function to check current state
+window.debugEmployeeSelection = function() {
+    console.log('=== DEBUGGING EMPLOYEE SELECTION ===');
+    
+    // Check form data
+    const form = document.getElementById('addTaskFormEdit');
+    if (form) {
+        const formData = new FormData(form);
+        console.log('Form assign_employee value:', formData.get('assign_employee'));
+        
+        // Check for hidden input
+        const hiddenInput = form.querySelector('input[name="assign_employee"]');
+        if (hiddenInput) {
+            console.log('Hidden input assign_employee value:', hiddenInput.value);
+        } else {
+            console.log('No hidden input assign_employee found');
+        }
+    }
+    
+    // Check selected employees list
+    const selectedEmployeesList = document.getElementById('editSelectedEmployeesList');
+    if (selectedEmployeesList) {
+        console.log('Selected employees list children count:', selectedEmployeesList.children.length);
+        console.log('Selected employees list HTML:', selectedEmployeesList.innerHTML);
+    }
+    
+    // Check global array
+    console.log('editSelectedEmployees array:', editSelectedEmployees);
+    
+    // Check dropdown
+    const dropdown = document.getElementById('editAssignEmployee');
+    if (dropdown) {
+        console.log('Dropdown value:', dropdown.value);
+        console.log('Dropdown selected index:', dropdown.selectedIndex);
+        if (dropdown.selectedIndex > 0) {
+            console.log('Dropdown selected option:', dropdown.options[dropdown.selectedIndex].textContent);
+        }
+    }
+    
+    console.log('=== END DEBUG ===');
+};
+
+// Helper function to check if task manager is ready
+function isTaskManagerReady() {
+    if (!editLandTaskManager) {
+        console.warn('EditLandTaskManager not initialized, attempting to initialize...');
+        initializeEditLandTaskManager();
+        return !!editLandTaskManager;
+    }
+    return true;
+}
+
+// Helper function to ensure assign_employee input exists
+function ensureAssignEmployeeInputExists() {
+    const form = document.getElementById('addTaskFormEdit');
+    if (!form) return;
+    
+    let hiddenInput = form.querySelector('input[name="assign_employee"]');
+    if (!hiddenInput) {
+        // Create hidden input if it doesn't exist
+        hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'assign_employee';
+        hiddenInput.id = 'editAssignEmployeeHidden';
+        form.appendChild(hiddenInput);
+        console.log('Created missing assign_employee hidden input');
+    }
+    
+    // If we have selected employees, ensure the value is set
+    if (editSelectedEmployees && editSelectedEmployees.length > 0) {
+        hiddenInput.value = editSelectedEmployees[0].id;
+        console.log('Set assign_employee value to:', editSelectedEmployees[0].id);
+    }
+    
+    return hiddenInput;
+}

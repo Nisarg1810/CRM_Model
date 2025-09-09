@@ -1,0 +1,738 @@
+/* Employee Dashboard Styles - Full Viewport */
+.dashboard-container {
+    width: 100%;
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+    background: #f8f9fa;
+}
+
+/* Full Width Table */
+.table-responsive {
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.table {
+    width: 100%;
+    margin: 0;
+    border: none;
+}
+
+.table thead th {
+    background: #2c3e50;
+    color: white;
+    border: none;
+    padding: 20px 15px;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-bottom: 2px solid #34495e;
+    transition: background-color 0.2s ease;
+}
+
+.table thead th:hover {
+    background: #34495e;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.table tbody tr:hover {
+    background-color: #f1f3f4;
+    transform: none;
+}
+
+.table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.table td {
+    padding: 20px 15px;
+    vertical-align: middle;
+    border: none;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.table td:last-child {
+    border-right: none;
+}
+
+/* Column Styling */
+.table td strong {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.table td .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Button Group Styling */
+.btn-group-vertical {
+    gap: 6px;
+}
+
+.btn-group-vertical .btn {
+    min-width: 100px;
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn-group-vertical .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Header Section - Full Width */
+.welcome-header {
+    background: #3498db;
+    color: white;
+    padding: 30px;
+    margin: 0;
+    border-radius: 0;
+    margin-bottom: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.welcome-header h2 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 32px;
+}
+
+.welcome-header small {
+    opacity: 0.9;
+    font-size: 18px;
+}
+
+/* Stats Cards - Full Width */
+.row {
+    margin: 0;
+    padding: 30px;
+    background: white;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.row .card {
+    border-radius: 0;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.row .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.row .card-title {
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.row .card h3 {
+    color: #007bff;
+    font-weight: 700;
+    margin: 0;
+    font-size: 36px;
+}
+
+/* Section Headers */
+h4 {
+    padding: 30px 30px 20px 30px;
+    margin: 0;
+    background: white;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Alert Styling - Full Width */
+.alert {
+    border-radius: 0;
+    border: none;
+    margin: 0;
+    padding: 20px 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.alert-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.alert-warning {
+    background: #f39c12;
+    color: white;
+}
+
+.alert-info {
+    background: #17a2b8;
+    color: white;
+}
+
+/* Responsive Design for Full View */
+@media (max-width: 1200px) {
+    .table td {
+        padding: 15px 12px;
+    }
+    
+    .table thead th {
+        padding: 15px 12px;
+    }
+    
+    .welcome-header {
+        padding: 25px;
+    }
+    
+    .row {
+        padding: 25px;
+    }
+    
+    h4 {
+        padding: 25px 25px 15px 25px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 0;
+    }
+    
+    .table-responsive {
+        font-size: 12px;
+    }
+    
+    .table thead th {
+        padding: 12px 8px;
+        font-size: 12px;
+    }
+    
+    .table td {
+        padding: 12px 8px;
+    }
+    
+    .btn-group-vertical {
+        flex-direction: row;
+        gap: 5px;
+    }
+    
+    .btn-group-vertical .btn {
+        min-width: auto;
+        flex: 1;
+        font-size: 10px;
+        padding: 4px 6px;
+    }
+    
+    .welcome-header {
+        padding: 20px;
+    }
+    
+    .welcome-header h2 {
+        font-size: 24px;
+    }
+    
+    .welcome-header small {
+        font-size: 16px;
+    }
+    
+    .row {
+        padding: 20px;
+    }
+    
+    .row .card-title {
+        font-size: 14px;
+    }
+    
+    .row .card h3 {
+        font-size: 28px;
+    }
+    
+    h4 {
+        padding: 20px 20px 15px 20px;
+        font-size: 20px;
+    }
+}
+
+/* Task Card Layout Styles */
+.task-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    padding: 0;
+}
+
+/* Enhanced responsive grid */
+@media (max-width: 1200px) {
+    .task-list {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 18px;
+    }
+}
+
+@media (max-width: 992px) {
+    .task-list {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+    }
+}
+
+.task-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    position: relative;
+    overflow: hidden;
+}
+
+.task-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.task-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    flex: 1;
+    padding-right: 10px;
+}
+
+.task-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.task-status.pending {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.task-status.in-progress {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.task-status.pending-approval {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.task-status.completed {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.task-info {
+    margin-bottom: 15px;
+}
+
+.land-location {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.task-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.task-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.task-detail:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: #2c3e50;
+    text-align: right;
+}
+
+.overdue-badge {
+    background: #dc3545;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 9px;
+    font-weight: 600;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.task-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+
+.btn-action {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    min-width: 140px;
+    flex: 1;
+    white-space: nowrap;
+}
+
+.btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-view {
+    background: #6f42c1;
+    color: white;
+}
+
+.btn-view:hover {
+    background: #5a32a3;
+    color: white;
+}
+
+.btn-start {
+    background: #28a745;
+    color: white;
+}
+
+.btn-start:hover {
+    background: #218838;
+    color: white;
+}
+
+.btn-complete {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-complete:hover {
+    background: #138496;
+    color: white;
+}
+
+.status-badge {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    min-height: 44px;
+    min-width: 140px;
+    flex: 1;
+}
+
+.status-badge.pending-approval {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status-badge.completed {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* Stats Cards Styling */
+.stats-card {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    height: 100%;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Stats cards responsive improvements */
+@media (max-width: 768px) {
+    .stats-card .card-body {
+        padding: 15px 10px;
+    }
+    
+    .stats-card .card-title {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+    
+    .stats-card h3 {
+        font-size: 24px;
+        margin-bottom: 0;
+    }
+}
+
+.stats-card .card-body h3 {
+    color: #007bff;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+.stats-card .card-title {
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Responsive adjustments for task cards */
+@media (max-width: 768px) {
+    .task-list {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 0 15px;
+    }
+    
+    .task-card {
+        padding: 15px;
+    }
+    
+    .task-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .task-status {
+        align-self: flex-start;
+    }
+    
+    .task-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn-action {
+        width: 100%;
+        justify-content: center;
+        min-width: auto;
+        min-height: 48px;
+        font-size: 13px;
+        padding: 14px 20px;
+    }
+    
+    .stats-card {
+        margin-bottom: 10px;
+    }
+    
+    .welcome-header {
+        padding: 15px;
+        text-align: center;
+    }
+    
+    .welcome-header h2 {
+        font-size: 22px;
+    }
+    
+    .welcome-header small {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .task-list {
+        padding: 0 10px;
+        gap: 12px;
+    }
+    
+    .task-card {
+        padding: 12px;
+        border-radius: 8px;
+    }
+    
+    .task-title {
+        font-size: 16px;
+        line-height: 1.3;
+    }
+    
+    .task-details {
+        gap: 6px;
+        margin-bottom: 15px;
+    }
+    
+    .detail-label {
+        font-size: 10px;
+    }
+    
+    .detail-value {
+        font-size: 12px;
+    }
+    
+    .task-actions {
+        gap: 8px;
+    }
+    
+    .btn-action {
+        min-height: 44px;
+        font-size: 12px;
+        padding: 12px 16px;
+        border-radius: 6px;
+    }
+    
+    .welcome-header {
+        padding: 12px;
+    }
+    
+    .welcome-header h2 {
+        font-size: 18px;
+    }
+    
+    .welcome-header small {
+        font-size: 12px;
+    }
+    
+    .stats-card .card-body {
+        padding: 15px 10px;
+    }
+    
+    .stats-card .card-title {
+        font-size: 11px;
+    }
+    
+    .stats-card h3 {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .welcome-header {
+        padding: 15px;
+    }
+    
+    .welcome-header h2 {
+        font-size: 20px;
+    }
+    
+    .welcome-header small {
+        font-size: 14px;
+    }
+    
+    .row {
+        padding: 15px;
+    }
+    
+    .row .card-title {
+        font-size: 12px;
+    }
+    
+    .row .card h3 {
+        font-size: 24px;
+    }
+    
+    .table thead th {
+        padding: 10px 6px;
+        font-size: 11px;
+    }
+    
+    .table td {
+        padding: 10px 6px;
+        font-size: 12px;
+    }
+    
+    .btn-group-vertical .btn {
+        font-size: 9px;
+        padding: 3px 5px;
+    }
+    
+    h4 {
+        padding: 15px 15px 10px 15px;
+        font-size: 18px;
+    }
+}

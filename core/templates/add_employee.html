@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block page_title %}Add Employee{% endblock %}
+
+{% block content %}
+<style>
+    .add-employee-btn {
+        background: #007bff !important;
+        border: none !important;
+        color: white !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .add-employee-btn:hover {
+        background: #0056b3 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3) !important;
+    }
+    
+    .add-employee-btn:focus {
+        background: #0056b3 !important;
+        box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3) !important;
+    }
+    
+    /* Username field validation styling */
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+    
+    .form-control.is-valid {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+    
+    .invalid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #dc3545;
+    }
+</style>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-plus me-2"></i>Add New Employee
+                    </h4>
+                    <button type="button" class="btn btn-light btn-sm" onclick="window.history.back()">
+                        <i class="bi bi-x-lg"></i> Close
+                    </button>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'add_employee' %}" enctype="multipart/form-data" id="addEmployeeForm">
+                        {% csrf_token %}
+                        
+                        <div class="row g-4">
+                            <!-- Employee Type -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Employee Type <span class="text-danger">*</span></label>
+                                <select name="employee_type" class="form-select" required>
+                                    <option value="">Select Employee Type</option>
+                                    <option value="marketing">Marketing</option>
+                                    <option value="backoffice">Back Office</option>
+                                    <option value="legal_team">Legal Team</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <!-- Username -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Username <span class="text-danger">*</span></label>
+                                <input type="text" name="username" class="form-control" placeholder="Enter Username" required>
+                                <small class="text-muted">Choose a unique username for login</small>
+                            </div>
+
+                            <!-- Name -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" name="full_name" class="form-control" placeholder="Enter Full Name" required>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                                <input type="email" name="email" class="form-control" placeholder="Enter Email Address" required>
+                            </div>
+
+                            <!-- Password -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" name="password" id="passwordField" class="form-control" placeholder="Enter Password" required>
+                                    <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-primary" id="generatePassword">
+                                        Generate
+                                    </button>
+                                </div>
+                                <small class="text-muted">Click Generate to create a secure password</small>
+                            </div>
+
+                            <!-- Mobile Number -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Mobile Number <span class="text-danger">*</span></label>
+                                <input type="tel" name="mobile" id="mobileField" class="form-control" placeholder="Enter Mobile Number (10 digits)" required pattern="[0-9]{10}" maxlength="10">
+                                <small class="text-muted">Enter exactly 10 digits</small>
+                                <div id="mobileError" class="text-danger small" style="display: none;">Mobile number must be exactly 10 digits</div>
+                            </div>
+
+                            <!-- Location -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Location <span class="text-danger">*</span></label>
+                                <input type="text" name="location" class="form-control" placeholder="Enter Location" required>
+                                <small class="text-muted">City, State, or Area covered</small>
+                            </div>
+
+                            <!-- Status -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Status <span class="text-danger">*</span></label>
+                                <select name="status" class="form-select" required>
+                                    <option value="">Select Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+
+                            <!-- Address -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Address</label>
+                                <textarea name="address" class="form-control" rows="3" placeholder="Enter Complete Address"></textarea>
+                            </div>
+
+
+
+                            <!-- Profile Photo Upload -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Profile Photo</label>
+                                <div class="upload-area" id="uploadArea">
+                                    <div class="text-center p-4 border-2 border-dashed border-secondary rounded" id="uploadPlaceholder">
+                                        <i class="bi bi-cloud-upload display-4 text-muted"></i>
+                                        <p class="mt-2 mb-0 text-muted">Click to upload or drag and drop</p>
+                                        <p class="text-muted small">PNG, JPG, GIF up to 10MB</p>
+                                        <input type="file" name="profile_pic" id="profilePicInput" class="d-none" accept="image/*">
+                                    </div>
+                                    <div id="imagePreview" class="mt-3 text-center" style="display:none;">
+                                        <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+                                        <button type="button" class="btn btn-sm btn-outline-danger mt-2" id="removeImage">
+                                            <i class="bi bi-trash me-1"></i>Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'admin-dashboard' %}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                                    </a>
+                                    <div class="d-flex gap-2">
+                                        <button type="reset" class="btn btn-outline-secondary">
+                                            <i class="bi bi-arrow-clockwise me-2"></i>Reset
+                                        </button>
+                                        <button type="submit" class="btn btn-lg px-4 add-employee-btn" id="submitBtn">
+                                            <i class="bi bi-check-circle me-2"></i>Add Employee
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// Username validation
+function validateUsername() {
+    const usernameField = document.querySelector('input[name="username"]');
+    const username = usernameField.value.trim();
+    
+    // Check if username is empty
+    if (!username) {
+        usernameField.classList.add('is-invalid');
+        return false;
+    }
+    
+    // Check username format (alphanumeric + underscore only)
+    const usernameRegex = /^[a-zA-Z0-9_]+$/;
+    if (!usernameRegex.test(username)) {
+        usernameField.classList.add('is-invalid');
+        return false;
+    }
+    
+    // Check username length
+    if (username.length < 3 || username.length > 150) {
+        usernameField.classList.add('is-invalid');
+        return false;
+    }
+    
+    usernameField.classList.remove('is-invalid');
+    return true;
+}
+
+// Mobile number validation
+function validateMobileNumber() {
+    const mobileField = document.getElementById('mobileField');
+    const mobileError = document.getElementById('mobileError');
+    const mobileValue = mobileField.value.replace(/\D/g, ''); // Remove non-digits
+    
+    if (mobileValue.length !== 10) {
+        mobileError.style.display = 'block';
+        mobileField.classList.add('is-invalid');
+        return false;
+    } else {
+        mobileError.style.display = 'none';
+        mobileField.classList.remove('is-invalid');
+        mobileField.value = mobileValue; // Set the cleaned value
+        return true;
+    }
+}
+
+// Password generation function
+function generatePassword() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('passwordField').value = password;
+}
+
+// Toggle password visibility
+function togglePasswordVisibility() {
+    const passwordField = document.getElementById('passwordField');
+    const toggleBtn = document.getElementById('togglePassword');
+    const icon = toggleBtn.querySelector('i');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        passwordField.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+
+// File upload functionality
+function setupFileUpload() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('profilePicInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const removeBtn = document.getElementById('removeImage');
+    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+    
+    // Click to upload
+    uploadArea.addEventListener('click', (e) => {
+        if (e.target === uploadArea || e.target.closest('.border-dashed')) {
+            fileInput.click();
+        }
+    });
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#0d6efd';
+        uploadArea.style.backgroundColor = '#f8f9fa';
+    });
+    
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#6c757d';
+        uploadArea.style.backgroundColor = 'transparent';
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#6c757d';
+        uploadArea.style.backgroundColor = 'transparent';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
+        }
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+    
+    // Remove image
+    removeBtn.addEventListener('click', () => {
+        fileInput.value = '';
+        imagePreview.style.display = 'none';
+        uploadPlaceholder.style.display = 'block';
+    });
+    
+    function handleFileSelect(file) {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                imagePreview.style.display = 'block';
+                uploadPlaceholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            alert('Please select an image file.');
+        }
+    }
+}
+
+// Form submission
+function setupFormSubmission() {
+    const form = document.getElementById('addEmployeeForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate username
+        if (!validateUsername()) {
+            showAlert('danger', 'Please enter a valid username (3-150 characters, alphanumeric + underscore only)');
+            return;
+        }
+        
+        // Validate mobile number
+        if (!validateMobileNumber()) {
+            return;
+        }
+        
+        const formData = new FormData(this);
+        const originalText = submitBtn.innerHTML;
+        
+        // Disable submit button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Adding Employee...';
+        
+        fetch('{% url "add_employee" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showAlert('success', data.message);
+                
+                // Reset form
+                form.reset();
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('uploadPlaceholder').style.display = 'block';
+                
+                // Redirect to admin dashboard immediately for fastest refresh
+                window.location.href = '{% url "admin-dashboard" %}';
+            } else {
+                showAlert('danger', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('danger', 'An error occurred while adding the employee.');
+        })
+        .finally(() => {
+            // Re-enable submit button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        });
+    });
+}
+
+// Function to show alerts
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup file upload
+    setupFileUpload();
+    
+    // Setup form submission
+    setupFormSubmission();
+    
+    // Password functionality
+    document.getElementById('generatePassword').addEventListener('click', generatePassword);
+    document.getElementById('togglePassword').addEventListener('click', togglePasswordVisibility);
+    
+    // Username validation on input
+    document.querySelector('input[name="username"]').addEventListener('input', function() {
+        // Remove invalid characters
+        this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
+        validateUsername();
+    });
+    
+    // Username validation on blur
+    document.querySelector('input[name="username"]').addEventListener('blur', validateUsername);
+    
+    // Mobile number validation on input
+    document.getElementById('mobileField').addEventListener('input', function() {
+        // Remove non-digits
+        this.value = this.value.replace(/\D/g, '');
+        validateMobileNumber();
+    });
+    
+    // Mobile number validation on blur
+    document.getElementById('mobileField').addEventListener('blur', validateMobileNumber);
+});
+</script>
+{% endblock %} 

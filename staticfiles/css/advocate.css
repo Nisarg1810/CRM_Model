@@ -1,0 +1,381 @@
+/* Advocate Page Styling */
+
+.advocate-container {
+    padding: 20px;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Header Section */
+.advocate-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.page-title {
+    margin: 0;
+    color: #333;
+    font-weight: 600;
+    font-size: 1.8rem;
+}
+
+.btn-add {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: none;
+    padding: 12px 24px;
+    font-weight: 500;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-add:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+/* Table Styling */
+.card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table-primary {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+}
+
+.table th {
+    border: none;
+    padding: 15px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.table td {
+    padding: 15px 20px;
+    vertical-align: middle;
+    border-color: #f1f3f4;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+/* Search Row Styling */
+.search-row {
+    background-color: #f8f9fa;
+    border-top: 2px solid #e9ecef;
+}
+
+.search-row td {
+    padding: 15px 20px;
+    border: none;
+}
+
+.search-container {
+    position: relative;
+    max-width: 300px;
+}
+
+.search-container input {
+    padding-left: 35px;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    font-size: 0.9rem;
+}
+
+.search-container input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-edit {
+    background: #007bff;
+    border: none;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.btn-edit:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+}
+
+.btn-delete {
+    background: #dc3545;
+    border: none;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.btn-delete:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+}
+
+/* Refresh Button */
+#refreshBtn {
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin-left: 15px;
+    transition: all 0.3s ease;
+}
+
+#refreshBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+}
+
+/* Footer Section */
+.advocate-footer {
+    margin-top: 20px;
+    padding: 15px 0;
+    border-top: 1px solid #e9ecef;
+}
+
+.footer-left {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Modal Styling */
+.modal-content {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* Modal positioning - appear at top instead of middle */
+.modal-dialog {
+    margin: 5vh auto !important;
+    transform: none !important;
+}
+
+.modal.show .modal-dialog {
+    transform: none !important;
+}
+
+/* Override Bootstrap's default centering */
+.modal.fade .modal-dialog {
+    transform: none !important;
+    margin: 5vh auto !important;
+}
+
+/* Force top positioning for all advocate modals */
+#advocateModal .modal-dialog,
+#deleteModal .modal-dialog {
+    margin: 5vh auto !important;
+    transform: none !important;
+}
+
+#advocateModal.show .modal-dialog,
+#deleteModal.show .modal-dialog {
+    transform: none !important;
+}
+
+/* Additional positioning overrides */
+.modal {
+    padding-top: 0 !important;
+}
+
+.modal-dialog-centered {
+    margin: 5vh auto !important;
+    transform: none !important;
+}
+
+/* Ensure modals appear at top */
+.modal.show {
+    padding-top: 0 !important;
+}
+
+.modal.show .modal-dialog {
+    margin: 5vh auto !important;
+    transform: none !important;
+}
+
+/* Maximum specificity override for Bootstrap */
+body .modal.show .modal-dialog {
+    margin: 5vh auto !important;
+    transform: none !important;
+}
+
+/* Specific advocate modal overrides */
+body #advocateModal.show .modal-dialog,
+body #deleteModal.show .modal-dialog {
+    margin: 5vh auto !important;
+    transform: none !important;
+}
+
+.modal-header {
+    border-radius: 10px 10px 0 0;
+    border-bottom: none;
+}
+
+.modal-footer {
+    border-top: none;
+    padding: 20px;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Alert Styling */
+.alert {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #007bff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .advocate-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .btn-add {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .search-container {
+        max-width: 100%;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .btn-edit, .btn-delete {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Empty State Styling */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state h4 {
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+.empty-state p {
+    margin-bottom: 0;
+    font-size: 0.95rem;
+}
+
+/* Fade In Animation */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

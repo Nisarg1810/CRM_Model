@@ -1,0 +1,1961 @@
+/* Admin Land Page - Clean and Responsive Styling */
+
+/* Page Header */
+.page-header {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 20px 25px;
+  margin-bottom: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.add-land-btn {
+  background: #007bff;
+  border: 1px solid #007bff;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: none;
+}
+
+.add-land-btn:hover {
+  background: #0056b3;
+  border-color: #0056b3;
+  color: white;
+}
+
+/* Search Section */
+.search-section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.search-input {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  padding: 8px 12px;
+  font-size: 14px;
+  background: #ffffff;
+}
+
+.search-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+/* Action Buttons Container - Improved positioning */
+.action-buttons-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+  background: linear-gradient(to right, transparent, #f8f9fa);
+  padding-left: 20px;
+  padding-right: 20px;
+  margin-left: -20px;
+  margin-right: -20px;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Action Buttons - Enhanced styling */
+
+/* Input group styling for employee selection */
+.input-group {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.input-group .form-control {
+    border-right: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border: 1px solid #ced4da;
+    border-right: none;
+}
+
+.input-group .btn {
+    border-left: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 25px;
+    border-bottom-right-radius: 25px;
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+    font-weight: 500;
+    padding: 8px 16px;
+    min-width: 45px;
+    height: 38px; /* Ensures button height matches input */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: none;
+    outline: none;
+}
+
+.input-group .btn:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+.input-group .btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 123, 255, 0.3);
+}
+
+.input-group .btn i {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Enhanced Modal Styling to match the design */
+.modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 12px 12px 0 0;
+    padding: 20px 25px;
+}
+
+.modal-title {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.25rem;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.modal-footer {
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    border-radius: 0 0 12px 12px;
+    padding: 20px 25px;
+}
+
+/* Compact and Minimalist Modal Styling for Admin Land */
+#addTaskModalEdit .modal-content,
+#addEmployeeModal .modal-content {
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+#addTaskModalEdit .modal-header,
+#addEmployeeModal .modal-header {
+    background: #ffffff;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0;
+    padding: 15px 20px;
+}
+
+#addTaskModalEdit .modal-title,
+#addEmployeeModal .modal-title {
+    font-weight: 600;
+    color: #495057;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+#addTaskModalEdit .modal-body,
+#addEmployeeModal .modal-body {
+    padding: 20px;
+}
+
+#addTaskModalEdit .modal-footer,
+#addEmployeeModal .modal-footer {
+    background: #ffffff;
+    border-top: 1px solid #dee2e6;
+    border-radius: 0 0 8px 8px;
+    padding: 15px 20px;
+}
+
+/* Compact Form Styling */
+#addTaskModalEdit .form-label,
+#addEmployeeModal .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+}
+
+#addTaskModalEdit .form-control,
+#addEmployeeModal .form-control,
+#addTaskModalEdit .form-select,
+#addEmployeeModal .form-select {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    padding: 8px 12px;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+#addTaskModalEdit .form-control:focus,
+#addEmployeeModal .form-control:focus,
+#addTaskModalEdit .form-select:focus,
+#addEmployeeModal .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.1);
+    outline: none;
+}
+
+/* Compact Button Styling */
+#addTaskModalEdit .btn,
+#addEmployeeModal .btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+#addTaskModalEdit .btn-secondary,
+#addEmployeeModal .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+#addTaskModalEdit .btn-primary.submit-btn,
+#addEmployeeModal .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+/* Compact Spacing */
+#addTaskModalEdit .mb-3,
+#addEmployeeModal .mb-3 {
+    margin-bottom: 15px !important;
+}
+
+#addTaskModalEdit .row,
+#addEmployeeModal .row {
+    margin-left: -8px;
+    margin-right: -8px;
+}
+
+#addTaskModalEdit .col-md-6,
+#addEmployeeModal .col-md-6 {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+/* Compact Input Group */
+#addTaskModalEdit .input-group,
+#addEmployeeModal .input-group {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+}
+
+#addTaskModalEdit .input-group .btn,
+#addEmployeeModal .input-group .btn {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+    font-weight: 500;
+    padding: 8px 12px;
+    min-width: 40px;
+    height: 36px;
+}
+
+/* Additional Compact Styling */
+#addTaskModalEdit .modal-dialog,
+#addEmployeeModal .modal-dialog {
+    max-width: 480px;
+    margin: 1.75rem auto;
+}
+
+#addTaskModalEdit .form-text,
+#addEmployeeModal .form-text {
+    font-size: 11px;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+#addTaskModalEdit .selected-employees-box,
+#addEmployeeModal .selected-employees-box {
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+#addTaskModalEdit .selected-employees-header,
+#addEmployeeModal .selected-employees-header {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 576px) {
+    #addTaskModalEdit .modal-dialog,
+    #addEmployeeModal .modal-dialog {
+        max-width: 95%;
+        margin: 0.5rem auto;
+    }
+    
+    #addTaskModalEdit .modal-body,
+    #addEmployeeModal .modal-body {
+        padding: 15px;
+    }
+    
+    #addTaskModalEdit .modal-header,
+    #addEmployeeModal .modal-header,
+    #addTaskModalEdit .modal-footer,
+    #addEmployeeModal .modal-footer {
+        padding: 12px 15px;
+    }
+}
+
+/* Form styling to match the design */
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 12px 16px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+    outline: none;
+}
+
+/* Button styling to match the design */
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    transform: translateY(-1px);
+}
+
+.btn-primary.submit-btn {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+    font-weight: 600;
+    padding: 10px 25px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary.submit-btn:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+.action-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.action-btn:hover::before {
+  left: 100%;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.refresh-btn {
+  background: #007bff;
+  color: white;
+}
+
+.refresh-btn:hover {
+  background: #0056b3;
+}
+
+.download-btn {
+  background: #dc3545;
+  color: white;
+}
+
+.download-btn:hover {
+  background: #c82333;
+}
+
+.inventory-toggle-btn {
+  background: #17a2b8;
+  color: white;
+}
+
+.inventory-toggle-btn:hover {
+  background: #138496;
+}
+
+.edit-btn {
+  background: #007bff;
+  color: white;
+}
+
+.view-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.inventory-btn {
+  background: #28a745;
+  color: white;
+}
+
+.inventory-btn:hover {
+  background: #218838;
+  border-color: #1e7e34;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* Action buttons container */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-btn {
+  background: #fd7e14;
+  color: white;
+}
+
+.remove-btn {
+  background: #dc3545;
+  color: white;
+}
+
+/* Task Selection Styles */
+.task-selection-container {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.task-selection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.task-selection-title {
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.task-selection-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.task-selection-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: none;
+}
+
+/* Land Table - Enhanced responsive design */
+.land-table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.land-table .table {
+  margin-bottom: 0;
+}
+
+.land-table thead th {
+  background: #f8f9fa;
+  border: none;
+  padding: 15px 12px;
+  font-weight: 600;
+  color: #495057;
+  font-size: 14px;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 0;
+}
+
+/* Fix for table header text overflow on small screens */
+@media (max-width: 768px) {
+  .land-table thead th {
+    font-size: 12px;
+    padding: 10px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px; /* Prevent text from extending too far */
+  }
+  
+  /* Ensure table cells don't cause layout issues */
+  .land-table tbody td {
+    font-size: 12px;
+    padding: 8px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px;
+  }
+  
+  /* Special handling for specific columns */
+  .land-table thead th:nth-child(1), /* Land Id */
+  .land-table tbody td:nth-child(1) {
+    max-width: 60px;
+  }
+  
+  .land-table thead th:nth-child(2), /* Property Holder Name */
+  .land-table tbody td:nth-child(2) {
+    max-width: 100px;
+  }
+  
+  .land-table thead th:nth-child(3), /* Village-Old-New Sr No */
+  .land-table tbody td:nth-child(3) {
+    max-width: 120px;
+  }
+  
+  .land-table thead th:nth-child(4), /* SQ Meter */
+  .land-table tbody td:nth-child(4) {
+    max-width: 70px;
+  }
+  
+  .land-table thead th:nth-child(5), /* Soda Tarikh */
+  .land-table tbody td:nth-child(5),
+  .land-table thead th:nth-child(6), /* Banakhat */
+  .land-table tbody td:nth-child(6),
+  .land-table thead th:nth-child(7) { /* Dastaveg */
+    max-width: 60px;
+  }
+  
+  .land-table thead th:nth-child(8), /* Sata Prakar */
+  .land-table tbody td:nth-child(8) {
+    max-width: 80px;
+  }
+  
+  .land-table thead th:nth-child(9), /* Actions */
+  .land-table tbody td:nth-child(9) {
+    max-width: 50px;
+  }
+}
+
+/* Table body styles */
+.land-table tbody td {
+  padding: 12px;
+  border-top: 1px solid #e9ecef;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.land-table tbody tr:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+@media (max-width: 576px) {
+  .land-table thead th {
+    font-size: 11px;
+    padding: 8px 4px;
+    max-width: 60px;
+  }
+  
+  .land-table tbody td {
+    font-size: 11px;
+    padding: 6px 4px;
+    max-width: 60px;
+  }
+  
+  /* Further reduce column widths for very small screens */
+  .land-table thead th:nth-child(1),
+  .land-table tbody td:nth-child(1) {
+    max-width: 40px;
+  }
+  
+  .land-table thead th:nth-child(2),
+  .land-table tbody td:nth-child(2) {
+    max-width: 80px;
+  }
+  
+  .land-table thead th:nth-child(3),
+  .land-table tbody td:nth-child(3) {
+    max-width: 100px;
+  }
+  
+  .land-table thead th:nth-child(4),
+  .land-table tbody td:nth-child(4) {
+    max-width: 60px;
+  }
+  
+  .land-table thead th:nth-child(5),
+  .land-table tbody td:nth-child(5),
+  .land-table thead th:nth-child(6),
+  .land-table tbody td:nth-child(6),
+  .land-table thead th:nth-child(7) {
+    max-width: 50px;
+  }
+  
+  .land-table thead th:nth-child(8),
+  .land-table tbody td:nth-child(8) {
+    max-width: 70px;
+  }
+  
+  .land-table thead th:nth-child(9),
+  .land-table tbody td:nth-child(9) {
+    max-width: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .land-table thead th {
+    font-size: 10px;
+    padding: 6px 3px;
+    max-width: 50px;
+}
+
+.land-table tbody td {
+    font-size: 10px;
+    padding: 5px 3px;
+    max-width: 50px;
+  }
+  
+  /* Ultra-compact column widths */
+  .land-table thead th:nth-child(1),
+  .land-table tbody td:nth-child(1) {
+    max-width: 35px;
+  }
+  
+  .land-table thead th:nth-child(2),
+  .land-table tbody td:nth-child(2) {
+    max-width: 70px;
+  }
+  
+  .land-table thead th:nth-child(3),
+  .land-table tbody td:nth-child(3) {
+    max-width: 90px;
+  }
+  
+  .land-table thead th:nth-child(4),
+  .land-table tbody td:nth-child(4) {
+    max-width: 50px;
+  }
+  
+  .land-table thead th:nth-child(5),
+  .land-table tbody td:nth-child(5),
+  .land-table thead th:nth-child(6),
+  .land-table tbody td:nth-child(6),
+  .land-table thead th:nth-child(7) {
+    max-width: 45px;
+  }
+  
+  .land-table thead th:nth-child(8),
+  .land-table tbody td:nth-child(8) {
+    max-width: 60px;
+  }
+  
+  .land-table thead th:nth-child(9),
+  .land-table tbody td:nth-child(9) {
+    max-width: 35px;
+  }
+}
+
+/* Table cell content styling */
+.land-id {
+  font-weight: 600;
+  color: #007bff;
+  margin-bottom: 5px;
+}
+
+.land-actions {
+  margin-bottom: 8px;
+}
+
+.tasks-btn {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.edit-remove-links {
+  font-size: 12px;
+}
+
+.edit-remove-links a {
+  color: #6c757d;
+  text-decoration: none;
+  margin-right: 8px;
+}
+
+.edit-remove-links a:hover {
+  color: #007bff;
+}
+
+.property-holder {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 3px;
+}
+
+.village-info {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 3px;
+}
+
+.serial-numbers {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.sq-meter-badge {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.date-info {
+  color: #495057;
+  font-weight: 500;
+}
+
+.sata-prakar-badge {
+  background: #f3e5f5;
+  color: #7b1fa2;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Task Tags Styling */
+.task-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.task-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 15px;
+  background: white;
+  border-radius: 6px;
+  min-height: 60px;
+  border: 2px dashed #dee2e6;
+}
+
+.task-tag, .task-chip {
+  background: #007bff;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: none;
+  border: 1px solid #007bff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.task-tag:hover, .task-chip:hover {
+  background: #0056b3;
+  border-color: #0056b3;
+}
+
+.task-chip.selected {
+  background: #28a745;
+}
+
+.task-chip.not-selected {
+  background: #6c757d;
+}
+
+/* Simple cross icon styling for task chips */
+.task-tag .remove-btn,
+.task-chip .remove-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 6px;
+  line-height: 1;
+}
+
+.task-tag .remove-btn:hover,
+.task-chip .remove-btn:hover {
+  opacity: 0.8;
+}
+
+/* Task section styling to match the image */
+.task-section {
+  margin-bottom: 20px;
+}
+
+.task-section-label {
+  display: block;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 10px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+
+
+/* Modal Responsiveness */
+.modal-dialog {
+  max-width: 90vw;
+}
+
+.modal-xl {
+  max-width: 95vw;
+}
+
+.modal-lg {
+  max-width: 90vw;
+}
+
+/* Responsive Design - Enhanced mobile-first approach */
+@media (max-width: 1400px) {
+  .search-section .col-md-2 {
+    flex: 0 0 calc(33.333% - 10px);
+    max-width: calc(33.333% - 10px);
+  }
+}
+
+@media (max-width: 1200px) {
+  .search-section .row {
+    gap: 15px;
+  }
+  
+  .search-section .col-md-2 {
+    flex: 0 0 calc(50% - 7.5px);
+    max-width: calc(50% - 7.5px);
+  }
+  
+  /* Improve table readability on medium screens */
+  .land-table {
+    font-size: 13px;
+  }
+  
+  .land-table thead th,
+  .land-table tbody td {
+    padding: 10px 8px;
+  }
+}
+
+@media (max-width: 992px) {
+  .search-section .col-md-2 {
+    flex: 0 0 calc(50% - 7.5px);
+    max-width: calc(50% - 7.5px);
+  }
+  
+  /* Stack table columns for better mobile view */
+  .land-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .land-table .table {
+    min-width: 800px;
+  }
+  
+  /* Make modals more mobile-friendly */
+  .modal-dialog {
+    margin: 10px;
+    max-width: calc(100vw - 20px);
+  }
+  
+  .modal-xl {
+    max-width: calc(100vw - 20px);
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    padding: 15px 20px;
+  }
+  
+  .page-header h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+  
+  .add-land-btn {
+    align-self: center;
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .search-section {
+    padding: 15px;
+  }
+  
+  .search-section .row {
+    gap: 10px;
+  }
+
+  .search-section .col-md-2 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  /* Improved action buttons on mobile */
+  .action-buttons-container {
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+    padding-top: 20px;
+  }
+  
+  .action-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+  
+  /* Enhanced table mobile experience */
+  .land-table {
+    font-size: 13px;
+    border-radius: 0;
+    margin: 0 -15px 20px -15px;
+  }
+  
+  .land-table .table {
+    min-width: 700px;
+  }
+  
+  .land-table thead th,
+  .land-table tbody td {
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+  
+  /* Improve task tags on mobile */
+  .task-tags {
+    padding: 12px;
+    gap: 6px;
+  }
+  
+  .task-tags-container {
+    padding: 12px;
+    gap: 6px;
+  }
+  
+  .task-tag, .task-chip {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+  
+  /* Better modal handling on mobile */
+  .modal-body {
+    padding: 15px;
+  }
+  
+  .modal-body .row {
+    margin: 0;
+  }
+  
+  .modal-body .col-md-6 {
+    padding: 0 0 15px 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-header {
+    padding: 15px 20px;
+  }
+  
+  .search-section {
+    padding: 12px;
+    margin: 0 -15px 20px -15px;
+    border-radius: 0;
+  }
+  
+  /* Enhanced action buttons on small screens */
+  .action-buttons-container {
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+    padding-top: 25px;
+  }
+  
+  .action-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+  
+  /* Optimize table for very small screens */
+  .land-table {
+    font-size: 12px;
+    margin: 0 -20px 20px -20px;
+  }
+  
+  .land-table .table {
+    min-width: 600px;
+  }
+  
+  .land-table thead th,
+  .land-table tbody td {
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+  
+  /* Compact task tags for small screens */
+  .task-tags {
+    padding: 10px;
+    gap: 4px;
+  }
+  
+  .task-tags-container {
+    padding: 10px;
+    gap: 4px;
+  }
+  
+  .task-tag, .task-chip {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  
+  /* Mobile-optimized modals */
+  .modal-dialog {
+    margin: 5px;
+    max-width: calc(100vw - 10px);
+  }
+  
+  .modal-xl {
+    max-width: calc(100vw - 10px);
+  }
+  
+  .modal-body {
+    padding: 12px;
+  }
+  
+  .modal-body .col-md-6 {
+    padding: 0 0 12px 0;
+  }
+  
+  /* Stack form elements vertically on very small screens */
+  .modal-body .row .col-md-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .add-land-btn {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+  
+  .land-table .table {
+    min-width: 500px;
+  }
+  
+  .land-table thead th,
+  .land-table tbody td {
+    padding: 6px 4px;
+    font-size: 10px;
+  }
+  
+  /* Ultra-compact task tags */
+  .task-tags,
+  .task-tags-container {
+    padding: 8px;
+    gap: 3px;
+  }
+  
+  .task-tag, .task-chip {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+  
+  /* Optimize search inputs for very small screens */
+  .search-input {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+  
+  .form-label {
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .page-header,
+  .search-section,
+  .action-btn {
+    display: none;
+  }
+  
+  .land-table {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+  
+  .land-table thead th {
+    background: #f0f0f0 !important;
+    color: #000 !important;
+  }
+  
+  .land-table tbody tr:nth-child(even) {
+    background: #f9f9f9 !important;
+  }
+}
+
+/* Accessibility Improvements */
+.land-table th[scope="col"] {
+  position: relative;
+}
+
+.land-table th[scope="col"]::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #007bff;
+}
+
+/* Focus States for Keyboard Navigation */
+.land-table tbody tr:focus-within {
+  outline: 2px solid #007bff;
+  outline-offset: -2px;
+}
+
+.search-input:focus,
+.search-select:focus,
+.action-btn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .land-table {
+    border: 2px solid #000;
+  }
+  
+  .land-table thead th {
+    border: 2px solid #000;
+  }
+  
+  .search-section {
+    border: 2px solid #000;
+  }
+  
+  .action-btn {
+    border: 2px solid #000;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .land-table tbody tr:hover,
+  .action-btn:hover {
+    transform: none;
+  }
+}
+
+/* Touch-friendly improvements for mobile devices */
+@media (hover: none) and (pointer: coarse) {
+  .action-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .task-tag, .task-chip {
+    min-height: 32px;
+    min-width: 32px;
+  }
+  
+  .search-input {
+    min-height: 44px;
+  }
+  
+  .form-select {
+    min-height: 44px;
+  }
+}
+
+/* Landscape orientation optimizations */
+@media (max-height: 500px) and (orientation: landscape) {
+  .page-header {
+    padding: 10px 20px;
+    margin-bottom: 15px;
+  }
+  
+  .search-section {
+    padding: 10px 20px;
+    margin-bottom: 15px;
+  }
+  
+  .modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+}
+
+/* Mobile Enhancement Styles */
+.scroll-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0; }
+  20%, 80% { opacity: 1; }
+}
+
+/* Touch-friendly improvements */
+.touch-device .action-btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.touch-device .task-tag,
+.touch-device .task-chip {
+  min-height: 32px;
+  min-width: 32px;
+}
+
+.touch-device .search-input,
+.touch-device .form-select {
+  min-height: 44px;
+}
+
+/* Enhanced table responsiveness */
+.table-responsive {
+  position: relative;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #007bff #f8f9fa;
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #007bff;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #0056b3;
+}
+
+/* Prevent table header text overflow on all screen sizes */
+.land-table thead th {
+  word-wrap: break-word;
+  word-break: keep-all;
+  hyphens: none;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 0;
+  position: relative;
+}
+
+/* Ensure table headers don't repeat or overflow */
+.land-table thead th::before,
+.land-table thead th::after {
+  content: none !important;
+}
+
+.land-table thead th * {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Prevent any pseudo-elements from causing text repetition */
+.land-table thead th:before,
+.land-table thead th:after {
+  display: none !important;
+}
+
+/* Ensure table doesn't break layout on any screen size */
+.land-table {
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+.land-table .table {
+  min-width: 800px; /* Minimum width to prevent squashing */
+  table-layout: fixed;
+}
+
+/* Mobile-first table improvements */
+@media (max-width: 768px) {
+  .table-responsive {
+    border-radius: 0;
+    margin: 0 -15px;
+  }
+  
+  .table-responsive::before {
+    content: '← Swipe to navigate →';
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 123, 255, 0.9);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 11px;
+    z-index: 1000;
+    opacity: 0.8;
+  }
+  
+  .land-table {
+    margin-bottom: 0;
+  }
+  
+  .land-table .table {
+    min-width: 700px;
+  }
+}
+
+/* Enhanced mobile form styling */
+@media (max-width: 576px) {
+  .search-section .form-label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #495057;
+  }
+  
+  .search-section .search-input {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: all 0.2s ease;
+  }
+  
+  .search-section .search-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  }
+  
+  .action-buttons-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    margin: 20px -15px 0 -15px;
+    padding: 20px;
+  }
+}
+
+/* Accessibility improvements for mobile */
+@media (max-width: 768px) {
+  .land-table thead th {
+    font-size: 13px;
+    padding: 12px 8px;
+  }
+  
+  .land-table tbody td {
+    font-size: 12px;
+    padding: 10px 8px;
+  }
+  
+  /* Improve contrast for mobile */
+  .land-table thead th {
+    background: #e9ecef;
+    color: #495057;
+    font-weight: 700;
+  }
+  
+  .land-table tbody tr:hover {
+    background-color: #e3f2fd;
+  }
+}
+
+/* Mobile modal optimizations */
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 10px;
+    max-width: calc(100vw - 20px);
+  }
+  
+  .modal-body {
+    padding: 15px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  
+  .modal-body .row {
+    margin: 0;
+  }
+  
+  .modal-body .col-md-6 {
+    padding: 0 0 15px 0;
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  /* Stack form elements vertically on mobile */
+  .modal-body .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .modal-body .form-label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .modal-body .form-control,
+  .modal-body .form-select {
+    font-size: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+  }
+  
+  .modal-body .form-control:focus,
+  .modal-body .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  }
+}
+
+/* Enhanced mobile task selection */
+@media (max-width: 768px) {
+  .task-selection-container {
+    padding: 15px;
+    margin: 15px 0;
+  }
+  
+  .task-section {
+    margin-bottom: 15px;
+  }
+  
+  .task-section-label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .task-tags-container {
+    padding: 12px;
+    gap: 8px;
+    min-height: 50px;
+  }
+  
+  .task-chip {
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 20px;
+  }
+}
+
+/* Mobile-friendly action buttons */
+@media (max-width: 576px) {
+  .action-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  .action-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Improved mobile table cell spacing */
+@media (max-width: 480px) {
+  .land-table tbody td {
+    padding: 8px 6px;
+    line-height: 1.3;
+  }
+  
+  .land-id {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  
+  .land-actions {
+    margin-bottom: 6px;
+  }
+  
+  .tasks-btn {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+  
+  .edit-remove-links {
+    font-size: 11px;
+  }
+  
+  .property-holder {
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+  
+  .village-info {
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+  
+  .serial-numbers {
+    font-size: 11px;
+  }
+  
+  .sq-meter-badge,
+  .sata-prakar-badge {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+  
+  .date-info {
+    font-size: 12px;
+  }
+} 
+
+/* Selected Tasks - Table Layout */
+.selected-tasks-table-container {
+  margin-top: 15px;
+}
+
+.selected-tasks-table {
+  background: white;
+  border-radius: 6px;
+  border: 1px dashed #ced4da;
+  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 15px 0;
+}
+
+.selected-tasks-table thead th {
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  color: #495057;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 30px;
+  text-align: center;
+}
+
+.selected-tasks-table tbody td {
+  padding: 12px 30px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+/* Add spacing between columns */
+.selected-tasks-table th:nth-child(1),
+.selected-tasks-table td:nth-child(1) {
+  padding-left: 50px;
+  padding-right: 80px;
+}
+
+.selected-tasks-table th:nth-child(2),
+.selected-tasks-table td:nth-child(2) {
+  padding-left: 80px;
+  padding-right: 80px;
+}
+
+.selected-tasks-table th:nth-child(3),
+.selected-tasks-table td:nth-child(3) {
+  padding-left: 80px;
+  padding-right: 50px;
+}
+
+.selected-tasks-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.task-row {
+  transition: background-color 0.2s ease;
+}
+
+.task-row:hover {
+  background-color: #f8f9fa;
+}
+
+.task-name {
+  font-weight: 500;
+  color: #495057;
+  margin-right: 8px;
+}
+
+.employee-badge {
+  display: inline;
+  color: #495057;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0;
+  padding: 0;
+}
+
+/* Employee Selection Checkboxes */
+.employee-selection-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.employee-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  white-space: nowrap;
+}
+
+.employee-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #007bff;
+}
+
+.employee-checkbox-label {
+  font-size: 12px;
+  color: #495057;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 0;
+  user-select: none;
+}
+
+.employee-checkbox-item:hover {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin: -2px;
+}
+
+.completion-days {
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+/* Editable Completion Days */
+.completion-days-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.completion-days-input {
+  width: 60px;
+  padding: 4px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #495057;
+  text-align: center;
+  background: #ffffff;
+}
+
+.completion-days-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+.completion-days-input:hover {
+  border-color: #007bff;
+}
+
+.completion-days-label {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.remove-btn {
+  background: #dc3545;
+  border: none;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  float: right;
+}
+
+.remove-btn:hover {
+  background: #c82333;
+}
+
+.employee-checkbox-label {
+  font-size: 12px;
+  color: #495057;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 0;
+  user-select: none;
+}
+
+.employee-checkbox-item:hover {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin: -2px;
+}
+
+.completion-days {
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+/* Editable Completion Days */
+.completion-days-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.completion-days-input {
+  width: 60px;
+  padding: 4px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #495057;
+  text-align: center;
+  background: #ffffff;
+}
+
+.completion-days-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+.completion-days-input:hover {
+  border-color: #007bff;
+}
+
+.completion-days-label {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* Remove button for tasks */
+.remove-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.remove-btn:hover {
+  background: #c82333;
+}
+
+/* Task input group styling */
+.task-input-group {
+  margin-bottom: 20px;
+}
+
+/* Task tags styling */
+.task-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.task-chip {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #007bff;
+  border: 1px solid #007bff;
+  border-radius: 20px;
+  font-size: 12px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.task-chip:hover {
+  background: #0056b3;
+  border-color: #0056b3;
+}
+
+.task-chip.custom-task {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.task-chip.default-task {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+ 
